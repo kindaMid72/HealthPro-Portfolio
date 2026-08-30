@@ -1,37 +1,24 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Docs — Website Profil Dokter Spesialis
 
-## Getting Started
+Susunan dokumen ini dibangun mengikuti dua pola standar untuk mengarahkan AI coding agent (per Agustus 2026):
+- **AGENTS.md** — instruksi teknis pendek yang dibaca agent tiap sesi (konvensi de facto lintas Claude Code, Cursor, Codex, dll).
+- **Spec-Driven Development** (pola ala GitHub Spec Kit: constitution → spec → plan → tasks) — dipecah jadi dokumen di `docs/`.
 
-First, run the development server:
+## Urutan Baca / Alur Kerja
+1. `AGENTS.md` — root, selalu dibaca agent duluan.
+2. `docs/00-constitution.md` — aturan non-negotiable proyek.
+3. `docs/01-spec.md` — requirement & scope (functional/non-functional requirements).
+4. `docs/02-content-data.md` — kontrak data dokter (isi manual, jangan dikarang agent).
+5. `docs/03-sitemap.md` — struktur halaman.
+6. `docs/04-design.md` — arahan visual (✅ final: modern-calm, teal+amber, Plus Jakarta Sans/Inter).
+7. `docs/05-tech-plan.md` — stack & arsitektur overview (Next.js + Google Sheets sebagai CMS).
+8. `docs/06-tasks.md` — breakdown fase kerja + status gate (update manual oleh orchestrator).
+9. `docs/07-data-architecture.md` — detail teknis penyimpanan & manipulasi data.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Status Proyek (28 Agustus 2026)
+- Constitution, spec, sitemap, design, tech-plan, data-architecture: ✅ selesai/final.
+- Content data (`02-content-data.md`): 🔴 belum diisi — development bisa mulai dengan data dummy.
+- Tasks: Fase 0 (Setup) 🟢 siap dikerjakan agent.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# HealthPro-Portfolio
+## Cara Pakai
+Kasih seluruh isi repo ini (termasuk `AGENTS.md`) ke AI coding agent (Claude Code, Cursor, dll) sebagai starting point. Agent akan otomatis membaca `AGENTS.md` dan merujuk `docs/` sesuai kebutuhan. Orchestrator (kamu) tetap approve tiap fase di `06-tasks.md` sebelum agent lanjut ke fase berikutnya.
