@@ -1,70 +1,66 @@
 /**
- * app/page.tsx — Home Page (Fase 0: verifikasi data pipeline)
+ * app/page.tsx — Home Page (Fase 1: semua section terpasang)
  *
- * Fase 0 DoD: console.log data dari Sheet/fixture jalan tanpa error.
- * Komponen UI lengkap akan dibangun di Fase 1.
+ * Server Component: fetch data via getAllSiteData(), lalu render semua section.
+ * Logika resolusi CTA booking diselesaikan di sini sebelum diturunkan ke komponen.
  */
 
-import { getAllSiteData } from '@/lib/sheets';
+import { getAllSiteData } from "@/lib/sheets";
+import Navbar from "@/components/Navbar";
+import HeroSection from "@/components/HeroSection";
+import AboutSection from "@/components/AboutSection";
+import ServicesSection from "@/components/ServicesSection";
+import LocationsSection from "@/components/LocationsSection";
+import ContactSection from "@/components/ContactSection";
+import StickyCTA from "@/components/StickyCTA";
 
 export default async function Home() {
-  // --- DoD Fase 0: fetch data & log ke server console ---
-  const siteData = await getAllSiteData();
+  const { profile, locations, services } = await getAllSiteData();
 
-  console.log('=== [Fase 0 DoD] Data Pipeline Test ===');
-  console.log('[profile]', JSON.stringify(siteData.profile, null, 2));
-  console.log('[locations]', JSON.stringify(siteData.locations, null, 2));
-  console.log('[services]', JSON.stringify(siteData.services, null, 2));
-  console.log('=== End Data Pipeline Test ===');
+  /**
+   * Resolusi booking CTA:
+   * - Utama: profile.booking_url (global)
+   * - Fallback: nomor WA dari lokasi pertama yang punya kontak WA
+   *
+   * FR-4: kalau booking_url kosong → jangan tampilkan tombol booking broken.
+   * Ganti dengan CTA WhatsApp kalau tersedia.
+   */
+  const bookingUrl = profile.booking_url ?? null;
+  const firstWa = locations.find((l) => l.whatsapp)?.whatsapp;
+  const whatsappFallback = firstWa
+    ? `https://wa.me/62${firstWa.replace(/\D/g, "").replace(/^0/, "")}`
+    : null;
 
   return (
-    <main className="min-h-screen p-8 font-sans">
-      {/* Fase 0 — placeholder page, akan diganti UI di Fase 1 */}
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-sm font-semibold text-green-700 mb-1">
-            ✅ Fase 0 DoD — Data pipeline aktif
-          </p>
-          <p className="text-xs text-green-600">
-            Cek terminal server (bukan browser console) untuk melihat data yang berhasil di-fetch.
-          </p>
-        </div>
+    <>
+      {/* Skip to main content — accessibility */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-20 focus:z-50 focus:rounded focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg"
+      >
+        Langsung ke konten utama
+      </a>
 
-        <section>
-          <h1 className="text-xl font-bold text-gray-800">
-            {siteData.profile.full_name}
-          </h1>
-          <p className="text-gray-600">{siteData.profile.specialty}</p>
-        </section>
+      <Navbar doctorName={profile.full_name} />
 
-        <section>
-          <h2 className="text-lg font-semibold text-gray-700 mb-2">Lokasi Praktik</h2>
-          <ul className="space-y-2">
-            {siteData.locations.map((loc, i) => (
-              <li key={i} className="p-3 bg-gray-50 rounded border text-sm">
-                <strong>{loc.location_name}</strong>
-                <br />
-                <span className="text-gray-500">{loc.practice_hours}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
+      <main id="main-content">
+        <HeroSection
+          profile={profile}
+          bookingUrl={bookingUrl}
+          whatsappFallback={whatsappFallback}
+        />
+        <AboutSection profile={profile} />
+        <ServicesSection services={services} />
+        <LocationsSection locations={locations} globalBookingUrl={bookingUrl} />
+        <ContactSection profile={profile} locations={locations} />
+      </main>
 
-        <section>
-          <h2 className="text-lg font-semibold text-gray-700 mb-2">Layanan</h2>
-          <ul className="space-y-2">
-            {siteData.services.map((svc, i) => (
-              <li key={i} className="p-3 bg-gray-50 rounded border text-sm">
-                <strong>{svc.service_name}</strong>
-              </li>
-            ))}
-          </ul>
-        </section>
+      <StickyCTA bookingUrl={bookingUrl} whatsappFallback={whatsappFallback} />
 
-        <p className="text-xs text-gray-400 pt-4 border-t">
-          Halaman ini adalah placeholder Fase 0. Desain UI akan diimplementasikan di Fase 1.
-        </p>
-      </div>
-    </main>
+      {/* Spacer bawah di mobile agar konten tidak tertutup StickyCTA */}
+      {(bookingUrl || whatsappFallback) && (
+        <div className="h-20 md:hidden" aria-hidden="true" />
+      )}
+    </>
   );
 }

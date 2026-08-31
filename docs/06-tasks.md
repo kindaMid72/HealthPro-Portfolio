@@ -14,10 +14,10 @@ Status: ✅ Selesai (31 Agustus 2026)
 
 
 ## Fase 1 — Struktur Halaman (Static, data dummy)
-Status: 🔲 Belum aktif
-- [ ] Bangun semua section di `03-sitemap.md` sebagai komponen React, pakai data dummy dari Fase 0.
-- [ ] Implementasi CTA booking (redirect ke `booking_url` dari data, FR-2).
-- [ ] Implementasi sticky bottom CTA di mobile.
+Status: ✅ Selesai (31 Agustus 2026)
+- [x] Bangun semua section di `03-sitemap.md` sebagai komponen React, pakai data dummy dari Fase 0.
+- [x] Implementasi CTA booking (redirect ke `booking_url` dari data, FR-2).
+- [x] Implementasi sticky bottom CTA di mobile.
 - **Definition of Done**: semua section tampil, navigasi/anchor jalan, belum perlu cantik — fokus struktur & data binding benar.
 
 ## Fase 2 — Styling & Responsif

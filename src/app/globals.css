@@ -5,6 +5,8 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Tinggi navbar desktop, untuk scroll-padding-top anchor links */
+  --navbar-height: 64px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -16,6 +18,8 @@
 
 html {
   height: 100%;
+  /* Agar anchor link tidak tertutup sticky navbar */
+  scroll-padding-top: var(--navbar-height);
 }
 
 html,
@@ -44,6 +48,11 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+/* Safe area inset untuk StickyCTA di iPhone (home indicator) */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 @media (prefers-color-scheme: dark) {
