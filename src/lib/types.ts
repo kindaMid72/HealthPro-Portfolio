@@ -27,8 +27,8 @@ export const ProfileSchema = z.object({
    * Optional di schema supaya build tidak gagal total selama masih kosong.
    * Komponen CTA WAJIB fallback ke WhatsApp kalau field ini kosong (lihat FR-4).
    */
-  booking_url: z.string().url().optional(),
-  email: z.string().email().optional(),
+  booking_url: z.union([z.string().url(), z.literal('')]).optional().transform(e => e === '' ? undefined : e),
+  email: z.union([z.string().email(), z.literal('')]).optional().transform(e => e === '' ? undefined : e),
   social_links: z.string().optional(),
   personal_story: z.string().optional(),
 });
@@ -48,7 +48,7 @@ export const LocationSchema = z.object({
    * booking_url_override: kalau lokasi ini punya link booking sendiri,
    * berbeda dari Profile.booking_url global.
    */
-  booking_url_override: z.string().url().optional(),
+  booking_url_override: z.union([z.string().url(), z.literal('')]).optional().transform(e => e === '' ? undefined : e),
 });
 
 export const LocationsListSchema = z.array(LocationSchema);

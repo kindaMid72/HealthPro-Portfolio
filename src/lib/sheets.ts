@@ -96,6 +96,8 @@ async function loadFallbackProfile(): Promise<Profile> {
       photo_url: '/images/dr-profile-placeholder.jpg',
       education: '[BELUM DIISI]',
       experience_history: '[BELUM DIISI]',
+      booking_url: undefined,
+      email: undefined,
     };
   }
 }

@@ -1,15 +1,29 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Inter } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+/**
+ * Plus Jakarta Sans — heading font (Semibold/Bold)
+ * Modern, sedikit karakter tapi tetap profesional.
+ * Sesuai 04-design.md.
+ */
+const plusJakartaSans = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap", // cegah CLS saat font load
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+/**
+ * Inter — body font (Regular/Medium)
+ * Sangat terbaca di ukuran kecil, penting untuk keterbacaan
+ * konten medis lintas usia. Sesuai 04-design.md.
+ */
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  weight: ["400", "500"],
+  display: "swap",
 });
 
 /**
@@ -24,7 +38,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="id" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html
+      lang="id"
+      className={`${plusJakartaSans.variable} ${inter.variable}`}
+    >
       <body className="antialiased">{children}</body>
     </html>
   );

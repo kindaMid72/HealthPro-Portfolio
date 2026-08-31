@@ -5,8 +5,12 @@
  * Nomor WA diambil dari semua lokasi yang punya kontaknya (deduplicated).
  * Email diambil dari profile.
  * Kalau semua kosong → fallback message (FR-4).
+ *
+ * Styling: sesuai 04-design.md — background off-white, ikon Lucide,
+ *          hover via CSS class saja (Server Component compatible).
  */
 
+import { MessageCircle, Phone, Mail } from "lucide-react";
 import { Profile, Location } from "@/lib/types";
 
 interface ContactSectionProps {
@@ -21,6 +25,54 @@ function toWaLink(wa: string): string {
     ? `62${digits.slice(1)}`
     : digits;
   return `https://wa.me/${normalized}`;
+}
+
+interface ContactRowProps {
+  id: string;
+  icon: React.ReactNode;
+  label: string;
+  href: string;
+  displayText: string;
+  isExternal?: boolean;
+}
+
+function ContactRow({
+  id,
+  icon,
+  label,
+  href,
+  displayText,
+  isExternal = false,
+}: ContactRowProps) {
+  return (
+    <div
+      id={id}
+      className="flex items-center gap-4 rounded-xl px-5 py-4 bg-surface border border-border hover:shadow-md hover:border-primary/30 hover:-translate-y-0.5 transition-all duration-300 group"
+    >
+      <span
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors"
+        aria-label={label}
+      >
+        {icon}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p
+          className="mb-1 text-xs font-semibold uppercase tracking-wider text-text-body/70"
+        >
+          {label}
+        </p>
+        <a
+          href={href}
+          {...(isExternal
+            ? { target: "_blank", rel: "noopener noreferrer" }
+            : {})}
+          className="truncate text-base font-semibold text-primary hover:text-primary-dark transition-colors duration-200 block"
+        >
+          {displayText}
+        </a>
+      </div>
+    </div>
+  );
 }
 
 export default function ContactSection({
@@ -44,84 +96,74 @@ export default function ContactSection({
     <section
       id="kontak"
       aria-labelledby="kontak-heading"
-      className="border-t border-gray-100 bg-gray-50 px-4 py-16 md:py-24"
+      className="section-divider section-spacing px-4 bg-bg"
     >
       <div className="mx-auto max-w-3xl">
         <h2
           id="kontak-heading"
-          className="mb-8 text-2xl font-bold text-gray-900 md:text-3xl"
+          className="mb-10 text-3xl font-bold md:text-4xl text-primary-dark font-heading tracking-tight"
         >
           Hubungi Kami
         </h2>
 
         {!hasAnyContact ? (
-          <p id="contact-empty" className="text-gray-500">
+          <p id="contact-empty" className="text-text-body text-center py-8">
             Informasi kontak segera hadir.
           </p>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* WhatsApp — satu baris per nomor unik */}
             {allWhatsapps.map((wa, i) => (
-              <div
-                key={i}
+              <ContactRow
+                key={`wa-${i}`}
                 id={`contact-wa-item-${i}`}
-                className="flex items-center gap-3"
-              >
-                <span
-                  className="shrink-0 text-sm font-medium text-gray-700"
-                  aria-label="WhatsApp"
-                >
-                  WhatsApp
-                </span>
-                <a
-                  id={`contact-wa-${i}`}
-                  href={toWaLink(wa)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-green-700 underline-offset-2 hover:underline"
-                >
-                  {wa}
-                </a>
-              </div>
+                icon={
+                  <MessageCircle
+                    size={20}
+                    className="text-primary"
+                    aria-hidden="true"
+                  />
+                }
+                label="WhatsApp"
+                href={toWaLink(wa)}
+                displayText={wa}
+                isExternal
+              />
             ))}
 
             {/* Telepon */}
             {allPhones.map((phone, i) => (
-              <div
-                key={i}
+              <ContactRow
+                key={`phone-${i}`}
                 id={`contact-phone-item-${i}`}
-                className="flex items-center gap-3"
-              >
-                <span className="shrink-0 text-sm font-medium text-gray-700">
-                  Telepon
-                </span>
-                <a
-                  id={`contact-phone-${i}`}
-                  href={`tel:${phone}`}
-                  className="text-sm text-blue-700 underline-offset-2 hover:underline"
-                >
-                  {phone}
-                </a>
-              </div>
+                icon={
+                  <Phone
+                    size={20}
+                    className="text-primary"
+                    aria-hidden="true"
+                  />
+                }
+                label="Telepon"
+                href={`tel:${phone}`}
+                displayText={phone}
+              />
             ))}
 
             {/* Email (dari profile, opsional) */}
             {profile.email && (
-              <div
+              <ContactRow
                 id="contact-email-item"
-                className="flex items-center gap-3"
-              >
-                <span className="shrink-0 text-sm font-medium text-gray-700">
-                  Email
-                </span>
-                <a
-                  id="contact-email"
-                  href={`mailto:${profile.email}`}
-                  className="text-sm text-blue-700 underline-offset-2 hover:underline"
-                >
-                  {profile.email}
-                </a>
-              </div>
+                icon={
+                  <Mail
+                    size={20}
+                    className="text-primary"
+                    aria-hidden="true"
+                  />
+                }
+                label="Email"
+                href={`mailto:${profile.email}`}
+                displayText={profile.email}
+              />
             )}
           </div>
         )}

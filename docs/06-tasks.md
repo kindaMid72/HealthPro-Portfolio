@@ -21,16 +21,16 @@ Status: ✅ Selesai (31 Agustus 2026)
 - **Definition of Done**: semua section tampil, navigasi/anchor jalan, belum perlu cantik — fokus struktur & data binding benar.
 
 ## Fase 2 — Styling & Responsif
-Status: 🔲 Belum aktif
-- [ ] Terapkan arahan desain dari `04-design.md` (setelah dikonfirmasi user).
-- [ ] Pastikan responsif mobile (375px) & desktop (1280px) sesuai FR-5.
-- [ ] Optimasi gambar (next/image, lazy load).
+Status: ✅ Selesai (31 Agustus 2026)
+- [x] Terapkan arahan desain dari `04-design.md` (setelah dikonfirmasi user).
+- [x] Pastikan responsif mobile (375px) & desktop (1280px) sesuai FR-5.
+- [x] Optimasi gambar (next/image, lazy load).
 - **Definition of Done**: tampilan matching arahan desain, lolos cek responsif manual di 2 breakpoint.
 
 ## Fase 3 — Integrasi Data Real + ISR
 Status: 🔲 Belum aktif
 - [ ] Ganti data dummy dengan data asli dari `02-content-data.md` (setelah user isi).
-- [ ] Setup ISR revalidate (default: 1 jam, sesuai `05-tech-plan.md`).
+- [ ] Setup ISR revalidate ass(default: 1 jam, sesuai `05-tech-plan.md`).
 - [ ] Uji: ubah 1 field di Sheet, verifikasi muncul di website setelah revalidate.
 - **Definition of Done**: acceptance criteria di `01-spec.md` bagian "data diambil dari Google Sheet" terpenuhi.
 
