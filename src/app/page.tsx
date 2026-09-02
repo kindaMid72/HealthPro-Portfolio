@@ -3,6 +3,9 @@
  *
  * Server Component: fetch data via getAllSiteData(), lalu render semua section.
  * Logika resolusi CTA booking diselesaikan di sini sebelum diturunkan ke komponen.
+ *
+ * CATATAN: Navbar menggunakan `fixed` positioning, sehingga dibutuhkan
+ * spacer <div className="h-16" /> setelah Navbar agar konten tidak tertutup.
  */
 
 import { getAllSiteData } from "@/lib/sheets";
@@ -13,6 +16,7 @@ import ServicesSection from "@/components/ServicesSection";
 import LocationsSection from "@/components/LocationsSection";
 import ContactSection from "@/components/ContactSection";
 import StickyCTA from "@/components/StickyCTA";
+import Footer from "@/components/Footer";
 
 export default async function Home() {
   const { profile, locations, services } = await getAllSiteData();
@@ -36,12 +40,15 @@ export default async function Home() {
       {/* Skip to main content — accessibility */}
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-20 focus:z-50 focus:rounded focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-20 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg focus:text-primary"
       >
         Langsung ke konten utama
       </a>
 
       <Navbar doctorName={profile.full_name} />
+
+      {/* Spacer kompensasi fixed navbar (h-16 = 64px = tinggi navbar) */}
+      <div className="h-16" aria-hidden="true" />
 
       <main id="main-content">
         <HeroSection
@@ -54,6 +61,8 @@ export default async function Home() {
         <LocationsSection locations={locations} globalBookingUrl={bookingUrl} />
         <ContactSection profile={profile} locations={locations} />
       </main>
+
+      <Footer />
 
       <StickyCTA bookingUrl={bookingUrl} whatsappFallback={whatsappFallback} />
 
