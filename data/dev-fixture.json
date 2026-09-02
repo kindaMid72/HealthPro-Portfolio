@@ -1,14 +1,14 @@
 {
   "profile": {
-    "full_name": "[CONTOH] dr. Nama Dokter, Sp.THT-BKL",
-    "specialty": "[CONTOH] Spesialis Telinga Hidung Tenggorok (THT-BKL)",
+    "full_name": "dr. Yuliana, Sp.THTBKL, M.Kes",
+    "specialty": "Spesialis Telinga Hidung Tenggorok (THT-BKL)",
     "sub_specialty": "",
-    "str_sip_display": "[CONTOH] 1234567890123456",
+    "str_sip_display": "[BELUM DIISI]",
     "photo_url": "/images/dr-profile-placeholder.jpg",
-    "education": "[CONTOH] S1: Universitas Contoh, Lulus 2005 | Spesialis: Universitas Contoh, Lulus 2012",
-    "certifications": "[CONTOH] Sertifikat Kompetensi Dokter Spesialis THT-BKL",
-    "experience_history": "[CONTOH] RSUD Contoh, 2012-2020 | Praktik Mandiri, 2020-sekarang",
-    "organizations": "[CONTOH] Anggota PERHATI-KL Indonesia",
+    "education": "S1: Universitas Hasanuddin",
+    "certifications": "",
+    "experience_history": "RSUD Dr. H. Andi Abdurrahman Noor, 2016–2024",
+    "organizations": "Anggota PERHATI Kalimantan Selatan",
     "booking_url": "",
     "email": "",
     "social_links": "",
@@ -16,42 +16,42 @@
   },
   "locations": [
     {
-      "location_name": "[CONTOH] Klinik Utama",
-      "address": "[CONTOH] Jl. Contoh No. 1, Kota Contoh",
-      "practice_hours": "[CONTOH] Senin-Jumat, 08.00-12.00",
-      "whatsapp": "081234567890",
+      "location_name": "Klinik Simpang / Klinik Hamdi",
+      "address": "Jl. Gawe Sabumi No. 33 RT 07 RW 02, Desa Bersujud, Kec. Simpang Empat, Kab. Tanah Bumbu",
+      "practice_hours": "Senin–Sabtu, 17.00–21.00",
+      "whatsapp": "08115553556",
       "phone": "",
       "booking_url_override": ""
     },
     {
-      "location_name": "[CONTOH] Rumah Sakit Contoh",
-      "address": "[CONTOH] Jl. RS Contoh No. 2, Kota Contoh",
-      "practice_hours": "[CONTOH] Selasa, Kamis, 13.00-16.00",
+      "location_name": "Praktek Dokter THT Angsana",
+      "address": "Jl. Sebamban 2 Blok F RT 011 RW 03, Angsana, Kab. Tanah Bumbu",
+      "practice_hours": "Senin, Rabu, Sabtu, 13.00–15.00",
       "whatsapp": "",
       "phone": "",
       "booking_url_override": ""
     },
     {
-      "location_name": "[CONTOH] Klinik Cabang",
-      "address": "[CONTOH] Jl. Cabang No. 3, Kota Contoh",
-      "practice_hours": "[CONTOH] Sabtu, 09.00-12.00",
-      "whatsapp": "081298765432",
+      "location_name": "Apotik Kimia Farma Batulicin",
+      "address": "Jl. Raya Batulicin RT 05 RW 02, Kampung Baru, Simpang Empat, Kab. Tanah Bumbu",
+      "practice_hours": "Selasa, Kamis, Jumat, 13.00–16.00",
+      "whatsapp": "",
       "phone": "",
       "booking_url_override": ""
     }
   ],
   "services": [
     {
-      "service_name": "[CONTOH] Otoskopi",
-      "service_description": "[CONTOH] Pemeriksaan saluran telinga dan gendang telinga menggunakan alat otoskop untuk mendeteksi infeksi, sumbatan, atau kelainan lainnya."
+      "service_name": "Otoskopi",
+      "service_description": "jadi otoskopi itu..."
     },
     {
-      "service_name": "[CONTOH] Nasoendoskopi",
-      "service_description": "[CONTOH] Pemeriksaan rongga hidung dan sinus menggunakan kamera kecil fleksibel untuk mendiagnosis polip, deviasi septum, dan kondisi lainnya."
+      "service_name": "Nasoendoskopi",
+      "service_description": "jadi nasoendoskop itu..."
     },
     {
-      "service_name": "[CONTOH] Laringoskopi",
-      "service_description": "[CONTOH] Pemeriksaan laring (kotak suara) dan tenggorokan untuk mendeteksi gangguan suara, radang, atau kondisi lainnya."
+      "service_name": "Laringoskopi",
+      "service_description": "jadi laringoskopi itu..."
     }
   ]
 }

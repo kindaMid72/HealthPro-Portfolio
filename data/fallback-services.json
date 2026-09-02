@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "service_name": "Otoskopi",
+    "service_description": "jadi otoskopi itu..."
+  },
+  {
+    "service_name": "Nasoendoskopi",
+    "service_description": "jadi nasoendoskop itu..."
+  },
+  {
+    "service_name": "Laringoskopi",
+    "service_description": "jadi laringoskopi itu..."
+  }
+]

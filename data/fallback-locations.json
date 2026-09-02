@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "location_name": "Klinik Simpang / Klinik Hamdi",
+    "address": "Jl. Gawe Sabumi No. 33 RT 07 RW 02, Desa Bersujud, Kec. Simpang Empat, Kab. Tanah Bumbu",
+    "practice_hours": "Senin–Sabtu, 17.00–21.00",
+    "whatsapp": "08115553556",
+    "phone": "",
+    "booking_url_override": ""
+  },
+  {
+    "location_name": "Praktek Dokter THT Angsana",
+    "address": "Jl. Sebamban 2 Blok F RT 011 RW 03, Angsana, Kab. Tanah Bumbu",
+    "practice_hours": "Senin, Rabu, Sabtu, 13.00–15.00",
+    "whatsapp": "",
+    "phone": "",
+    "booking_url_override": ""
+  },
+  {
+    "location_name": "Apotik Kimia Farma Batulicin",
+    "address": "Jl. Raya Batulicin RT 05 RW 02, Kampung Baru, Simpang Empat, Kab. Tanah Bumbu",
+    "practice_hours": "Selasa, Kamis, Jumat, 13.00–16.00",
+    "whatsapp": "",
+    "phone": "",
+    "booking_url_override": ""
+  }
+]

@@ -28,10 +28,11 @@ Status: ✅ Selesai (31 Agustus 2026)
 - **Definition of Done**: tampilan matching arahan desain, lolos cek responsif manual di 2 breakpoint.
 
 ## Fase 3 — Integrasi Data Real + ISR
-Status: 🔲 Belum aktif
-- [ ] Ganti data dummy dengan data asli dari `02-content-data.md` (setelah user isi).
-- [ ] Setup ISR revalidate ass(default: 1 jam, sesuai `05-tech-plan.md`).
-- [ ] Uji: ubah 1 field di Sheet, verifikasi muncul di website setelah revalidate.
+Status: ✅ Selesai (2 September 2026)
+- [x] Ganti data dummy dengan data asli dari `02-content-data.md` — `dev-fixture.json` & `fallback-*.json` diisi data asli dr. Yuliana dari Google Sheet.
+- [x] ISR revalidate 1 jam sudah aktif sejak Fase 0 — dikonfirmasi via `next build` output: `Route / Revalidate 1h`. Tidak ada perubahan kode diperlukan.
+- [x] Build production sukses (`next build`) dengan data Sheet asli, semua 3 tab (Profile, Locations, Services) berhasil di-fetch & pass Zod validation.
+- **Catatan data yang masih perlu dilengkapi user (tidak blocking Fase 4)**: `booking_url`, `str_sip_display`, deskripsi layanan lebih lengkap, WA lokasi 2 & 3, foto profil asli — pakai fallback per FR-4 selama belum terisi.
 - **Definition of Done**: acceptance criteria di `01-spec.md` bagian "data diambil dari Google Sheet" terpenuhi.
 
 ## Fase 4 — SEO, Performance, Deploy
