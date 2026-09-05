@@ -36,10 +36,10 @@ Status: ✅ Selesai (2 September 2026)
 - **Definition of Done**: acceptance criteria di `01-spec.md` bagian "data diambil dari Google Sheet" terpenuhi.
 
 ## Fase 4 — SEO, Performance, Deploy
-Status: 🔲 Belum aktif
-- [ ] Tambah meta tags dasar (title, description, OG image).
+Status: 🟢 Aktif (5 September 2026)
+- [x] Tambah meta tags dasar (title, description, OG image) — `generateMetadata()` dinamis di `layout.tsx`, OG image via `opengraph-image.tsx`, sitemap di `sitemap.ts`, robots di `robots.ts`.
 - [ ] Cek Lighthouse score (target Performance & Accessibility ≥ 90 mobile, sesuai NFR di `01-spec.md`).
-- [ ] Deploy ke Vercel, hubungkan domain (kalau ada).
+- [ ] Deploy ke Vercel — pakai subdomain Vercel (domain sendiri ditunda).
 - **Definition of Done**: site live di URL production, checklist acceptance criteria `01-spec.md` semua tercentang.
 
 ## Fase 5+ — Nice-to-have (di luar MVP)
