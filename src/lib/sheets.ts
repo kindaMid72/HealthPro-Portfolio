@@ -170,10 +170,8 @@ export async function getProfile(): Promise<Profile> {
       return loadFallbackProfile();
     }
     
-    // OVERRIDE: Jika Google Sheet masih menggunakan placeholder lama, ganti dengan foto baru
-    if (result.data.photo_url === '/images/dr-profile-placeholder.jpg' || result.data.photo_url === '/images/dokter-1.png') {
-      result.data.photo_url = '/images/dokter-profile.png';
-    }
+    // OVERRIDE: Jangan ambil foto dari Google Sheets, selalu gunakan foto dari repo lokal
+    result.data.photo_url = '/images/dokter-profile.png';
     
     return result.data;
   } catch (err) {
