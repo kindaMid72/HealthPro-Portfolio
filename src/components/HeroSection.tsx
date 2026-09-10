@@ -11,8 +11,8 @@
  * PENTING: btn-accent dan btn-outline-primary SUDAH terdefinisi di globals.css.
  * Mereka sudah include flex, items-center, gap — jadi ikon dan teks otomatis sejajar.
  *
- * Styling: sesuai 04-design.md — warna accent untuk CTA, primary untuk brand,
- *          next/image dengan priority (above-the-fold LCP).
+ * Styling: Layout dua kolom untuk desktop, stacked untuk mobile. Dirancang 
+ * khusus untuk foto dokter tanpa background (no-bg) agar terlihat profesional.
  */
 
 import Image from "next/image";
@@ -45,14 +45,14 @@ export default function HeroSection({
     <section
       id="hero"
       aria-label="Profil Dokter"
-      className="relative flex min-h-[calc(100dvh-64px)] flex-col items-center justify-center px-4 py-16 text-center md:py-24 bg-bg overflow-hidden"
+      className="relative flex min-h-[calc(100dvh-64px)] w-full items-center justify-center overflow-hidden bg-bg px-4 pt-16 md:pt-24"
     >
       {/* ── Latar Dekoratif Premium ── */}
       <div className="absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
         {/* Blob kanan atas — primary tone */}
-        <div className="absolute -top-[15%] -right-[15%] w-[65%] h-[65%] rounded-full bg-primary/8 blur-[100px]" />
+        <div className="absolute -top-[15%] -right-[15%] h-[65%] w-[65%] rounded-full bg-primary/8 blur-[100px]" />
         {/* Blob kiri bawah — accent tone */}
-        <div className="absolute top-[55%] -left-[20%] w-[55%] h-[55%] rounded-full bg-accent/6 blur-[90px]" />
+        <div className="absolute top-[55%] -left-[20%] h-[55%] w-[55%] rounded-full bg-accent/6 blur-[90px]" />
         {/* Grid pattern subtle */}
         <div
           className="absolute inset-0 opacity-[0.025]"
@@ -64,150 +64,131 @@ export default function HeroSection({
         />
       </div>
 
-      {/* ── Foto / Avatar placeholder ── */}
-      <div id="hero-photo" className="mb-8 animate-fade-in-up">
-        {hasPhoto ? (
-          <div className="relative mx-auto w-fit">
-            {/* Ring dekoratif animasi */}
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 rounded-full bg-primary/20 animate-pulse-ring scale-110"
-            />
-            <Image
-              src={profile.photo_url}
-              alt={`Foto ${profile.full_name}`}
-              width={192}
-              height={192}
-              className="relative mx-auto h-36 w-36 rounded-full object-cover shadow-2xl shadow-primary/25 ring-4 ring-surface md:h-48 md:w-48"
-              priority
-              sizes="(max-width: 768px) 144px, 192px"
-            />
+      <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-12 md:flex-row md:items-center">
+        {/* ── Kiri: Teks & CTA ── */}
+        <div className="z-10 flex w-full flex-col items-center text-center md:w-1/2 md:items-start md:text-left md:pr-8">
+          <h1
+            id="doctor-name"
+            className="mb-3 animate-fade-in-up font-heading text-4xl font-bold tracking-tight text-primary-dark md:text-5xl lg:text-6xl"
+          >
+            {profile.full_name}
+          </h1>
+
+          <p
+            id="doctor-specialty"
+            className="mb-2 animate-fade-in-up font-body text-lg font-semibold text-primary md:text-2xl"
+            style={{ animationDelay: "60ms" }}
+          >
+            {profile.specialty}
+          </p>
+
+          {profile.sub_specialty && (
+            <p
+              id="doctor-subspecialty"
+              className="mb-4 animate-fade-in-up text-base text-text-body md:text-lg"
+              style={{ animationDelay: "100ms" }}
+            >
+              {profile.sub_specialty}
+            </p>
+          )}
+
+          {profile.str_sip_display && (
+            <div className="mb-8 mt-2 animate-fade-in-up" style={{ animationDelay: "130ms" }}>
+              <span
+                id="hero-str-sip"
+                className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-4 py-1.5 text-xs font-semibold tracking-wide text-primary shadow-sm"
+              >
+                <ShieldCheck size={14} aria-hidden="true" />
+                No. STR/SIP: {profile.str_sip_display}
+              </span>
+            </div>
+          )}
+
+          {/* ── CTA booking — logika fallback FR-4 ── */}
+          <div
+            id="hero-cta-group"
+            className="flex w-full max-w-xs animate-fade-in-up flex-col gap-3 sm:max-w-none sm:flex-row md:justify-start"
+            style={{ animationDelay: "160ms" }}
+          >
+            {bookingUrl ? (
+              <a
+                id="cta-booking-hero"
+                href={bookingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-accent w-full sm:w-auto"
+              >
+                <CalendarCheck size={18} aria-hidden="true" />
+                Booking Sekarang
+              </a>
+            ) : whatsappFallback ? (
+              <a
+                id="cta-whatsapp-hero"
+                href={whatsappFallback}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-accent w-full sm:w-auto"
+              >
+                <MessageCircle size={18} aria-hidden="true" />
+                Hubungi via WhatsApp
+              </a>
+            ) : null}
+
+            {/* Tombol WA sekunder */}
+            {bookingUrl && whatsappFallback && (
+              <a
+                id="cta-whatsapp-secondary-hero"
+                href={whatsappFallback}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-outline-primary w-full sm:w-auto"
+              >
+                <MessageCircle size={18} aria-hidden="true" />
+                WhatsApp
+              </a>
+            )}
           </div>
-        ) : (
-          <div className="relative mx-auto w-fit">
-            {/* Ring dekoratif animasi */}
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 rounded-full bg-primary/20 animate-pulse-ring scale-110"
-            />
-            <div
-              aria-label={`Avatar ${profile.full_name}`}
-              className="relative mx-auto flex h-36 w-36 items-center justify-center rounded-full text-3xl font-bold text-white md:h-48 md:w-48 font-heading ring-4 ring-surface shadow-2xl shadow-primary/30"
-              style={{
-                background:
-                  "linear-gradient(135deg, #3F6B74 0%, #243138 100%)",
-              }}
+        </div>
+
+        {/* ── Kanan: Foto Tanpa Background ── */}
+        <div className="relative z-10 flex w-full justify-center md:w-1/2 md:justify-end md:self-end">
+          {hasPhoto ? (
+            <div className="relative flex h-[400px] w-full items-end justify-center md:h-[600px] lg:h-[700px]">
+              {/* Lingkaran highlight di belakang foto agar foto lebih stand out */}
+              <div className="absolute bottom-0 h-64 w-64 rounded-full bg-gradient-to-t from-primary/20 to-transparent blur-3xl md:h-[500px] md:w-[500px]"></div>
+              
+              <Image
+                src={profile.photo_url}
+                alt={`Foto ${profile.full_name}`}
+                fill
+                className="animate-fade-in object-contain object-bottom drop-shadow-2xl md:scale-110 md:origin-bottom"
+                priority
+                sizes="(max-width: 768px) 100vw, 50vw"
+                style={{ animationDelay: "200ms" }}
+              />
+            </div>
+          ) : (
+            <div className="relative mx-auto flex h-36 w-36 items-center justify-center rounded-full text-3xl font-bold text-white md:h-48 md:w-48 font-heading ring-4 ring-surface shadow-2xl shadow-primary/30"
+              style={{ background: "linear-gradient(135deg, #3F6B74 0%, #243138 100%)" }}
             >
               {initials || "Dr"}
             </div>
-          </div>
-        )}
-      </div>
-
-      {/* ── Nama dokter — heading utama halaman (h1) ── */}
-      <h1
-        id="doctor-name"
-        className="mb-2 text-3xl font-bold md:text-5xl animate-fade-in-up text-primary-dark font-heading tracking-tight"
-        style={{ animationDelay: "60ms" }}
-      >
-        {profile.full_name}
-      </h1>
-
-      {/* ── Spesialisasi ── */}
-      <p
-        id="doctor-specialty"
-        className="mb-1 text-base font-semibold md:text-xl animate-fade-in-up text-primary font-body"
-        style={{ animationDelay: "100ms" }}
-      >
-        {profile.specialty}
-      </p>
-
-      {/* ── Sub-spesialisasi (opsional) ── */}
-      {profile.sub_specialty && (
-        <p
-          id="doctor-subspecialty"
-          className="mb-3 text-sm md:text-base animate-fade-in-up text-text-body"
-          style={{ animationDelay: "130ms" }}
-        >
-          {profile.sub_specialty}
-        </p>
-      )}
-
-      {/* ── STR/SIP badge — trust signal dekat nama ── */}
-      {profile.str_sip_display && (
-        <div
-          className="mb-8 mt-3 animate-fade-in-up"
-          style={{ animationDelay: "160ms" }}
-        >
-          <span
-            id="hero-str-sip"
-            className="inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold tracking-wide bg-primary/8 border border-primary/20 text-primary shadow-sm"
-          >
-            <ShieldCheck size={13} aria-hidden="true" />
-            No. STR/SIP: {profile.str_sip_display}
-          </span>
+          )}
         </div>
-      )}
-
-      {/* ── CTA booking — logika fallback FR-4 ── */}
-      {/* btn-accent & btn-outline-primary sudah terdefinisi di globals.css:
-          keduanya include inline-flex + items-center + gap → ikon & teks sejajar */}
-      <div
-        id="hero-cta-group"
-        className="flex flex-col items-center gap-3 sm:flex-row sm:justify-center animate-fade-in-up w-full max-w-xs sm:max-w-none"
-        style={{ animationDelay: "200ms" }}
-      >
-        {bookingUrl ? (
-          <a
-            id="cta-booking-hero"
-            href={bookingUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-accent w-full sm:w-auto"
-          >
-            <CalendarCheck size={18} aria-hidden="true" />
-            Booking Sekarang
-          </a>
-        ) : whatsappFallback ? (
-          <a
-            id="cta-whatsapp-hero"
-            href={whatsappFallback}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-accent w-full sm:w-auto"
-          >
-            <MessageCircle size={18} aria-hidden="true" />
-            Hubungi via WhatsApp
-          </a>
-        ) : null}
-
-        {/* Tombol WA sekunder (selalu tampil kalau ada, terlepas dari booking_url) */}
-        {bookingUrl && whatsappFallback && (
-          <a
-            id="cta-whatsapp-secondary-hero"
-            href={whatsappFallback}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn-outline-primary w-full sm:w-auto"
-          >
-            <MessageCircle size={18} aria-hidden="true" />
-            WhatsApp
-          </a>
-        )}
       </div>
 
       {/* ── Scroll indicator — absolute bottom ── */}
       <div
         id="hero-scroll-hint"
         aria-hidden="true"
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden flex-col items-center gap-2 md:flex animate-fade-in"
+        className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 md:flex animate-fade-in"
         style={{ animationDelay: "600ms" }}
       >
-        <span className="text-xs font-medium tracking-widest uppercase text-text-body/40">
+        <span className="font-body text-xs font-medium tracking-widest text-text-body/40 uppercase">
           Scroll
         </span>
-        <div className="relative w-5 h-8 rounded-full border-2 border-text-body/20 flex items-start justify-center pt-1.5">
-          <div className="w-1 h-2 rounded-full bg-text-body/30 animate-bounce" />
+        <div className="flex h-8 w-5 items-start justify-center rounded-full border-2 border-text-body/20 pt-1.5 relative">
+          <div className="h-2 w-1 animate-bounce rounded-full bg-text-body/30" />
         </div>
       </div>
     </section>

@@ -17,7 +17,7 @@ export const ProfileSchema = z.object({
   specialty: z.string().min(1),
   sub_specialty: z.string().optional(),
   str_sip_display: z.string().optional(), // nomor STR/SIP, ditampilkan kalau diisi
-  photo_url: z.string().default('/images/dokter-1.png'), // path ke /public
+  photo_url: z.string().default('/images/dokter-profile.png'), // path ke /public
   education: z.string(),
   certifications: z.string().optional(),
   experience_history: z.string(),

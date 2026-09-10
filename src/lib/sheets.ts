@@ -94,7 +94,7 @@ async function loadFallbackProfile(): Promise<Profile> {
       full_name: '[BELUM DIISI]',
       specialty: '[BELUM DIISI]',
       sub_specialty: '',
-      photo_url: '/images/dokter-1.png',
+      photo_url: '/images/dokter-profile.png',
       education: '[BELUM DIISI]',
       experience_history: '[BELUM DIISI]',
       booking_url: undefined,
