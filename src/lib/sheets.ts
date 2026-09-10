@@ -94,7 +94,7 @@ async function loadFallbackProfile(): Promise<Profile> {
       full_name: '[BELUM DIISI]',
       specialty: '[BELUM DIISI]',
       sub_specialty: '',
-      photo_url: '/images/dokter-profile.png',
+      photo_url: '/images/dokter-profile.webp',
       education: '[BELUM DIISI]',
       experience_history: '[BELUM DIISI]',
       booking_url: undefined,
@@ -171,7 +171,7 @@ export async function getProfile(): Promise<Profile> {
     }
     
     // OVERRIDE: Jangan ambil foto dari Google Sheets, selalu gunakan foto dari repo lokal
-    result.data.photo_url = '/images/dokter-profile.png';
+    result.data.photo_url = '/images/dokter-profile.webp';
     
     return result.data;
   } catch (err) {

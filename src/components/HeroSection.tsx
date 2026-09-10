@@ -45,7 +45,7 @@ export default function HeroSection({
     <section
       id="hero"
       aria-label="Profil Dokter"
-      className="relative flex min-h-[calc(100dvh-64px)] w-full items-center justify-center overflow-hidden bg-bg px-4 pt-16 md:pt-24"
+      className="relative flex min-h-[calc(100dvh-64px)] w-full flex-col overflow-hidden bg-bg px-4 pt-16 md:pt-24"
     >
       {/* ── Latar Dekoratif Premium ── */}
       <div className="absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
@@ -64,9 +64,9 @@ export default function HeroSection({
         />
       </div>
 
-      <div className="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-12 md:flex-row md:items-center">
+      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col-reverse justify-end gap-0 md:flex-row md:items-center md:justify-between md:gap-12">
         {/* ── Kiri: Teks & CTA ── */}
-        <div className="z-10 flex w-full flex-col items-center text-center md:w-1/2 md:items-start md:text-left md:pr-8">
+        <div className="z-10 mb-12 flex w-full flex-col items-center text-center md:mb-0 md:w-1/2 md:items-start md:text-left md:pr-8">
           <h1
             id="doctor-name"
             className="mb-3 animate-fade-in-up font-heading text-4xl font-bold tracking-tight text-primary-dark md:text-5xl lg:text-6xl"
@@ -153,9 +153,9 @@ export default function HeroSection({
         {/* ── Kanan: Foto Tanpa Background ── */}
         <div className="relative z-10 flex w-full justify-center md:w-1/2 md:justify-end md:self-end">
           {hasPhoto ? (
-            <div className="relative flex h-[400px] w-full items-end justify-center md:h-[600px] lg:h-[700px]">
+            <div className="relative flex h-[500px] w-full items-end justify-center [mask-image:linear-gradient(to_bottom,black_70%,transparent_100%)] md:h-[600px] md:[mask-image:none] lg:h-[700px]">
               {/* Lingkaran highlight di belakang foto agar foto lebih stand out */}
-              <div className="absolute bottom-0 h-64 w-64 rounded-full bg-gradient-to-t from-primary/20 to-transparent blur-3xl md:h-[500px] md:w-[500px]"></div>
+              <div className="absolute bottom-10 h-64 w-64 rounded-full bg-gradient-to-t from-primary/20 to-transparent blur-3xl md:bottom-0 md:h-[500px] md:w-[500px]"></div>
               
               <Image
                 src={profile.photo_url}
