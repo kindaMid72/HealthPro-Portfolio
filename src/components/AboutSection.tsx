@@ -8,8 +8,8 @@
  * - education & experience_history di-split per " | " menjadi list items
  * - certifications & organizations: hidden kalau kosong
  *
- * Styling: sesuai 04-design.md — surface putih, ikon Lucide, warna primary.
- * Design: timeline-style list, accent underline di heading, icon lebih besar.
+ * Styling: Modern grid layout dengan card premium, hover interaction,
+ * dan decorative timeline markers.
  */
 
 import {
@@ -53,39 +53,50 @@ interface SubsectionProps {
 function Subsection({ id, icon, title, items, itemIdPrefix }: SubsectionProps) {
   if (items.length === 0) return null;
   return (
-    <div id={id}>
-      <h3 className="mb-5 flex items-center gap-3 text-lg font-semibold text-primary-dark font-heading">
-        <span
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 shadow-sm"
+    <div 
+      id={id} 
+      className="relative group bg-surface border border-border rounded-2xl p-6 sm:p-8 shadow-sm hover:shadow-md hover:border-primary/30 transition-all duration-300 overflow-hidden flex flex-col"
+    >
+      {/* Accent top bar on hover */}
+      <div
+        aria-hidden="true"
+        className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"
+      />
+
+      <h3 className="mb-8 flex items-center gap-4 text-xl font-bold text-primary-dark font-heading">
+        <div
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white transition-colors duration-300 shadow-sm"
           aria-hidden="true"
         >
           {icon}
-        </span>
+        </div>
         {title}
       </h3>
 
       {/* Timeline list */}
-      <ul id={`${id}-list`} role="list" className="relative space-y-0 pl-5 ml-5">
+      <ul id={`${id}-list`} role="list" className="relative space-y-0 pl-4 sm:pl-6 ml-2 sm:ml-4 flex-grow">
         {/* Vertical line */}
         <div
           aria-hidden="true"
-          className="absolute left-0 top-2 bottom-2 w-px bg-primary/15"
+          className="absolute left-0 top-2 bottom-4 w-[2px] bg-gradient-to-b from-primary/30 via-primary/10 to-transparent"
         />
 
         {items.map((item, i) => (
           <li
             key={i}
             id={`${itemIdPrefix}-${i}`}
-            className="relative flex gap-4 pb-5 last:pb-0 text-sm leading-relaxed text-text-body"
+            className="relative flex gap-5 pb-6 last:pb-0 group/item"
           >
             {/* Timeline dot */}
             <span
               aria-hidden="true"
-              className="absolute -left-5 top-1.5 flex h-3 w-3 items-center justify-center"
+              className="absolute -left-[21px] sm:-left-[29px] top-1.5 flex h-4 w-4 items-center justify-center"
             >
-              <span className="h-2 w-2 rounded-full bg-primary/50 ring-2 ring-white ring-offset-0" />
+              <span className="h-2.5 w-2.5 rounded-full bg-primary/40 ring-4 ring-surface group-hover/item:bg-primary group-hover/item:scale-125 group-hover/item:ring-primary/10 transition-all duration-300" />
             </span>
-            <span className="pt-px">{item}</span>
+            <span className="pt-0 text-sm sm:text-base leading-relaxed text-text-body group-hover/item:text-text-body/90 transition-colors">
+              {item}
+            </span>
           </li>
         ))}
       </ul>
@@ -110,11 +121,11 @@ export default function AboutSection({ profile }: AboutSectionProps) {
     <section
       id="tentang"
       aria-labelledby="tentang-heading"
-      className="section-divider section-spacing px-4 bg-surface"
+      className="section-divider section-spacing px-4 bg-bg"
     >
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto max-w-5xl">
         {/* Heading dengan accent underline */}
-        <div className="mb-12">
+        <div className="mb-16 text-center">
           <h2
             id="tentang-heading"
             className="text-3xl font-bold md:text-4xl text-primary-dark font-heading tracking-tight"
@@ -122,10 +133,13 @@ export default function AboutSection({ profile }: AboutSectionProps) {
             Tentang Dr. {firstName}
           </h2>
           {/* Accent underline dekoratif */}
-          <div aria-hidden="true" className="mt-3 flex items-center gap-2">
+          <div aria-hidden="true" className="mt-4 flex items-center justify-center gap-2">
             <div className="h-1 w-12 rounded-full bg-primary" />
             <div className="h-1 w-4 rounded-full bg-accent" />
           </div>
+          <p className="mt-4 text-sm md:text-base text-text-body/70 max-w-2xl mx-auto leading-relaxed">
+            Mengenal lebih dekat latar belakang pendidikan, pengalaman klinis, serta dedikasi profesional dalam memberikan pelayanan medis terbaik.
+          </p>
         </div>
 
         {allEmpty ? (
@@ -133,32 +147,32 @@ export default function AboutSection({ profile }: AboutSectionProps) {
             Informasi profil akan segera hadir.
           </p>
         ) : (
-          <div className="space-y-12">
+          <div className="grid gap-6 lg:gap-8 md:grid-cols-2">
             <Subsection
               id="education-block"
-              icon={<GraduationCap size={20} className="text-primary" />}
+              icon={<GraduationCap className="w-6 h-6" />}
               title="Pendidikan"
               items={educationList}
               itemIdPrefix="education-item"
             />
             <Subsection
               id="experience-block"
-              icon={<Briefcase size={20} className="text-primary" />}
+              icon={<Briefcase className="w-6 h-6" />}
               title="Pengalaman"
               items={experienceList}
               itemIdPrefix="experience-item"
             />
             <Subsection
               id="certifications-block"
-              icon={<Award size={20} className="text-primary" />}
-              title="Sertifikasi & Pelatihan"
+              icon={<Award className="w-6 h-6" />}
+              title="Sertifikasi"
               items={certificationList}
               itemIdPrefix="certification-item"
             />
             <Subsection
               id="organizations-block"
-              icon={<Users size={20} className="text-primary" />}
-              title="Organisasi Profesi"
+              icon={<Users className="w-6 h-6" />}
+              title="Organisasi"
               items={organizationList}
               itemIdPrefix="organization-item"
             />
