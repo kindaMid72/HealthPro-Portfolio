@@ -48,7 +48,7 @@ export default function HeroSection({
       className="relative flex min-h-[calc(100dvh-64px)] w-full flex-col overflow-hidden bg-bg px-4 pt-16 md:pt-24"
     >
       {/* ── Latar Dekoratif Premium (Glassmorphism & Floating Shapes) ── */}
-      <div className="absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none" aria-hidden="true">
         {/* Latar Dasar Halus */}
         <div className="absolute inset-0 bg-gradient-to-br from-bg via-bg to-primary/5" />
         
