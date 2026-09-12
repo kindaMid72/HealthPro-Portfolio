@@ -121,7 +121,7 @@ export default function AboutSection({ profile }: AboutSectionProps) {
     <section
       id="tentang"
       aria-labelledby="tentang-heading"
-      className="section-divider section-spacing px-4 bg-bg"
+      className="section-divider section-spacing px-4 bg-surface"
     >
       <div className="mx-auto max-w-5xl">
         {/* Heading dengan accent underline */}
