@@ -11,7 +11,6 @@
  * Note: Server Component — hover via CSS class saja, tidak ada event handler JS.
  */
 
-import { Stethoscope } from "lucide-react";
 import { Service } from "@/lib/types";
 
 interface ServicesSectionProps {
@@ -55,40 +54,48 @@ export default function ServicesSection({ services }: ServicesSectionProps) {
                 key={i}
                 id={`service-item-${i}`}
                 className="group bg-surface border border-border rounded-2xl p-6 shadow-sm
-                           hover:shadow-lg hover:shadow-primary/8 hover:-translate-y-1
-                           hover:border-primary/20
-                           transition-all duration-300 relative overflow-hidden"
+                           hover:shadow-md hover:-translate-y-1
+                           hover:border-primary/30
+                           transition-all duration-300 relative overflow-hidden flex flex-col"
               >
                 {/* Accent top bar on hover */}
                 <div
                   aria-hidden="true"
-                  className="absolute top-0 left-0 right-0 h-0.5 bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-t-2xl"
+                  className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-accent scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left"
                 />
 
-                {/* Ikon + nama layanan */}
-                <div className="mb-3 flex items-start gap-4">
-                  <span
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 transition-colors duration-300 group-hover:bg-primary/18"
-                    aria-hidden="true"
-                  >
-                    <Stethoscope size={20} className="text-primary" />
-                  </span>
-                  <h3
-                    id={`service-name-${i}`}
-                    className="text-base font-semibold leading-snug text-primary-dark font-heading mt-0.5 group-hover:text-primary transition-colors duration-200"
-                  >
-                    {svc.service_name}
-                  </h3>
+                {/* Large subtle background number */}
+                <div 
+                  className="absolute -bottom-2 -right-2 text-7xl font-black text-primary/5 group-hover:text-primary/10 transition-colors duration-500 pointer-events-none select-none z-0"
+                  aria-hidden="true"
+                >
+                  {(i + 1).toString().padStart(2, '0')}
                 </div>
 
-                {svc.service_description && (
-                  <p
-                    id={`service-desc-${i}`}
-                    className="pl-[3.75rem] text-sm leading-relaxed text-text-body/75"
-                  >
-                    {svc.service_description}
-                  </p>
-                )}
+                {/* Content */}
+                <div className="relative z-10 flex flex-col flex-grow">
+                  <div className="mb-3">
+                    <div className="flex items-center gap-3 mb-1">
+                      {/* Decorative Line */}
+                      <div className="h-[2px] w-6 bg-primary/30 group-hover:w-10 group-hover:bg-primary transition-all duration-300 rounded-full" aria-hidden="true" />
+                      <h3
+                        id={`service-name-${i}`}
+                        className="text-lg font-semibold leading-snug text-primary-dark font-heading group-hover:text-primary transition-colors duration-200"
+                      >
+                        {svc.service_name}
+                      </h3>
+                    </div>
+                  </div>
+
+                  {svc.service_description && (
+                    <p
+                      id={`service-desc-${i}`}
+                      className="text-sm leading-relaxed text-text-body/80 mt-auto"
+                    >
+                      {svc.service_description}
+                    </p>
+                  )}
+                </div>
               </li>
             ))}
           </ul>

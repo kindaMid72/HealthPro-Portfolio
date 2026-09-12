@@ -47,20 +47,38 @@ export default function HeroSection({
       aria-label="Profil Dokter"
       className="relative flex min-h-[calc(100dvh-64px)] w-full flex-col overflow-hidden bg-bg px-4 pt-16 md:pt-24"
     >
-      {/* ── Latar Dekoratif Premium ── */}
+      {/* ── Latar Dekoratif Premium (Glassmorphism & Floating Shapes) ── */}
       <div className="absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
-        {/* Blob kanan atas — primary tone */}
-        <div className="absolute -top-[15%] -right-[15%] h-[65%] w-[65%] rounded-full bg-primary/8 blur-[100px] animate-blob" />
-        {/* Blob kiri bawah — accent tone */}
-        <div className="absolute top-[55%] -left-[20%] h-[55%] w-[55%] rounded-full bg-accent/6 blur-[90px] animate-blob" style={{ animationDelay: '2s' }} />
-        {/* Grid pattern subtle */}
+        {/* Latar Dasar Halus */}
+        <div className="absolute inset-0 bg-gradient-to-br from-bg via-bg to-primary/5" />
+        
+        {/* Grid pattern subtle (faded out at edges) */}
         <div
-          className="absolute inset-0 opacity-[0.025]"
+          className="absolute inset-0 opacity-[0.03] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_80%)]"
           style={{
-            backgroundImage:
-              "radial-gradient(circle at 1px 1px, #3F6B74 1px, transparent 0)",
+            backgroundImage: "radial-gradient(circle at 1px 1px, #3F6B74 1px, transparent 0)",
             backgroundSize: "32px 32px",
           }}
+        />
+
+        {/* Floating Glass Shape 1 (Kanan Atas) */}
+        <div className="absolute top-[10%] right-[5%] md:right-[15%] w-48 h-48 md:w-64 md:h-64 rounded-full bg-primary/10 blur-xl animate-float" />
+        <div 
+          className="absolute top-[15%] right-[10%] md:right-[20%] w-32 h-32 md:w-40 md:h-40 rounded-full border border-white/40 bg-white/10 backdrop-blur-md shadow-2xl animate-float"
+          style={{ animationDelay: '1s', animationDuration: '9s' }}
+        />
+
+        {/* Floating Glass Shape 2 (Kiri Bawah) */}
+        <div className="absolute bottom-[20%] -left-[10%] w-64 h-64 md:w-80 md:h-80 rounded-full bg-accent/5 blur-2xl animate-float" style={{ animationDelay: '2s' }} />
+        <div 
+          className="absolute bottom-[25%] left-[2%] md:left-[5%] w-24 h-48 md:w-32 md:h-56 rounded-full border border-white/50 bg-white/20 backdrop-blur-lg shadow-xl animate-float rotate-12"
+          style={{ animationDelay: '3s', animationDuration: '10s' }}
+        />
+
+        {/* Floating Glass Pill 3 (Tengah Kanan - Dekat Foto) */}
+        <div 
+          className="hidden md:block absolute top-[50%] right-[35%] w-16 h-16 rounded-2xl border border-white/60 bg-white/30 backdrop-blur-xl shadow-lg animate-float -rotate-12"
+          style={{ animationDelay: '0.5s', animationDuration: '7s' }}
         />
       </div>
 
