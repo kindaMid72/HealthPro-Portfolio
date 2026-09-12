@@ -86,9 +86,9 @@
            text-sm font-semibold text-white font-heading
            bg-accent
            shadow-lg shadow-accent/30
-           hover:brightness-95 hover:shadow-xl hover:shadow-accent/40 hover:-translate-y-0.5
+           hover:brightness-95 hover:shadow-xl hover:shadow-accent/50 hover:-translate-y-1
            active:scale-[0.97]
-           transition-all duration-200
+           transition-all duration-300
            focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent;
   }
 
@@ -99,9 +99,9 @@
            text-sm font-semibold font-heading
            border-2 border-primary text-primary
            bg-white/60 backdrop-blur-sm
-           hover:bg-primary hover:text-white hover:-translate-y-0.5
+           hover:bg-primary hover:text-white hover:-translate-y-1 hover:shadow-lg
            active:scale-[0.97]
-           transition-all duration-200
+           transition-all duration-300
            focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary;
   }
 
@@ -168,8 +168,20 @@
     100% { transform: scale(1.25); opacity: 0;   }
   }
 
+  @keyframes blob {
+    0% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+    100% { transform: translate(0px, 0px) scale(1); }
+  }
+
+  @keyframes pulseSlow {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(1.05); }
+  }
+
   .animate-fade-in-up {
-    animation: fadeInUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation: fadeInUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
   .animate-slide-in-down {
@@ -177,10 +189,18 @@
   }
 
   .animate-fade-in {
-    animation: fadeIn 0.4s ease-out forwards;
+    animation: fadeIn 0.6s ease-out forwards;
   }
 
   .animate-pulse-ring {
     animation: pulseRing 1.8s ease-out infinite;
+  }
+
+  .animate-blob {
+    animation: blob 15s infinite alternate;
+  }
+
+  .animate-pulse-slow {
+    animation: pulseSlow 8s ease-in-out infinite;
   }
 }

@@ -50,9 +50,9 @@ export default function HeroSection({
       {/* ── Latar Dekoratif Premium ── */}
       <div className="absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
         {/* Blob kanan atas — primary tone */}
-        <div className="absolute -top-[15%] -right-[15%] h-[65%] w-[65%] rounded-full bg-primary/8 blur-[100px]" />
+        <div className="absolute -top-[15%] -right-[15%] h-[65%] w-[65%] rounded-full bg-primary/8 blur-[100px] animate-blob" />
         {/* Blob kiri bawah — accent tone */}
-        <div className="absolute top-[55%] -left-[20%] h-[55%] w-[55%] rounded-full bg-accent/6 blur-[90px]" />
+        <div className="absolute top-[55%] -left-[20%] h-[55%] w-[55%] rounded-full bg-accent/6 blur-[90px] animate-blob" style={{ animationDelay: '2s' }} />
         {/* Grid pattern subtle */}
         <div
           className="absolute inset-0 opacity-[0.025]"
@@ -77,7 +77,7 @@ export default function HeroSection({
           <p
             id="doctor-specialty"
             className="mb-2 animate-fade-in-up font-body text-lg font-semibold text-primary md:text-2xl"
-            style={{ animationDelay: "60ms" }}
+            style={{ animationDelay: "150ms" }}
           >
             {profile.specialty}
           </p>
@@ -86,17 +86,17 @@ export default function HeroSection({
             <p
               id="doctor-subspecialty"
               className="mb-4 animate-fade-in-up text-base text-text-body md:text-lg"
-              style={{ animationDelay: "100ms" }}
+              style={{ animationDelay: "300ms" }}
             >
               {profile.sub_specialty}
             </p>
           )}
 
           {profile.str_sip_display && (
-            <div className="mb-8 mt-2 animate-fade-in-up" style={{ animationDelay: "130ms" }}>
+            <div className="mb-8 mt-2 animate-fade-in-up" style={{ animationDelay: "450ms" }}>
               <span
                 id="hero-str-sip"
-                className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/8 px-4 py-1.5 text-xs font-semibold tracking-wide text-primary shadow-sm"
+                className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/40 px-4 py-1.5 text-xs font-semibold tracking-wide text-primary shadow-sm backdrop-blur-md"
               >
                 <ShieldCheck size={14} aria-hidden="true" />
                 No. STR/SIP: {profile.str_sip_display}
@@ -108,7 +108,7 @@ export default function HeroSection({
           <div
             id="hero-cta-group"
             className="flex w-full max-w-xs animate-fade-in-up flex-col gap-3 sm:max-w-none sm:flex-row md:justify-start"
-            style={{ animationDelay: "160ms" }}
+            style={{ animationDelay: "600ms" }}
           >
             {bookingUrl ? (
               <a
@@ -155,7 +155,7 @@ export default function HeroSection({
           {hasPhoto ? (
             <div className="relative flex h-[500px] w-full items-end justify-center [mask-image:linear-gradient(to_bottom,black_70%,transparent_100%)] md:h-[600px] md:[mask-image:none] lg:h-[700px]">
               {/* Lingkaran highlight di belakang foto agar foto lebih stand out */}
-              <div className="absolute bottom-10 h-64 w-64 rounded-full bg-gradient-to-t from-primary/20 to-transparent blur-3xl md:bottom-0 md:h-[500px] md:w-[500px]"></div>
+              <div className="absolute bottom-10 h-64 w-64 rounded-full bg-gradient-to-t from-primary/30 to-transparent blur-3xl animate-pulse-slow md:bottom-0 md:h-[500px] md:w-[500px]"></div>
               
               <Image
                 src={profile.photo_url}
@@ -164,7 +164,7 @@ export default function HeroSection({
                 className="animate-fade-in object-contain object-bottom drop-shadow-2xl md:scale-110 md:origin-bottom"
                 priority
                 sizes="(max-width: 768px) 100vw, 50vw"
-                style={{ animationDelay: "200ms" }}
+                style={{ animationDelay: "300ms" }}
               />
             </div>
           ) : (
@@ -182,7 +182,7 @@ export default function HeroSection({
         id="hero-scroll-hint"
         aria-hidden="true"
         className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 md:flex animate-fade-in"
-        style={{ animationDelay: "600ms" }}
+        style={{ animationDelay: "1000ms" }}
       >
         <span className="font-body text-xs font-medium tracking-widest text-text-body/40 uppercase">
           Scroll
