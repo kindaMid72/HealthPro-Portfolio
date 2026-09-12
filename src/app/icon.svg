@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="120" fill="#3F6B74"/>
+  <text x="256" y="380" font-family="Georgia, serif" font-size="320" font-style="italic" fill="#FFFFFF" text-anchor="middle">Y</text>
+  <path d="M 360 140 h 24 v 36 h 36 v 24 h -36 v 36 h -24 v -36 h -36 v -24 h 36 z" fill="#D98C4A" />
+</svg>
