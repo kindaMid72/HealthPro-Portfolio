@@ -54,7 +54,7 @@ export default function HeroSection({
         
         {/* Grid pattern subtle (faded out at edges) */}
         <div
-          className="absolute inset-0 opacity-[0.03] [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_80%)]"
+          className="absolute inset-0 opacity-[0.05] [mask-image:radial-gradient(ellipse_at_center,black_50%,transparent_90%)]"
           style={{
             backgroundImage: "radial-gradient(circle at 1px 1px, #3F6B74 1px, transparent 0)",
             backgroundSize: "32px 32px",
@@ -62,22 +62,23 @@ export default function HeroSection({
         />
 
         {/* Floating Glass Shape 1 (Kanan Atas) */}
-        <div className="absolute top-[10%] right-[5%] md:right-[15%] w-48 h-48 md:w-64 md:h-64 rounded-full bg-primary/10 blur-xl animate-float" />
+        {/* Blob berwarna untuk diblur oleh kaca */}
+        <div className="absolute top-[5%] right-[5%] md:right-[10%] w-48 h-48 md:w-72 md:h-72 rounded-full bg-primary/20 blur-3xl animate-float" />
         <div 
-          className="absolute top-[15%] right-[10%] md:right-[20%] w-32 h-32 md:w-40 md:h-40 rounded-full border border-white/40 bg-white/10 backdrop-blur-md shadow-2xl animate-float"
+          className="absolute top-[10%] right-[10%] md:right-[15%] w-32 h-32 md:w-48 md:h-48 rounded-3xl border border-white/80 bg-white/40 backdrop-blur-md shadow-2xl shadow-primary/10 animate-float rotate-12"
           style={{ animationDelay: '1s', animationDuration: '9s' }}
         />
 
         {/* Floating Glass Shape 2 (Kiri Bawah) */}
-        <div className="absolute bottom-[20%] -left-[10%] w-64 h-64 md:w-80 md:h-80 rounded-full bg-accent/5 blur-2xl animate-float" style={{ animationDelay: '2s' }} />
+        <div className="absolute bottom-[15%] -left-[5%] w-64 h-64 md:w-96 md:h-96 rounded-full bg-accent/15 blur-3xl animate-float" style={{ animationDelay: '2s' }} />
         <div 
-          className="absolute bottom-[25%] left-[2%] md:left-[5%] w-24 h-48 md:w-32 md:h-56 rounded-full border border-white/50 bg-white/20 backdrop-blur-lg shadow-xl animate-float rotate-12"
+          className="absolute bottom-[20%] left-[5%] md:left-[8%] w-24 h-48 md:w-40 md:h-64 rounded-full border border-white/80 bg-white/40 backdrop-blur-xl shadow-xl shadow-accent/10 animate-float -rotate-12"
           style={{ animationDelay: '3s', animationDuration: '10s' }}
         />
 
         {/* Floating Glass Pill 3 (Tengah Kanan - Dekat Foto) */}
         <div 
-          className="hidden md:block absolute top-[50%] right-[35%] w-16 h-16 rounded-2xl border border-white/60 bg-white/30 backdrop-blur-xl shadow-lg animate-float -rotate-12"
+          className="hidden md:block absolute top-[45%] right-[35%] w-20 h-20 rounded-2xl border-2 border-primary/20 bg-primary/5 backdrop-blur-2xl shadow-lg shadow-primary/5 animate-float rotate-45"
           style={{ animationDelay: '0.5s', animationDuration: '7s' }}
         />
       </div>

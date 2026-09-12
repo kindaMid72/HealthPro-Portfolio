@@ -90,18 +90,12 @@ export default function ContactSection({
   profile,
   locations,
 }: ContactSectionProps) {
-  // Kumpulkan nomor WA unik dari semua lokasi
-  const allWhatsapps = [
-    ...new Set(locations.filter((l) => l.whatsapp).map((l) => l.whatsapp!)),
-  ];
+  // Ambil lokasi yang punya setidaknya satu nomor kontak
+  const locationsWithContact = locations.filter(
+    (l) => l.whatsapp || l.phone
+  );
 
-  // Kumpulkan nomor telepon unik dari semua lokasi
-  const allPhones = [
-    ...new Set(locations.filter((l) => l.phone).map((l) => l.phone!)),
-  ];
-
-  const hasAnyContact =
-    allWhatsapps.length > 0 || allPhones.length > 0 || !!profile.email;
+  const hasAnyContact = locationsWithContact.length > 0 || !!profile.email;
 
   return (
     <section
@@ -137,41 +131,41 @@ export default function ContactSection({
           </p>
         ) : (
           <div className="space-y-3 max-w-xl">
-            {/* WhatsApp — satu baris per nomor unik */}
-            {allWhatsapps.map((wa, i) => (
-              <ContactRow
-                key={`wa-${i}`}
-                id={`contact-wa-item-${i}`}
-                icon={
-                  <MessageCircle
-                    size={22}
-                    className="text-primary"
-                    aria-hidden="true"
+            {/* Kontak per Lokasi */}
+            {locationsWithContact.map((loc, i) => (
+              <div key={`loc-${i}`} className="space-y-3">
+                {loc.whatsapp && (
+                  <ContactRow
+                    id={`contact-wa-item-${i}`}
+                    icon={
+                      <MessageCircle
+                        size={22}
+                        className="text-primary"
+                        aria-hidden="true"
+                      />
+                    }
+                    label={`WhatsApp - ${loc.location_name}`}
+                    href={toWaLink(loc.whatsapp)}
+                    displayText={loc.whatsapp}
+                    isExternal
                   />
-                }
-                label="WhatsApp"
-                href={toWaLink(wa)}
-                displayText={wa}
-                isExternal
-              />
-            ))}
-
-            {/* Telepon */}
-            {allPhones.map((phone, i) => (
-              <ContactRow
-                key={`phone-${i}`}
-                id={`contact-phone-item-${i}`}
-                icon={
-                  <Phone
-                    size={22}
-                    className="text-primary"
-                    aria-hidden="true"
+                )}
+                {loc.phone && (
+                  <ContactRow
+                    id={`contact-phone-item-${i}`}
+                    icon={
+                      <Phone
+                        size={22}
+                        className="text-primary"
+                        aria-hidden="true"
+                      />
+                    }
+                    label={`Telepon - ${loc.location_name}`}
+                    href={`tel:${loc.phone}`}
+                    displayText={loc.phone}
                   />
-                }
-                label="Telepon"
-                href={`tel:${phone}`}
-                displayText={phone}
-              />
+                )}
+              </div>
             ))}
 
             {/* Email (dari profile, opsional) */}

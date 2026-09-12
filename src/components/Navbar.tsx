@@ -12,12 +12,13 @@
  */
 
 import Link from "next/link";
+import MobileMenu from "./MobileMenu";
 
 interface NavbarProps {
   doctorName: string;
 }
 
-const NAV_LINKS = [
+export const NAV_LINKS = [
   { href: "#tentang",  label: "Tentang" },
   { href: "#layanan",  label: "Layanan" },
   { href: "#lokasi",   label: "Jadwal & Lokasi" },
@@ -83,6 +84,9 @@ export default function Navbar({ doctorName }: NavbarProps) {
             </a>
           </li>
         </ul>
+
+        {/* Mobile Menu */}
+        <MobileMenu />
       </nav>
     </header>
   );
