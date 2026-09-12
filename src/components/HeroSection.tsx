@@ -52,18 +52,25 @@ export default function HeroSection({
         {/* Latar Dasar Halus */}
         <div className="absolute inset-0 bg-gradient-to-br from-bg via-bg to-primary/5" />
         
-        {/* Grid pattern subtle (faded out at edges) */}
+        {/* Ambient Aurora Glows */}
+        <div className="absolute top-[20%] left-[10%] w-[500px] h-[500px] rounded-full bg-primary/15 blur-[100px] animate-pulse-slow mix-blend-multiply opacity-50 md:opacity-70" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-[30%] right-[15%] w-[600px] h-[600px] rounded-full bg-accent/10 blur-[120px] animate-pulse-slow mix-blend-multiply opacity-50 md:opacity-70" style={{ animationDelay: '3s' }} />
+
+        {/* Graph Paper Grid Pattern */}
         <div
-          className="absolute inset-0 opacity-[0.05] [mask-image:radial-gradient(ellipse_at_center,black_50%,transparent_90%)]"
+          className="absolute inset-0 opacity-15"
           style={{
-            backgroundImage: "radial-gradient(circle at 1px 1px, #3F6B74 1px, transparent 0)",
-            backgroundSize: "32px 32px",
+            backgroundImage: `
+              linear-gradient(to right, #3F6B74 1px, transparent 1px),
+              linear-gradient(to bottom, #3F6B74 1px, transparent 1px)
+            `,
+            backgroundSize: "40px 40px",
+            maskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%)",
+            WebkitMaskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%)",
           }}
         />
 
         {/* Floating Glass Shape 1 (Kanan Atas) */}
-        {/* Blob berwarna untuk diblur oleh kaca */}
-        <div className="absolute top-[5%] right-[5%] md:right-[10%] w-48 h-48 md:w-72 md:h-72 rounded-full bg-primary/20 blur-3xl animate-float" />
         <div 
           className="absolute top-[10%] right-[10%] md:right-[15%] animate-float"
           style={{ animationDelay: '1s', animationDuration: '9s' }}
@@ -72,7 +79,6 @@ export default function HeroSection({
         </div>
 
         {/* Floating Glass Shape 2 (Kiri Bawah) */}
-        <div className="absolute bottom-[15%] -left-[5%] w-64 h-64 md:w-96 md:h-96 rounded-full bg-accent/15 blur-3xl animate-float" style={{ animationDelay: '2s' }} />
         <div 
           className="absolute bottom-[20%] left-[5%] md:left-[8%] animate-float"
           style={{ animationDelay: '3s', animationDuration: '10s' }}
@@ -86,6 +92,14 @@ export default function HeroSection({
           style={{ animationDelay: '0.5s', animationDuration: '7s' }}
         >
           <div className="w-20 h-20 rounded-2xl border-2 border-primary/20 bg-primary/5 backdrop-blur-2xl shadow-lg shadow-primary/5 rotate-45" />
+        </div>
+        
+        {/* Floating Glass Pill 4 (Tengah Kiri - Baru) */}
+        <div 
+          className="hidden md:block absolute top-[35%] left-[20%] animate-float"
+          style={{ animationDelay: '2s', animationDuration: '8s' }}
+        >
+          <div className="w-16 h-16 rounded-full border border-white/60 bg-white/30 backdrop-blur-xl shadow-lg shadow-primary/10 -rotate-12" />
         </div>
       </div>
 
