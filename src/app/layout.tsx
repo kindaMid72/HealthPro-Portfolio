@@ -35,12 +35,12 @@ const inter = Inter({
 export async function generateMetadata(): Promise<Metadata> {
   const profile = await getProfile();
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://localhost:3000";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://dryuliana.my.id";
   const doctorName = profile.full_name;
   const specialty = profile.specialty;
 
-  const title = `${doctorName} — ${specialty}`;
-  const description = `Profil dan jadwal praktik ${doctorName}, ${specialty}. Tersedia di 3 lokasi praktik di Tanah Bumbu, Kalimantan Selatan. Informasi lokasi, layanan, dan cara booking tersedia di sini.`;
+  const title = `${doctorName} — ${specialty} di Tanah Bumbu`;
+  const description = `Profil dan jadwal praktik ${doctorName}, ${specialty}. Melayani pasien di wilayah Tanah Bumbu, Batulicin, Simpang Empat, dan Angsana. Informasi lokasi, layanan medis, dan booking tersedia di sini.`;
 
   // OG image: pakai route opengraph-image.tsx yang dirender Next.js otomatis,
   // atau fallback ke /images/dokter-1.png jika route belum tersedia.
@@ -75,6 +75,7 @@ export async function generateMetadata(): Promise<Metadata> {
     alternates: {
       canonical: siteUrl,
     },
+    keywords: ["Dokter THT", "Spesialis THT", "Tanah Bumbu", "Batulicin", "Angsana", "Simpang Empat", "Klinik THT"],
     robots: {
       index: true,
       follow: true,

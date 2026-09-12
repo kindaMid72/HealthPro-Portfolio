@@ -92,6 +92,14 @@ export default function HeroSection({
             </p>
           )}
 
+          <p
+            id="doctor-geography"
+            className="mb-4 animate-fade-in-up text-sm text-text-body/80 md:text-base max-w-lg"
+            style={{ animationDelay: "375ms" }}
+          >
+            Melayani pasien di wilayah <strong>Tanah Bumbu</strong>, meliputi <strong>Batulicin</strong>, <strong>Simpang Empat</strong>, dan <strong>Angsana</strong>.
+          </p>
+
           {profile.str_sip_display && (
             <div className="mb-8 mt-2 animate-fade-in-up" style={{ animationDelay: "450ms" }}>
               <span
