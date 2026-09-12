@@ -19,10 +19,10 @@ interface NavbarProps {
 }
 
 export const NAV_LINKS = [
-  { href: "#tentang",  label: "Tentang" },
-  { href: "#layanan",  label: "Layanan" },
-  { href: "#lokasi",   label: "Jadwal & Lokasi" },
-  { href: "#kontak",   label: "Kontak" },
+  { href: "#tentang", label: "Tentang" },
+  { href: "#layanan", label: "Layanan" },
+  { href: "#lokasi", label: "Jadwal & Lokasi" },
+  { href: "#kontak", label: "Kontak" },
 ] as const;
 
 export default function Navbar({ doctorName }: NavbarProps) {

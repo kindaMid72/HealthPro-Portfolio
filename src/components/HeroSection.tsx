@@ -65,22 +65,28 @@ export default function HeroSection({
         {/* Blob berwarna untuk diblur oleh kaca */}
         <div className="absolute top-[5%] right-[5%] md:right-[10%] w-48 h-48 md:w-72 md:h-72 rounded-full bg-primary/20 blur-3xl animate-float" />
         <div 
-          className="absolute top-[10%] right-[10%] md:right-[15%] w-32 h-32 md:w-48 md:h-48 rounded-3xl border border-white/80 bg-white/40 backdrop-blur-md shadow-2xl shadow-primary/10 animate-float rotate-12"
+          className="absolute top-[10%] right-[10%] md:right-[15%] animate-float"
           style={{ animationDelay: '1s', animationDuration: '9s' }}
-        />
+        >
+          <div className="w-32 h-32 md:w-48 md:h-48 rounded-3xl border border-white/80 bg-white/40 backdrop-blur-md shadow-2xl shadow-primary/10 rotate-12" />
+        </div>
 
         {/* Floating Glass Shape 2 (Kiri Bawah) */}
         <div className="absolute bottom-[15%] -left-[5%] w-64 h-64 md:w-96 md:h-96 rounded-full bg-accent/15 blur-3xl animate-float" style={{ animationDelay: '2s' }} />
         <div 
-          className="absolute bottom-[20%] left-[5%] md:left-[8%] w-24 h-48 md:w-40 md:h-64 rounded-full border border-white/80 bg-white/40 backdrop-blur-xl shadow-xl shadow-accent/10 animate-float -rotate-12"
+          className="absolute bottom-[20%] left-[5%] md:left-[8%] animate-float"
           style={{ animationDelay: '3s', animationDuration: '10s' }}
-        />
+        >
+          <div className="w-24 h-48 md:w-40 md:h-64 rounded-full border border-white/80 bg-white/40 backdrop-blur-xl shadow-xl shadow-accent/10 -rotate-12" />
+        </div>
 
         {/* Floating Glass Pill 3 (Tengah Kanan - Dekat Foto) */}
         <div 
-          className="hidden md:block absolute top-[45%] right-[35%] w-20 h-20 rounded-2xl border-2 border-primary/20 bg-primary/5 backdrop-blur-2xl shadow-lg shadow-primary/5 animate-float rotate-45"
+          className="hidden md:block absolute top-[45%] right-[35%] animate-float"
           style={{ animationDelay: '0.5s', animationDuration: '7s' }}
-        />
+        >
+          <div className="w-20 h-20 rounded-2xl border-2 border-primary/20 bg-primary/5 backdrop-blur-2xl shadow-lg shadow-primary/5 rotate-45" />
+        </div>
       </div>
 
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col-reverse justify-end gap-0 md:flex-row md:items-center md:justify-between md:gap-12">
