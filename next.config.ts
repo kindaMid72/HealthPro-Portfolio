@@ -1,6 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
+  async headers() {
+    return [
+      {
+        source: "/",
+        headers: [
+          // Petunjuk bagi agen/LLM: ringkasan markdown tersedia di /llms.txt
+          { key: "Link", value: '</llms.txt>; rel="alternate"; type="text/markdown"' },
+        ],
+      },
+    ];
+  },
   images: {
     /**
      * Remote patterns untuk next/image — photo_url dokter bisa berasal dari

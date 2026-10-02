@@ -15,6 +15,7 @@
 
 import { MapPin, Clock, MessageCircle, Phone, CalendarCheck } from "lucide-react";
 import { Location } from "@/lib/types";
+import { mapsSearchUrl } from "@/lib/seo";
 
 interface LocationsSectionProps {
   locations: Location[];
@@ -113,7 +114,18 @@ export default function LocationsSection({
                         className="mt-0.5 shrink-0 text-primary"
                         aria-hidden="true"
                       />
-                      <span>{loc.address}</span>
+                      <span>
+                        {loc.address}{" "}
+                        <a
+                          id={`location-map-${i}`}
+                          href={mapsSearchUrl(loc)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="whitespace-nowrap font-semibold text-primary underline-offset-2 hover:underline"
+                        >
+                          Lihat di Peta
+                        </a>
+                      </span>
                     </address>
 
                     {/* Jam praktik */}
@@ -130,7 +142,7 @@ export default function LocationsSection({
                         <span className="font-semibold text-primary-dark text-xs uppercase tracking-wider">
                           Jam Praktik{" "}
                         </span>
-                        <time className="block mt-0.5">{loc.practice_hours}</time>
+                        <span className="block mt-0.5">{loc.practice_hours}</span>
                       </div>
                     </div>
 

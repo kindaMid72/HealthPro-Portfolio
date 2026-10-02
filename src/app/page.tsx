@@ -38,7 +38,7 @@ export default async function Home() {
 
   return (
     <>
-      <JsonLd profile={profile} locations={locations} />
+      <JsonLd profile={profile} locations={locations} services={services} />
 
       {/* Skip to main content — accessibility */}
       <a

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Inter } from "next/font/google";
 import "./globals.css";
-import { getProfile } from "@/lib/sheets";
+import { getAllSiteData } from "@/lib/sheets";
+import { buildDescription, getServiceAreas, getSiteUrl } from "@/lib/seo";
 
 /**
  * Plus Jakarta Sans — heading font (Semibold/Bold)
@@ -33,14 +34,18 @@ const inter = Inter({
  * Next.js otomatis dedup request ini dengan page.tsx (satu render cycle).
  */
 export async function generateMetadata(): Promise<Metadata> {
-  const profile = await getProfile();
+  const { profile, locations, services } = await getAllSiteData();
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://dryuliana.my.id";
+  const siteUrl = getSiteUrl();
   const doctorName = profile.full_name;
   const specialty = profile.specialty;
+  const areas = getServiceAreas(locations);
 
-  const title = `${doctorName} — ${specialty} di Tanah Bumbu`;
-  const description = `Profil dan jadwal praktik ${doctorName}, ${specialty}. Melayani pasien di wilayah Tanah Bumbu, Batulicin, Simpang Empat, dan Angsana. Informasi lokasi, layanan medis, dan booking tersedia di sini.`;
+  // Title & description murni dari data Sheet (nama, spesialisasi, lokasi, layanan)
+  const title = areas.length
+    ? `${doctorName} — ${specialty} di ${areas[areas.length - 1]}`
+    : `${doctorName} — ${specialty}`;
+  const description = buildDescription(profile, locations, services);
 
   // OG image: pakai route opengraph-image.tsx yang dirender Next.js otomatis,
   // atau fallback ke /images/dokter-1.png jika route belum tersedia.
@@ -72,10 +77,13 @@ export async function generateMetadata(): Promise<Metadata> {
       description,
       images: [ogImageUrl],
     },
+    authors: [{ name: doctorName, url: siteUrl }],
+    keywords: [doctorName, specialty, ...services.map((s) => s.service_name), ...areas],
     alternates: {
       canonical: siteUrl,
+      languages: { "id-ID": siteUrl, "x-default": siteUrl },
+      types: { "text/markdown": `${siteUrl}/llms.txt` },
     },
-    keywords: ["Dokter THT", "Spesialis THT", "Tanah Bumbu", "Batulicin", "Angsana", "Simpang Empat", "Klinik THT"],
     robots: {
       index: true,
       follow: true,

@@ -7,10 +7,10 @@
  */
 
 import type { MetadataRoute } from "next";
+import { getSiteUrl } from "@/lib/seo";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://dryuliana.my.id";
+  const siteUrl = getSiteUrl();
 
   return [
     {
@@ -18,6 +18,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 1,
+    },
+    {
+      url: `${siteUrl}/llms.txt`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.5,
     },
   ];
 }

@@ -12,6 +12,8 @@
  */
 
 import { ImageResponse } from "next/og";
+import { getAllSiteData } from "@/lib/sheets";
+import { getServiceAreas } from "@/lib/seo";
 
 export const runtime = "nodejs";
 
@@ -22,7 +24,14 @@ export const size = {
 
 export const contentType = "image/png";
 
-export default function OGImage() {
+export const alt = "Profil dokter spesialis";
+
+export default async function OGImage() {
+  const { profile, locations } = await getAllSiteData();
+  const areas = getServiceAreas(locations);
+  const [namePart, ...creds] = profile.full_name.split(",");
+  const badge = [profile.specialty, areas[areas.length - 1]].filter(Boolean).join(" · ");
+
   return new ImageResponse(
     (
       <div
@@ -98,7 +107,7 @@ export default function OGImage() {
               display: "flex",
             }}
           >
-            Spesialis THT-BKL · Tanah Bumbu, Kalimantan Selatan
+            {badge}
           </span>
         </div>
 
@@ -114,7 +123,7 @@ export default function OGImage() {
             marginBottom: "8px",
           }}
         >
-          dr. Yuliana,
+          {creds.length ? `${namePart},` : namePart}
         </div>
         <div
           style={{
@@ -127,7 +136,7 @@ export default function OGImage() {
             marginBottom: "32px",
           }}
         >
-          Sp.THTBKL, M.Kes
+          {creds.join(",").trim()}
         </div>
 
         {/* Deskripsi */}
@@ -141,7 +150,7 @@ export default function OGImage() {
             maxWidth: "700px",
           }}
         >
-          Jadwal praktik, lokasi, dan informasi layanan kesehatan THT tersedia di sini.
+          Jadwal praktik, lokasi, dan informasi layanan tersedia di sini.
         </div>
 
         {/* CTA pill */}

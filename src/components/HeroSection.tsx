@@ -206,7 +206,7 @@ export default function HeroSection({
               
               <Image
                 src={profile.photo_url}
-                alt={`Foto ${profile.full_name}`}
+                alt={`Foto ${profile.full_name}, ${profile.specialty}`}
                 fill
                 className="animate-fade-in object-contain object-bottom drop-shadow-2xl md:scale-110 md:origin-bottom"
                 priority
