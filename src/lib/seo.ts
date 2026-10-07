@@ -8,8 +8,11 @@
 
 import type { Location, Profile, Service } from "./types";
 
+/** Host kanonis tanpa "www." — harus sama dengan property di Google Search Console */
 export function getSiteUrl(): string {
-  return (process.env.NEXT_PUBLIC_SITE_URL ?? "https://dryuliana.my.id").replace(/\/+$/, "");
+  return (process.env.NEXT_PUBLIC_SITE_URL ?? "https://dryuliana.my.id")
+    .replace(/\/+$/, "")
+    .replace(/^(https?:\/\/)www\./i, "$1");
 }
 
 /** Pecah string list berformat "a | b" (atau ";" / baris baru) jadi array */
