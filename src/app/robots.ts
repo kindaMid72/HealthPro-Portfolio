@@ -42,6 +42,8 @@ export default function robots(): MetadataRoute.Robots {
       { userAgent: AI_CRAWLERS, allow: "/" },
     ],
     sitemap: `${siteUrl}/sitemap.xml`,
-    host: siteUrl,
+    // Host: hanya nama domain tanpa protokol (standar Yandex, diabaikan Google).
+    // Format yang benar: "dryuliana.my.id" bukan "https://dryuliana.my.id".
+    host: siteUrl.replace(/^https?:\/\//i, ""),
   };
 }
