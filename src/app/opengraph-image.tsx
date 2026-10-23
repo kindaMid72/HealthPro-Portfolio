@@ -12,7 +12,7 @@
  */
 
 import { ImageResponse } from "next/og";
-import { getAllSiteData } from "@/lib/sheets";
+import { getAllSiteData } from "@/lib/content";
 import { getServiceAreas } from "@/lib/seo";
 
 export const runtime = "nodejs";

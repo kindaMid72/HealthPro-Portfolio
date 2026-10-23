@@ -24,7 +24,7 @@ interface JsonLdProps {
  * Structured data (schema.org) untuk mesin pencari & LLM.
  * Satu @graph dengan entitas yang saling terhubung lewat @id:
  * WebSite ↔ ProfilePage ↔ Physician ↔ MedicalClinic (per lokasi).
- * Semua nilai dari data Sheet; field kosong dihilangkan (tidak ada data dikarang).
+ * Semua nilai dari data database; field kosong dihilangkan (tidak ada data dikarang).
  */
 export default function JsonLd({ profile, locations, services }: JsonLdProps) {
   const siteUrl = getSiteUrl();
@@ -164,7 +164,7 @@ export default function JsonLd({ profile, locations, services }: JsonLdProps) {
   return (
     <script
       type="application/ld+json"
-      // `<` di-escape agar data dari Sheet tidak bisa menutup tag <script>
+      // `<` di-escape agar data dari database tidak bisa menutup tag <script>
       dangerouslySetInnerHTML={{ __html: JSON.stringify(schema).replace(/</g, "\\u003c") }}
     />
   );

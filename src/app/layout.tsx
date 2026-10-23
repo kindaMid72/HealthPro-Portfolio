@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Inter } from "next/font/google";
 import "./globals.css";
-import { getAllSiteData } from "@/lib/sheets";
+import { getAllSiteData } from "@/lib/content";
 import { buildDescription, getServiceAreas, getSiteUrl } from "@/lib/seo";
 
 /**
@@ -30,7 +30,7 @@ const inter = Inter({
 
 /**
  * generateMetadata — Fase 4 (SEO)
- * Metadata dinamis diambil dari Google Sheet via getProfile().
+ * Metadata dinamis diambil dari database via getProfile().
  * Next.js otomatis dedup request ini dengan page.tsx (satu render cycle).
  */
 export async function generateMetadata(): Promise<Metadata> {
@@ -41,7 +41,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const specialty = profile.specialty;
   const areas = getServiceAreas(locations);
 
-  // Title & description murni dari data Sheet (nama, spesialisasi, lokasi, layanan)
+  // Title & description murni dari data database (nama, spesialisasi, lokasi, layanan)
   const title = areas.length
     ? `${doctorName} — ${specialty} di ${areas[areas.length - 1]}`
     : `${doctorName} — ${specialty}`;

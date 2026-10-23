@@ -1,6 +1,6 @@
 /**
  * lib/types.ts
- * Zod schemas + TypeScript types untuk semua data yang ditarik dari Google Sheets.
+ * Zod schemas + TypeScript types untuk semua data konten (disimpan di database, diedit lewat /admin).
  * Sinkron dengan: docs/02-content-data.md dan docs/07-data-architecture.md
  *
  * ATURAN: Kalau skema di sini berubah, docs/02-content-data.md WAJIB diupdate
@@ -78,4 +78,23 @@ export interface SiteData {
   profile: Profile;
   locations: Location[];
   services: Service[];
+}
+
+// ---------------------------------------------------------------------------
+// Artikel Publik
+// ---------------------------------------------------------------------------
+export interface PublicArticleSummary {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  coverImageUrl: string | null;
+  coverAlt: string;
+  authorName: string;
+  publishedAt: Date;
+  updatedAt: Date;
+}
+
+export interface PublicArticleDetail extends PublicArticleSummary {
+  contentHtml: string;
 }

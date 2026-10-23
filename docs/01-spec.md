@@ -15,7 +15,8 @@ Website profil dokter spesialis sebagai **CV digital / personal branding**, deng
 - CTA "Booking Sekarang" → redirect ke URL eksternal (diambil dari data source).
 - Kontak (WhatsApp/telepon/email).
 - Fully responsive, prioritas mobile.
-- Konten dikelola lewat Google Sheets (lihat `05-tech-plan.md`).
+- Konten profil, lokasi, layanan, dan artikel harian dikelola lewat panel internal `/admin` dengan database Postgres (lihat `05-tech-plan.md`).
+- Portal publik artikel edukasi kesehatan THT (`/artikel`, `/artikel/[slug]`).
 
 ## Scope — Out (eksplisit tidak dikerjakan)
 - Sistem booking/appointment internal dengan database pasien.
@@ -23,18 +24,15 @@ Website profil dokter spesialis sebagai **CV digital / personal branding**, deng
 - E-commerce / pembayaran online.
 - Fitur real-time chat.
 
-## Scope — Fase Selanjutnya (nice-to-have, di luar MVP)
-- Halaman artikel/edukasi kesehatan.
+## Scope — Fase Selanjutnya (nice-to-have, di luar scope saat ini)
 - Testimoni pasien.
-- Galeri foto klinik.
-- SEO lanjutan / schema markup local business.
-
+- Galeri foto klinik terpisah.
 ## Functional Requirements
 Ditulis gaya WHEN/SHALL biar jelas dan bisa dicek agent:
 
 - **FR-1**: WHEN pengunjung membuka halaman utama, sistem SHALL menampilkan nama, foto, spesialisasi, dan CTA booking di atas fold (above the fold) pada layar mobile.
 - **FR-2**: WHEN pengunjung klik tombol "Booking Sekarang", sistem SHALL membuka tab baru menuju URL eksternal yang didefinisikan di data source, TANPA memproses booking apa pun secara internal.
-- **FR-3**: WHEN admin mengubah data di Google Sheet (mis. jam praktik), sistem SHALL merefleksikan perubahan tersebut di website tanpa perlu developer mengubah kode.
+- **FR-3**: WHEN admin mengubah data di panel `/admin` (mis. jam praktik, profil, layanan, atau artikel), sistem SHALL merefleksikan perubahan tersebut di website tanpa perlu developer mengubah kode.
 - **FR-4**: WHEN data suatu field kosong/belum diisi di sumber data, sistem SHALL menampilkan fallback yang aman (bukan crash, bukan teks kosong membingungkan) — lihat `02-content-data.md`.
 - **FR-5**: WHEN halaman diakses dari perangkat mobile (viewport < 768px), sistem SHALL menampilkan layout yang tetap terbaca dan CTA tetap mudah dijangkau (thumb-friendly).
 

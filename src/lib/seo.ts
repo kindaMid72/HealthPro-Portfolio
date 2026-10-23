@@ -2,7 +2,7 @@
  * lib/seo.ts
  * Helper SEO / GEO (Generative Engine Optimization) — dipakai oleh JsonLd, llms.txt, dan metadata.
  *
- * ATURAN: semua output diturunkan dari data Sheet (Profile/Locations/Services).
+ * ATURAN: semua output diturunkan dari data database (Profile/Locations/Services).
  * Tidak ada fakta medis/personal yang ditulis di sini. Field kosong = dihilangkan.
  */
 

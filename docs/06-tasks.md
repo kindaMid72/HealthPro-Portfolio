@@ -1,54 +1,66 @@
 # 06 — Tasks (Build Plan per Fase)
 
-> Aturan: agent HANYA mengerjakan task di fase yang berstatus 🟢 Aktif. Setelah fase selesai, agent laporkan ke user, tunggu approval sebelum mengubah status fase berikutnya jadi 🟢.
+> Rencana Eksekusi: "Admin Panel + Database (Neon) + Artikel Harian"
+> Disetujui: 23 Oktober 2026
 
-## Fase 0 — Setup Proyek
-Status: ✅ Selesai (31 Agustus 2026)
-- [x] Init repo, scaffold Next.js + TypeScript + Tailwind.
-- [x] Tambahkan `AGENTS.md` dan folder `docs/` ke root repo.
-- [x] Setup struktur folder sesuai `05-tech-plan.md`.
-- [x] Buat Google Sheet template sesuai `02-content-data.md` (tab Profile & Locations & Services) — file CSV siap import di `docs/google-sheet-template/`, panduan di `docs/google-sheet-setup.md`.
-- [x] Publish sheet ke web (CSV), simpan URL ke `.env.local` (jangan commit) — template `.env.local.example` tersedia; URL Sheet asli diisi user setelah buat Sheet.
-- [x] Buat `lib/sheets.ts` untuk fetch + parse CSV jadi JSON typed (dengan Zod validation, fallback snapshot, dev-fixture mode).
-- **Definition of Done**: ✅ `npm run build` sukses, data dummy dari `dev-fixture.json` berhasil ditarik dan di-console.log tanpa error (lihat build output 31 Agustus 2026).
+## Fase 1 — Infra DB (PostgreSQL + Drizzle)
+Status: ✅ Selesai (23 Oktober 2026)
+- [x] Dependencies terpasang: drizzle-orm, postgres, drizzle-kit, tsx, tiptap, tailwindcss typography, sharp.
+- [x] `compose.yaml` PostgreSQL 17 lokal di port 5432 aktif.
+- [x] Schema Drizzle 7 tabel: `users`, `sessions`, `images`, `profile`, `locations`, `services`, `articles`.
+- [x] Migrasi `0000_sparkling_skullbuster.sql` berhasil diterapkan ke database.
+- [x] Client database lazy singleton di `src/db/client.ts`.
 
+## Fase 2 — Data Layer Refactor
+Status: ✅ Selesai (23 Oktober 2026)
+- [x] `src/lib/content.ts` membaca dari database Postgres dengan fallback JSON jika DB offline.
+- [x] Tautan CTA terpusat di `src/lib/cta.ts` (normalisasi nomor WhatsApp Indonesia).
+- [x] `SiteShell.tsx` membungkus konsistensi layout, Navbar, dan Footer.
+- [x] Anchor navigasi menggunakan Next.js `Link`.
 
-## Fase 1 — Struktur Halaman (Static, data dummy)
-Status: ✅ Selesai (31 Agustus 2026)
-- [x] Bangun semua section di `03-sitemap.md` sebagai komponen React, pakai data dummy dari Fase 0.
-- [x] Implementasi CTA booking (redirect ke `booking_url` dari data, FR-2).
-- [x] Implementasi sticky bottom CTA di mobile.
-- **Definition of Done**: semua section tampil, navigasi/anchor jalan, belum perlu cantik — fokus struktur & data binding benar.
+## Fase 3 — Migrasi & Akun Admin
+Status: ✅ Selesai (23 Oktober 2026)
+- [x] Hashing password Scrypt di `src/lib/password.ts`.
+- [x] Skrip impor data Google Sheet ke database: `npm run db:import-sheets`.
+- [x] Skrip pembuatan user admin: `npm run user:create`.
 
-## Fase 2 — Styling & Responsif
-Status: ✅ Selesai (31 Agustus 2026)
-- [x] Terapkan arahan desain dari `04-design.md` (setelah dikonfirmasi user).
-- [x] Pastikan responsif mobile (375px) & desktop (1280px) sesuai FR-5.
-- [x] Optimasi gambar (next/image, lazy load).
-- **Definition of Done**: tampilan matching arahan desain, lolos cek responsif manual di 2 breakpoint.
+## Fase 4 — Autentikasi Admin
+Status: ✅ Selesai (23 Oktober 2026)
+- [x] Sesi cookie 30 hari httpOnly di `src/lib/session.ts` (hash sha256 di DB).
+- [x] Lockout otomatis 15 menit setelah 5x gagal login berturut-turut.
+- [x] Server actions login & logout di `src/app/admin/actions.ts`.
+- [x] Halaman login `/admin/login` & layout terproteksi `/admin`.
+- [x] Helper `revalidatePublicSite()` untuk purge cache ISR saat ada perubahan.
 
-## Fase 3 — Integrasi Data Real + ISR
-Status: ✅ Selesai (2 September 2026)
-- [x] Ganti data dummy dengan data asli dari `02-content-data.md` — `dev-fixture.json` & `fallback-*.json` diisi data asli dr. Yuliana dari Google Sheet.
-- [x] ISR revalidate 1 jam sudah aktif sejak Fase 0 — dikonfirmasi via `next build` output: `Route / Revalidate 1h`. Tidak ada perubahan kode diperlukan.
-- [x] Build production sukses (`next build`) dengan data Sheet asli, semua 3 tab (Profile, Locations, Services) berhasil di-fetch & pass Zod validation.
-- **Catatan data yang masih perlu dilengkapi user (tidak blocking Fase 4)**: `booking_url`, `str_sip_display`, deskripsi layanan lebih lengkap, WA lokasi 2 & 3, foto profil asli — pakai fallback per FR-4 selama belum terisi.
-- **Definition of Done**: acceptance criteria di `01-spec.md` bagian "data diambil dari Google Sheet" terpenuhi.
+## Fase 5 — Upload & Kompresi Media
+Status: ✅ Selesai (23 Oktober 2026)
+- [x] Kompresi otomatis WebP via Sharp di `src/lib/images.ts`.
+- [x] Route handler publik `/media/[id]` dengan header cache immutable 1 tahun.
+- [x] Endpoint upload admin `/api/admin/images`.
 
-## Fase 4 — SEO, Performance, Deploy
-Status: 🟢 Aktif (5 September 2026)
-- [x] Tambah meta tags dasar (title, description, OG image) — `generateMetadata()` dinamis di `layout.tsx`, OG image via `opengraph-image.tsx`, sitemap di `sitemap.ts`, robots di `robots.ts`.
-- [x] Tambah advance SEO optimization
-- [ ] Cek Lighthouse score (target Performance & Accessibility ≥ 90 mobile, sesuai NFR di `01-spec.md`).
-- [ ] Deploy ke Vercel — pakai subdomain Vercel (domain sendiri ditunda).
-- **Definition of Done**: site live di URL production, checklist acceptance criteria `01-spec.md` semua tercentang.
+## Fase 6 — Admin Artikel
+Status: ✅ Selesai (23 Oktober 2026)
+- [x] Domain logic artikel, slugify unik, dan validasi publikasi di `src/lib/articles.ts`.
+- [x] Server actions artikel di `src/app/admin/articles/actions.ts`.
+- [x] Editor artikel Tiptap WYSIWYG di `/admin/articles/[id]`.
+- [x] Pratinjau artikel admin di `/admin/articles/[id]/preview`.
+- [x] Daftar artikel dan filter status di `/admin/articles`.
 
-## Fase 5+ — Nice-to-have (di luar MVP)
-Status: 🔲 Belum aktif, tunggu MVP selesai & approval user
-- [ ] Halaman artikel edukasi.
-- [ ] Section testimoni.
-- [ ] Galeri foto.
+## Fase 7 — Admin Profil, Lokasi, dan Layanan
+Status: ✅ Selesai (23 Oktober 2026)
+- [x] Form edit profil dokter & upload foto di `/admin/profile`.
+- [x] CRUD dan reorder lokasi praktik di `/admin/locations`.
+- [x] CRUD dan reorder layanan medis di `/admin/services`.
 
----
+## Fase 8 — Halaman Publik Artikel & SEO
+Status: ✅ Selesai (23 Oktober 2026)
+- [x] Halaman indeks artikel `/artikel` dengan grid kartu `ArticleCard`.
+- [x] Halaman baca artikel `/artikel/[slug]` dengan semantic HTML dan ISR.
+- [x] Structured data JSON-LD `MedicalWebPage`.
+- [x] Sitemap dinamis memuat semua artikel terbit di `/sitemap.xml`.
+- [x] Rangkuman artikel untuk AI search di `/llms.txt`.
 
-**Catatan untuk orchestrator (user)**: update status fase (🔲 → 🟢 → ✅) secara manual di file ini setiap kali approve lanjut, supaya agent selalu tahu batas kerjanya di sesi berikutnya.
+## Fase 9 — Dokumentasi & Verifikasi Akhir
+Status: 🟢 Aktif (23 Oktober 2026)
+- [x] Sinkronisasi dokumentasi (constitution, spec, tech-plan, tasks, AGENTS.md, README.md).
+- [ ] Verifikasi lokal menyeluruh (1-13).

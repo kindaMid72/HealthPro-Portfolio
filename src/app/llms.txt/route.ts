@@ -1,18 +1,21 @@
 /**
  * app/llms.txt/route.ts — /llms.txt (GEO: ringkasan situs untuk LLM/AI crawler)
  *
- * Markdown polos berisi fakta inti dokter, diturunkan dari data Sheet yang sama
+ * Markdown polos berisi fakta inti dokter, diturunkan dari data database yang sama
  * dengan halaman utama. Field kosong dilewati — tidak ada data dikarang.
  * Spec: https://llmstxt.org
  */
 
-import { getAllSiteData } from "@/lib/sheets";
+import { getAllSiteData, getPublishedArticles } from "@/lib/content";
 import { getSiteUrl, splitList } from "@/lib/seo";
 
-export const revalidate = 3600; // sama dengan ISR data Sheet
+export const revalidate = 3600; // sama dengan ISR data database
 
 export async function GET() {
-  const { profile, locations, services } = await getAllSiteData();
+  const [{ profile, locations, services }, articles] = await Promise.all([
+    getAllSiteData(),
+    getPublishedArticles(),
+  ]);
   const siteUrl = getSiteUrl();
 
   const lines: string[] = [];
@@ -50,7 +53,17 @@ export async function GET() {
       return row;
     }),
   );
-  section("Tautan", [`- [Halaman utama](${siteUrl}): profil lengkap`, `- [Sitemap](${siteUrl}/sitemap.xml)`]);
+  if (articles.length > 0) {
+    section(
+      "Artikel edukasi kesehatan",
+      articles.map((a) => `- [${a.title}](${siteUrl}/artikel/${a.slug}): ${a.excerpt || a.title}`),
+    );
+  }
+  section("Tautan", [
+    `- [Halaman utama](${siteUrl}): profil lengkap`,
+    `- [Daftar artikel](${siteUrl}/artikel): artikel edukasi THT`,
+    `- [Sitemap](${siteUrl}/sitemap.xml)`,
+  ]);
 
   lines.push(
     "",

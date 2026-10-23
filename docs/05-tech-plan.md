@@ -1,71 +1,54 @@
 # 05 — Technical Plan
 
 ## Stack
-- **Framework**: Next.js (App Router), static export / ISR — pilihan populer, dokumentasi luas, gampang dikerjakan agent, deploy gratis di Vercel.
-- **Styling**: Tailwind CSS.
-- **Hosting**: Vercel (free tier cukup untuk trafik personal branding site).
-- **Data source**: Google Sheets (lihat mekanisme di bawah).
-- **Tanpa database**, sesuai constitution.
+- **Framework**: Next.js 16 (App Router), ISR + Server Actions + Dynamic routes.
+- **Database & ORM**: PostgreSQL (Neon di produksi, PostgreSQL 17 docker compose di lokal) + Drizzle ORM.
+- **Styling**: Tailwind CSS v4 + `@tailwindcss/typography` untuk artikel edukasi.
+- **Rich Text Editor**: Tiptap (StarterKit, Image, Static Renderer).
+- **Pemrosesan Gambar**: Sharp (kompresi otomatis ke WebP kualitas 80, maks 1600px, disimpan di tabel `images` PostgreSQL).
+- **Hosting**: Vercel (Next.js serverless runtime).
+- **Autentikasi Admin**: Cookie session httpOnly (`mami_session`) dengan token 32-byte acak; sha256 tersimpan di tabel `sessions`, lockout 15 menit setelah 5x gagal, password hash via Scrypt (`node:crypto`).
 
-## Mekanisme "Google Sheets sebagai CMS"
-Ada dua opsi realistis, direkomendasikan mulai dari **Opsi A** karena paling simpel dan gratis:
+## Alur Data & Arsitektur
 
-### Opsi A (default/rekomendasi) — Publish to Web + fetch CSV saat build
-1. Di Google Sheets: **File → Share → Publish to web** → pilih sheet/tab tertentu → format CSV.
-2. Dapat URL publik CSV, mis: `https://docs.google.com/spreadsheets/d/e/{ID}/pub?gid={GID}&single=true&output=csv`.
-3. Saat build (`next build`), fetch URL CSV tersebut, parse jadi JSON (pakai library ringan seperti `papaparse` atau parser CSV manual), lalu generate halaman statis dari data itu (Static Site Generation).
-4. **Kelebihan**: zero backend, zero API key, zero biaya, setup 10 menit.
-5. **Kekurangan**: perubahan di Sheet baru muncul di website setelah **rebuild**. Solusinya: pakai **ISR (Incremental Static Regeneration)** Next.js dengan `revalidate` (mis. tiap 1 jam) — jadi website auto-refresh data secara berkala tanpa perlu manual redeploy, ATAU set up webhook sederhana (Apps Script trigger → panggil Vercel Deploy Hook) kalau butuh update instan.
-
-### Opsi B (kalau butuh update lebih real-time) — Google Sheets API v4 read-only
-- Pakai API key read-only (bukan OAuth penuh) untuk fetch data langsung dari Sheets API tiap request/ISR cycle.
-- Lebih fleksibel (bisa multi-tab lebih terstruktur), tapi butuh setup Google Cloud project + API key — sedikit lebih ribet dibanding Opsi A.
-- Direkomendasikan HANYA kalau di fase berjalan ternyata Opsi A kurang cukup (mis. butuh update konten sangat sering/real-time).
-
-> **Keputusan default untuk MVP: Opsi A + ISR revalidate tiap 1 jam.** Agent mulai dari sini kecuali user eksplisit minta Opsi B.
-
-## Struktur Data
-Mapping 1:1 dengan `02-content-data.md`:
-- Tab `Profile` → 1 baris data (key-value atau 1 baris dengan kolom = field).
-- Tab `Services` → banyak baris, tiap baris = 1 layanan.
-
-## Alur Data (runtime)
 ```
-Google Sheet (published CSV)
-   → fetch saat build/ISR revalidate
-   → parse CSV → JSON typed (sesuai skema 02-content-data.md)
-   → render ke komponen React
+[Pengunjung Publik]
+  ├── / (Beranda)                -> ISR 1 jam + SiteShell + fallback JSON aman
+  ├── /artikel (Daftar Artikel)  -> ISR 1 jam
+  ├── /artikel/[slug] (Detail)   -> ISR 1 jam + generateStaticParams + JSON-LD
+  ├── /media/[id] (Gambar WebP)  -> Cache 1 tahun immutable dari database
+  ├── /sitemap.xml               -> Dinamis memuat semua artikel terbit
+  └── /llms.txt                  -> Ringkasan teks untuk LLM / AI Search
+
+[Admin Panel]
+  ├── /admin/login               -> Form masuk admin + lockout 15 menit
+  └── /admin                     -> Layout terproteksi (requireUser)
+        ├── /admin/profile       -> Form biografi, STR/SIP, foto dokter
+        ├── /admin/locations     -> CRUD & urutan lokasi praktik
+        ├── /admin/services      -> CRUD & urutan layanan medis
+        ├── /admin/articles      -> Daftar artikel & filter status
+        ├── /admin/articles/[id] -> Editor Tiptap, upload cover, simpan/terbitkan
+        └── /admin/articles/[id]/preview -> Pratinjau dengan tampilan publik
 ```
 
-## Struktur Folder (usulan awal)
-```
-/app
-  /page.tsx          -> Home (hero, CTA)
-  /layout.tsx
-/components
-  Hero.tsx
-  About.tsx
-  Services.tsx
-  Location.tsx
-  Contact.tsx
-  StickyCTA.tsx        (mobile bottom bar)
-/lib
-  sheets.ts          -> fetch & parse Google Sheet
-  types.ts           -> tipe data sesuai 02-content-data.md
-/docs
-  ...(dokumen ini)
-AGENTS.md
-```
+## Struktur Database (Drizzle Schema)
+1. `users`: Akun admin (email unik, passwordHash scrypt, failedLoginCount, lockedUntil).
+2. `sessions`: Sesi cookie (id sha256, userId cascade, expiresAt 30 hari).
+3. `images`: Blob WebP terkompresi (mimeType, data bytea, width, height, byteSize, articleId, createdBy).
+4. `profile`: Singleton row (`id = 1`) menyimpan data dokter, STR/SIP, biografi, kontak, photoImageId.
+5. `locations`: Lokasi praktik klinik/RS, alamat, jadwal, WhatsApp, telepon, bookingUrlOverride, sortOrder.
+6. `services`: Layanan spesialis THT, deskripsi, sortOrder.
+7. `articles`: Artikel edukasi (slug unik, title, excerpt, coverImageId, content jsonb, status: `draft` | `in_review` | `published`, reviewNote, publishedAt).
 
-## Detail Arsitektur Data
-Rincian lengkap (schema, validasi, fallback, caching, media, keamanan) ada di **`docs/07-data-architecture.md`** — dokumen ini hanya overview, implementasi harus rujuk ke sana.
+## Revalidasi & Caching
+- Saat admin mengubah profil, lokasi, layanan, atau artikel, helper `revalidatePublicSite()` memanggil `revalidatePath` untuk:
+  - `/` (layout)
+  - `/artikel`
+  - `/artikel/[slug]`
+  - `/llms.txt`
+  - `/sitemap.xml`
+- Halaman publik langsung menyajikan data terbaru tanpa menunggu interval ISR 1 jam habis.
 
 ## Environment Variables
-- `SHEET_CSV_URL_PROFILE` — URL publish-to-web CSV untuk tab Profile.
-- `SHEET_CSV_URL_LOCATIONS` — URL publish-to-web CSV untuk tab Locations (BARU — data ternyata multi-lokasi, lihat `02-content-data.md` & `07-data-architecture.md`).
-- `SHEET_CSV_URL_SERVICES` — URL publish-to-web CSV untuk tab Services.
-- (Kalau pakai Opsi B nanti) `GOOGLE_SHEETS_API_KEY`, `SHEET_ID`.
-
-## Hal yang Perlu Dikonfirmasi User Sebelum Implementasi
-- [ ] Setuju pakai Next.js + Vercel? (kalau user punya preferensi hosting lain, sesuaikan)
-- [ ] Google Sheet sumber data akan dibuat oleh siapa — user atau agent buatkan template-nya?
+- `DATABASE_URL`: Connection string PostgreSQL (Neon pooled di Vercel, `postgres://postgres:postgres@localhost:5432/mami` di lokal).
+- `DATABASE_URL_UNPOOLED`: Connection string langsung untuk migrasi Drizzle.
