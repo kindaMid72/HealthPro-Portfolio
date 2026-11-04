@@ -10,29 +10,36 @@ export const EMPTY_TIPTAP_DOC: JSONContent = {
   content: [{ type: 'paragraph' }],
 };
 
+function baseStarterKit() {
+  return StarterKit.configure({
+    heading: { levels: [2, 3] },
+    link: {
+      openOnClick: false,
+      HTMLAttributes: {
+        rel: 'noopener noreferrer nofollow',
+        target: '_blank',
+        class: 'text-primary underline hover:text-primary-dark',
+      },
+    },
+  });
+}
+
+const tableKit = () => TableKit.configure({ table: { resizable: false } });
+
 export function getArticleTiptapExtensions() {
   return [
-    StarterKit.configure({
-      heading: { levels: [2, 3] },
-      link: {
-        openOnClick: false,
-        HTMLAttributes: {
-          rel: 'noopener noreferrer nofollow',
-          target: '_blank',
-          class: 'text-primary underline hover:text-primary-dark',
-        },
-      },
-    }),
+    baseStarterKit(),
     Image.configure({
       inline: false,
       allowBase64: false,
     }),
-    TableKit.configure({
-      table: {
-        resizable: false,
-      },
-    }),
+    tableKit(),
   ];
+}
+
+/** Konten layanan: tanpa gambar, jadi tidak perlu GC blob gambar. */
+export function getServiceTiptapExtensions() {
+  return [baseStarterKit(), tableKit()];
 }
 
 const BLOCK_NODE_TYPES: Record<string, true> = {

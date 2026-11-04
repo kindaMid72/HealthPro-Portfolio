@@ -1,78 +1,123 @@
 'use server';
 
-import { asc, eq } from 'drizzle-orm';
+import { and, asc, eq, ne } from 'drizzle-orm';
+import { redirect } from 'next/navigation';
+import type { JSONContent } from '@tiptap/core';
 import { getDb } from '@/db/client';
 import { services } from '@/db/schema';
+import { findAvailableSlug, slugify } from '@/lib/articles';
 import { revalidatePublicSite } from '@/lib/revalidate';
 import { requireUser } from '@/lib/session';
+import { countWords, EMPTY_TIPTAP_DOC } from '@/lib/tiptap';
+import { type ArticleCategory, isValidArticleCategory } from '@/lib/types';
 
 export interface ServiceItem {
   id: string;
   sortOrder: number;
   serviceName: string;
   serviceDescription: string;
+  slug: string;
+  hasDetail: boolean;
 }
 
 async function fetchServicesOrdered(): Promise<ServiceItem[]> {
-  return getDb()
+  const rows = await getDb()
     .select({
       id: services.id,
       sortOrder: services.sortOrder,
       serviceName: services.serviceName,
       serviceDescription: services.serviceDescription,
+      slug: services.slug,
+      content: services.content,
     })
     .from(services)
     .orderBy(asc(services.sortOrder));
+
+  return rows.map(({ content, ...rest }) => ({ ...rest, hasDetail: countWords(content) > 0 }));
 }
 
-export async function saveServiceAction(input: {
-  id?: string;
+async function isServiceSlugTaken(candidate: string, excludeId?: string): Promise<boolean> {
+  const rows = await getDb()
+    .select({ id: services.id })
+    .from(services)
+    .where(
+      excludeId
+        ? and(eq(services.slug, candidate), ne(services.id, excludeId))
+        : eq(services.slug, candidate),
+    )
+    .limit(1);
+  return rows.length > 0;
+}
+
+/** Buat layanan baru (hanya nama) lalu arahkan ke editornya. Hanya mengembalikan nilai bila gagal. */
+export async function createServiceAction(input: {
   serviceName: string;
-  serviceDescription: string;
-}): Promise<{
-  success: boolean;
-  error?: string;
-  items?: ServiceItem[];
-}> {
+}): Promise<{ success: false; error: string }> {
   await requireUser();
 
   const serviceName = input.serviceName.trim();
-  const serviceDescription = input.serviceDescription.trim();
-
   if (!serviceName) {
+    return { success: false, error: 'Nama layanan wajib diisi.' };
+  }
+
+  let id: string;
+  try {
+    const current = await fetchServicesOrdered();
+    const nextSort = current.length > 0 ? Math.max(...current.map((c) => c.sortOrder)) + 1 : 0;
+    const slug = await findAvailableSlug(slugify(serviceName), (c) => isServiceSlugTaken(c));
+    const [row] = await getDb()
+      .insert(services)
+      .values({ sortOrder: nextSort, serviceName, slug })
+      .returning({ id: services.id });
+    id = row.id;
+    revalidatePublicSite();
+  } catch (err) {
     return {
       success: false,
-      error: 'Nama layanan wajib diisi.',
+      error: err instanceof Error ? err.message : 'Gagal membuat layanan.',
     };
   }
 
+  redirect(`/admin/services/${id}`);
+}
+
+export async function saveServiceAction(input: {
+  id: string;
+  serviceName: string;
+  slug: string;
+  serviceDescription: string;
+  category: ArticleCategory | null;
+  content: JSONContent;
+}): Promise<{ success: boolean; error?: string; slug?: string }> {
+  await requireUser();
+
+  const serviceName = input.serviceName.trim();
+  if (!serviceName) {
+    return { success: false, error: 'Nama layanan wajib diisi.' };
+  }
+
+  const content = input.content && input.content.type === 'doc' ? input.content : EMPTY_TIPTAP_DOC;
+  const category = isValidArticleCategory(input.category ?? undefined) ? input.category : null;
+
   try {
-    const db = getDb();
-    if (input.id) {
-      await db
-        .update(services)
-        .set({
-          serviceName,
-          serviceDescription,
-          updatedAt: new Date(),
-        })
-        .where(eq(services.id, input.id));
-    } else {
-      const current = await fetchServicesOrdered();
-      const nextSort =
-        current.length > 0
-          ? Math.max(...current.map((c) => c.sortOrder)) + 1
-          : 0;
-      await db.insert(services).values({
-        sortOrder: nextSort,
+    const slug = await findAvailableSlug(
+      slugify(input.slug.trim() || serviceName),
+      (c) => isServiceSlugTaken(c, input.id),
+    );
+    await getDb()
+      .update(services)
+      .set({
         serviceName,
-        serviceDescription,
-      });
-    }
+        slug,
+        serviceDescription: input.serviceDescription.trim(),
+        category,
+        content,
+        updatedAt: new Date(),
+      })
+      .where(eq(services.id, input.id));
 
     revalidatePublicSite();
-    const items = await fetchServicesOrdered();
-    return { success: true, items };
+    return { success: true, slug };
   } catch (err) {
     return {
       success: false,

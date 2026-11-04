@@ -32,6 +32,8 @@ import {
   users,
 } from '@/db/schema';
 import { revalidatePublicSite } from './revalidate';
+import { isProperServiceDescription } from './service-content';
+import { toSlug } from './slug';
 import type { ArticleCategory, TocItem } from './types';
 
 export {
@@ -44,27 +46,27 @@ export {
 };
 
 export function slugify(text: string): string {
-  const cleaned = text
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 80)
-    .replace(/-+$/g, '');
+  return toSlug(text) || `artikel-${randomBytes(3).toString('hex')}`;
+}
 
-  return cleaned || `artikel-${randomBytes(3).toString('hex')}`;
+/** Cari slug bebas: dasar, lalu `-2`…`-50`, terakhir akhiran acak. `isTaken` menentukan bentrok. */
+export async function findAvailableSlug(
+  baseSlug: string,
+  isTaken: (candidate: string) => Promise<boolean>,
+): Promise<string> {
+  for (let attempt = 1; attempt <= 50; attempt++) {
+    const candidate = attempt === 1 ? baseSlug : `${baseSlug}-${attempt}`;
+    if (!(await isTaken(candidate))) return candidate;
+  }
+  return `${baseSlug}-${randomBytes(3).toString('hex')}`;
 }
 
 export async function makeUniqueSlug(
   baseText: string,
   currentId?: string,
 ): Promise<string> {
-  const baseSlug = slugify(baseText);
   const db = getDb();
-
-  for (let attempt = 1; attempt <= 50; attempt++) {
-    const candidate = attempt === 1 ? baseSlug : `${baseSlug}-${attempt}`;
+  return findAvailableSlug(slugify(baseText), async (candidate) => {
     const existing = await db
       .select({ id: articles.id })
       .from(articles)
@@ -74,15 +76,9 @@ export async function makeUniqueSlug(
           : eq(articles.slug, candidate),
       )
       .limit(1);
-
-    if (existing.length === 0) {
-      return candidate;
-    }
-  }
-
-  return `${baseSlug}-${randomBytes(3).toString('hex')}`;
+    return existing.length > 0;
+  });
 }
-
 
 /** Escape wildcard LIKE (%, _, \\) agar pencarian pengguna dibaca harfiah. */
 export function escapeLike(input: string): string {
@@ -582,14 +578,7 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
     );
   const allServicesHaveProperDesc =
     serviceRows.length > 0 &&
-    serviceRows.every((s) => {
-      const desc = s.serviceDescription?.trim() ?? '';
-      return (
-        desc.length >= 20 &&
-        !desc.includes('[BELUM DIISI]') &&
-        !/^jadi\s+.*\s+itu\.{2,}$/i.test(desc)
-      );
-    });
+    serviceRows.every((s) => isProperServiceDescription(s.serviceDescription ?? ''));
 
   const completeness: CompletenessItem[] = [
     {

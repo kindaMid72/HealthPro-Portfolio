@@ -35,3 +35,4 @@ Website profil dokter spesialis THT-BKL sebagai **CV digital / personal branding
 - **FR-4**: WHEN data suatu field kosong/belum diisi atau database belum tersedia, sistem SHALL menampilkan fallback yang aman (`data/fallback-*.json`).
 - **FR-5**: WHEN halaman diakses dari perangkat mobile (viewport < 768px), sistem SHALL menampilkan layout yang tetap terbaca dan CTA tetap mudah dijangkau (thumb-friendly).
 - **FR-6**: WHEN pengunjung membuka halaman artikel `/artikel/[slug]`, sistem SHALL menampilkan informasi medis yang telah berstatus `published`, lengkap dengan badge tinjauan medis, Daftar Isi (bila ≥ 2 subjudul), waktu baca, dan CTA konsultasi.
+- **FR-7**: WHEN sebuah layanan memiliki konten detail (kolom `content` tidak kosong), sistem SHALL menyajikan halaman `/layanan/[slug]` dan menautkannya dari kartu layanan di beranda; WHEN konten kosong, sistem SHALL TIDAK menyajikan halaman maupun tautan tersebut.

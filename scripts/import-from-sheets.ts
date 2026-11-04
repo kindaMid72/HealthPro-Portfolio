@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import Papa from 'papaparse';
 import { closeDb, getDb } from '../src/db/client';
 import { locations, profile, services } from '../src/db/schema';
+import { uniqueSlugs } from '../src/lib/slug';
 import {
   LocationsListSchema,
   ProfileSchema,
@@ -151,11 +152,13 @@ async function main() {
 
     await tx.delete(services);
     if (servicesParsed.length > 0) {
+      const slugs = uniqueSlugs(servicesParsed.map((svc) => svc.service_name));
       await tx.insert(services).values(
         servicesParsed.map((svc, i) => ({
           sortOrder: i,
           serviceName: svc.service_name,
           serviceDescription: svc.service_description,
+          slug: slugs[i],
         })),
       );
     }

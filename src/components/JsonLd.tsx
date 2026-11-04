@@ -1,4 +1,4 @@
-import type { Profile, Location, Service } from "@/lib/types";
+import type { Profile, Location, PublicService } from "@/lib/types";
 import {
   absoluteUrl,
   buildDescription,
@@ -17,7 +17,7 @@ import {
 interface JsonLdProps {
   profile: Profile;
   locations: Location[];
-  services: Service[];
+  services: PublicService[];
 }
 
 /**
@@ -111,6 +111,12 @@ export default function JsonLd({ profile, locations, services }: JsonLdProps) {
           availableService: services.map((s) => ({
             "@type": "MedicalProcedure",
             name: s.service_name,
+            ...(s.hasDetail
+              ? {
+                  "@id": `${siteUrl}/layanan/${s.slug}#procedure`,
+                  url: `${siteUrl}/layanan/${s.slug}`,
+                }
+              : {}),
           })),
         }
       : {}),

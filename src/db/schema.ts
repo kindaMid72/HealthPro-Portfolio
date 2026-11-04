@@ -99,6 +99,13 @@ export const services = pgTable('services', {
   sortOrder: integer('sort_order').notNull(),
   serviceName: text('service_name').notNull(),
   serviceDescription: text('service_description').notNull().default(''),
+  slug: text('slug').notNull().unique(),
+  content: jsonb('content')
+    .$type<JSONContent>()
+    .notNull()
+    .default(sql`'{"type":"doc","content":[{"type":"paragraph"}]}'::jsonb`),
+  /** Topik artikel terkait di halaman /layanan/[slug]; null = tanpa artikel terkait. */
+  category: articleCategory('category'),
   updatedAt: tsz('updated_at').notNull().defaultNow(),
 });
 

@@ -42,7 +42,9 @@ export async function GET() {
   section("Organisasi profesi", splitList(profile.organizations).map((e) => `- ${e}`));
   section(
     "Layanan",
-    services.map((s) => `- ${s.service_name}`),
+    services.map((s) =>
+      s.hasDetail ? `- [${s.service_name}](${siteUrl}/layanan/${s.slug})` : `- ${s.service_name}`,
+    ),
   );
   section(
     "Lokasi & jadwal praktik",

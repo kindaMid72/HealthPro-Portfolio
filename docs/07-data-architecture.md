@@ -14,12 +14,14 @@ Dokumen ini menjelaskan arsitektur penyimpanan dan pengelolaan data berbasis **P
 3. **`images`**: Menyimpan blob gambar hasil kompresi WebP (`id`, `article_id` opsional dengan `ON DELETE CASCADE`, `mime_type`, `data` bytea, `width`, `height`, `byte_size`, `created_by`, `created_at`).
 4. **`profile`**: Tabel singleton (`CHECK (id = 1)`) yang menyimpan biodata dokter (`full_name`, `specialty`, `sub_specialty`, `str_sip_display`, `education`, `certifications`, `experience_history`, `organizations`, `booking_url`, `email`, `social_links`, `personal_story`, `photo_image_id`, `updated_at`).
 5. **`locations`**: Daftar lokasi praktik terurut berdasarkan `sort_order` (`location_name`, `address`, `practice_hours`, `whatsapp`, `phone`, `booking_url_override`).
-6. **`services`**: Daftar layanan medis terurut berdasarkan `sort_order` (`service_name`, `service_description`).
+6. **`services`**: Daftar layanan medis terurut berdasarkan `sort_order` (`service_name`, `service_description` singkat untuk kartu beranda, `slug` unik untuk `/layanan/[slug]`, `content` dokumen Tiptap untuk halaman detail — kosong berarti tanpa halaman, `category` opsional sebagai topik artikel terkait). Deskripsi singkat yang berupa placeholder atau < 20 karakter disembunyikan di sisi publik.
 7. **`articles`**: Menyimpan artikel edukasi kesehatan (`slug` unik, `title`, `excerpt`, `category`, `cover_image_id`, `cover_alt`, `content` JSONB Tiptap, `status`, `review_note`, `reading_time_minutes`, `view_count`, `author_id`, `updated_by`, `created_at`, `updated_at`, `published_at`).
 
 ## 2. Ketahanan Data & Fallback (`src/lib/content.ts`)
 - Semua pembacaan data publik melewati `src/lib/content.ts` yang dibungkus `React.cache`.
 - Apabila database belum di-seed atau koneksi gagal saat build statis awal, `getProfile()`, `getLocations()`, dan `getServices()` otomatis beralih ke file snapshot `data/fallback-profile.json`, `data/fallback-locations.json`, dan `data/fallback-services.json`.
+
+- `npm run db:import-sheets` menimpa seluruh baris `locations` dan `services` (termasuk `content` layanan yang sudah ditulis lewat admin). Jalankan hanya untuk seed awal.
 
 ## 3. Siklus Hidup Gambar & Garbage Collection
 - Unggahan gambar melalui `/api/admin/images` divalidasi (maks 10 MB, format JPEG/PNG/WebP/AVIF/GIF) dan dikompresi oleh `sharp` ke format WebP (maks 1600×1600 px, kualitas 80).

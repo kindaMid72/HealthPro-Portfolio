@@ -24,6 +24,9 @@ import {
   users as usersTable,
 } from '@/db/schema';
 import { escapeLike, renderArticleContentWithToc } from './articles';
+import { isProperServiceDescription } from './service-content';
+import { uniqueSlugs } from './slug';
+import { countWords } from './tiptap';
 import {
   ARTICLE_CATEGORIES,
   type ArticleCategory,
@@ -34,7 +37,8 @@ import {
   ProfileSchema,
   type PublicArticleDetail,
   type PublicArticleSummary,
-  type Service,
+  type PublicService,
+  type PublicServiceDetail,
   ServicesListSchema,
   type SiteData,
 } from './types';
@@ -66,9 +70,19 @@ function loadFallbackLocations(): Location[] {
   }
 }
 
-function loadFallbackServices(): Service[] {
+function loadFallbackServices(): PublicService[] {
   try {
-    return ServicesListSchema.parse(fallbackServicesJson);
+    const parsed = ServicesListSchema.parse(fallbackServicesJson);
+    const slugs = uniqueSlugs(parsed.map((p) => p.service_name));
+    return parsed.map((p, i) => ({
+      service_name: p.service_name,
+      service_description: isProperServiceDescription(p.service_description)
+        ? p.service_description.trim()
+        : '',
+      slug: slugs[i],
+      category: null,
+      hasDetail: false,
+    }));
   } catch {
     return [];
   }
@@ -137,10 +151,16 @@ export const getLocations = cache(async (): Promise<Location[]> => {
   }
 });
 
-export const getServices = cache(async (): Promise<Service[]> => {
+export const getServices = cache(async (): Promise<PublicService[]> => {
   try {
     const rows = await getDb()
-      .select()
+      .select({
+        serviceName: servicesTable.serviceName,
+        serviceDescription: servicesTable.serviceDescription,
+        slug: servicesTable.slug,
+        category: servicesTable.category,
+        content: servicesTable.content,
+      })
       .from(servicesTable)
       .orderBy(asc(servicesTable.sortOrder));
 
@@ -148,17 +168,72 @@ export const getServices = cache(async (): Promise<Service[]> => {
       return loadFallbackServices();
     }
 
-    return ServicesListSchema.parse(
-      rows.map((r) => ({
-        service_name: r.serviceName,
-        service_description: r.serviceDescription,
-      })),
-    );
+    return rows.map((r) => ({
+      service_name: r.serviceName,
+      service_description: isProperServiceDescription(r.serviceDescription)
+        ? r.serviceDescription.trim()
+        : '',
+      slug: r.slug,
+      category: r.category ?? null,
+      hasDetail: countWords(r.content) > 0,
+    }));
   } catch (err) {
     console.error('[content] getServices gagal, memakai data fallback:', err);
     return loadFallbackServices();
   }
 });
+
+/** Detail layanan untuk /layanan/[slug]; null bila tak ada atau kontennya kosong (tanpa halaman). */
+export const getServiceBySlug = cache(
+  async (slug: string): Promise<PublicServiceDetail | null> => {
+    try {
+      const rows = await getDb()
+        .select()
+        .from(servicesTable)
+        .where(eq(servicesTable.slug, slug))
+        .limit(1);
+
+      const row = rows[0];
+      if (!row || countWords(row.content) === 0) return null;
+
+      const { html, toc } = renderArticleContentWithToc(row.content as JSONContent);
+      return {
+        service_name: row.serviceName,
+        service_description: isProperServiceDescription(row.serviceDescription)
+          ? row.serviceDescription.trim()
+          : '',
+        slug: row.slug,
+        category: row.category ?? null,
+        hasDetail: true,
+        contentHtml: html,
+        toc,
+        updatedAt: row.updatedAt,
+      };
+    } catch (err) {
+      console.error('[content] getServiceBySlug gagal:', err);
+      return null;
+    }
+  },
+);
+
+export const getServiceSlugsWithDetail = cache(
+  async (): Promise<{ slug: string; updatedAt: Date }[]> => {
+    try {
+      const rows = await getDb()
+        .select({
+          slug: servicesTable.slug,
+          content: servicesTable.content,
+          updatedAt: servicesTable.updatedAt,
+        })
+        .from(servicesTable);
+      return rows
+        .filter((r) => countWords(r.content) > 0)
+        .map((r) => ({ slug: r.slug, updatedAt: r.updatedAt }));
+    } catch {
+      return [];
+    }
+  },
+);
 
 export const getAllSiteData = cache(async (): Promise<SiteData> => {
   const [profile, locations, services] = await Promise.all([
