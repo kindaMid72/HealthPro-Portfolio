@@ -33,3 +33,13 @@ Status: ✅ Selesai (22 April 2026)
 - [x] Bangun data layer `src/lib/content.ts` & `src/lib/articles.ts` (ekstensi Tiptap, injeksi ID heading & Daftar Isi otomatis, kalkulasi waktu baca, view counter, garbage collection gambar).
 - [x] Bangun portal publik `/artikel`, `/artikel/halaman/[page]`, dan `/artikel/[slug]` lengkap dengan filter kategori THT, pencarian, TOC, Medical Review Badge, share WhatsApp, artikel terkait, dan JSON-LD `MedicalWebPage` + `BlogPosting`.
 - [x] Bangun Admin Dashboard (`/admin`) berbahasa Indonesia: Statistik & Indikator Kelengkapan Data, Editor Artikel Tiptap v3 (tabel, gambar + caption, autosave draft, alur `draft` → `in_review` → `published`), Profil Dokter, Lokasi Praktik, Layanan Medis, dan Manajemen Akun/Password.
+
+## Fase 6 — Redesign UI/UX menyeluruh
+Status: 🟢 Aktif
+- [ ] Fondasi desain: token warna/font (Plus Jakarta Sans + Literata untuk bacaan panjang), komponen dasar.
+- [ ] Logika jadwal praktik (`src/lib/schedule.ts`) + status "Praktik hari ini".
+- [ ] Navbar, menu mobile, sticky CTA, dan footer baru.
+- [ ] Beranda berorientasi kebutuhan pasien (Hero → Jadwal & Lokasi → Layanan → Tentang → Artikel → Kontak).
+- [ ] Portal artikel: indeks, paginasi, halaman baca dengan TOC sticky.
+- [ ] Halaman detail layanan `/layanan/[slug]` + skema konten layanan + editor admin.
+- [ ] Primitif UI admin + shell sidebar, lalu seluruh halaman admin dipindah ke primitif baru.
