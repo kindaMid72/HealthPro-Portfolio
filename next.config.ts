@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  allowedDevOrigins: ["open.kiyen.dev", "*.kiyen.dev", "localhost"],
   async headers() {
     return [
       {
@@ -13,26 +14,15 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  images: {
-    /**
-     * Remote patterns untuk next/image — photo_url dokter bisa berasal dari
-     * Google Drive / Google Photos (data dari Google Sheet).
-     * Tambah domain lain di sini kalau suatu saat photo_url berubah sumber.
-     */
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "drive.google.com",
-      },
-      {
-        protocol: "https",
-        hostname: "lh3.googleusercontent.com",
-      },
-      {
-        protocol: "https",
-        hostname: "**.googleusercontent.com",
-      },
-    ],
+  async rewrites() {
+    return [
+      { source: "/admin/artikel", destination: "/admin/articles" },
+      { source: "/admin/artikel/:path*", destination: "/admin/articles/:path*" },
+      { source: "/admin/profil", destination: "/admin/profile" },
+      { source: "/admin/lokasi", destination: "/admin/locations" },
+      { source: "/admin/layanan", destination: "/admin/services" },
+      { source: "/admin/akun", destination: "/admin/account" },
+    ];
   },
 };
 

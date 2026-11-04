@@ -15,21 +15,12 @@
 
 import { MessageCircle, Phone, Mail, ArrowRight } from "lucide-react";
 import { Profile, Location } from "@/lib/types";
+import { toWaLink } from "@/lib/cta";
 
 interface ContactSectionProps {
   profile: Profile;
   locations: Location[];
 }
-
-/** Konversi nomor WA Indonesia ke format wa.me */
-function toWaLink(wa: string): string {
-  const digits = wa.replace(/\D/g, "");
-  const normalized = digits.startsWith("0")
-    ? `62${digits.slice(1)}`
-    : digits;
-  return `https://wa.me/${normalized}`;
-}
-
 interface ContactRowProps {
   id: string;
   icon: React.ReactNode;
@@ -134,7 +125,7 @@ export default function ContactSection({
             {/* Kontak per Lokasi */}
             {locationsWithContact.map((loc, i) => (
               <div key={`loc-${i}`} className="space-y-3">
-                {loc.whatsapp && (
+                {loc.whatsapp && toWaLink(loc.whatsapp) && (
                   <ContactRow
                     id={`contact-wa-item-${i}`}
                     icon={
@@ -145,7 +136,7 @@ export default function ContactSection({
                       />
                     }
                     label={`WhatsApp - ${loc.location_name}`}
-                    href={toWaLink(loc.whatsapp)}
+                    href={toWaLink(loc.whatsapp) ?? "#"}
                     displayText={loc.whatsapp}
                     isExternal
                   />

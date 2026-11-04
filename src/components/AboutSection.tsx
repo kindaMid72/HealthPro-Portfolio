@@ -19,20 +19,11 @@ import {
   Users,
 } from "lucide-react";
 import { Profile } from "@/lib/types";
+import { splitList } from "@/lib/seo";
 
 interface AboutSectionProps {
   profile: Profile;
 }
-
-/** Split string yang dipisah " | " jadi array, filter entri kosong */
-function splitPipeList(value: string | undefined): string[] {
-  if (!value) return [];
-  return value
-    .split("|")
-    .map((s) => s.trim())
-    .filter(Boolean);
-}
-
 /** Ambil nama depan tanpa gelar untuk sapaan ("dr. Yuliana, Sp..." → "Yuliana") */
 function getFirstName(fullName: string): string {
   const stripped = fullName
@@ -106,17 +97,22 @@ function Subsection({ id, icon, title, items, itemIdPrefix }: SubsectionProps) {
 
 export default function AboutSection({ profile }: AboutSectionProps) {
   const firstName = getFirstName(profile.full_name);
-  const educationList = splitPipeList(profile.education);
-  const experienceList = splitPipeList(profile.experience_history);
-  const certificationList = splitPipeList(profile.certifications);
-  const organizationList = splitPipeList(profile.organizations);
+  const educationList = splitList(profile.education);
+  const experienceList = splitList(profile.experience_history);
+  const certificationList = splitList(profile.certifications);
+  const organizationList = splitList(profile.organizations);
+  const personalStory =
+    profile.personal_story &&
+    !profile.personal_story.includes("[BELUM DIISI]")
+      ? profile.personal_story.trim()
+      : "";
 
   const allEmpty =
+    !personalStory &&
     educationList.length === 0 &&
     experienceList.length === 0 &&
     certificationList.length === 0 &&
     organizationList.length === 0;
-
   return (
     <section
       id="tentang"
@@ -141,6 +137,17 @@ export default function AboutSection({ profile }: AboutSectionProps) {
             Mengenal lebih dekat latar belakang pendidikan, pengalaman klinis, serta dedikasi profesional dalam memberikan pelayanan medis terbaik.
           </p>
         </div>
+
+        {personalStory && (
+          <div
+            id="personal-story-block"
+            className="mb-10 rounded-2xl border border-border bg-bg/70 p-6 md:p-8 text-text-body leading-relaxed shadow-sm"
+          >
+            <p className="whitespace-pre-line text-sm md:text-base">
+              {personalStory}
+            </p>
+          </div>
+        )}
 
         {allEmpty ? (
           <p id="about-empty" className="text-text-body text-center py-8">

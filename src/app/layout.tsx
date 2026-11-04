@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, Inter } from "next/font/google";
 import "./globals.css";
-import { getAllSiteData } from "@/lib/sheets";
+import { getAllSiteData } from "@/lib/content";
 import { buildDescription, getServiceAreas, getSiteUrl } from "@/lib/seo";
 
 /**

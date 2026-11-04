@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 @theme {
   --color-primary: #3F6B74;
@@ -6,7 +7,9 @@
   --color-accent: #D98C4A;
   --color-bg: #F7F8F7;
   --color-surface: #FFFFFF;
+  --color-text-heading: #243138;
   --color-text-body: #4A5257;
+  --color-text-muted: #6E777D;
   --color-border: #E4E7E6;
 
   --font-heading: var(--font-plus-jakarta-sans), "Plus Jakarta Sans", sans-serif;
@@ -119,6 +122,21 @@
   /* ── Section Divider — border-top halus antar section ── */
   .section-divider {
     @apply border-t border-border;
+  }
+
+  /* ── Konten Artikel Klinis (Prose & Tabel) ── */
+  .article-prose h2,
+  .article-prose h3 {
+    scroll-margin-top: 6rem;
+  }
+  .article-prose table {
+    @apply w-full border-collapse overflow-hidden rounded-lg border border-border my-6 text-sm;
+  }
+  .article-prose th {
+    @apply bg-primary/8 px-4 py-2.5 text-left font-heading font-semibold text-primary-dark border border-border;
+  }
+  .article-prose td {
+    @apply px-4 py-2.5 border border-border text-text-body align-top;
   }
 }
 

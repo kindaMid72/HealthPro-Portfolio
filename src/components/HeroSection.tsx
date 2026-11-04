@@ -208,6 +208,7 @@ export default function HeroSection({
                 src={profile.photo_url}
                 alt={`Foto ${profile.full_name}, ${profile.specialty}`}
                 fill
+                unoptimized={profile.photo_url.startsWith("/media/")}
                 className="animate-fade-in object-contain object-bottom drop-shadow-2xl md:scale-110 md:origin-bottom"
                 priority
                 sizes="(max-width: 768px) 100vw, 50vw"

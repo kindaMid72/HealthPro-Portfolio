@@ -21,7 +21,7 @@ export default function Footer() {
 
         {/* Back to top */}
         <a
-          href="#hero"
+          href="#top"
           id="footer-back-to-top"
           aria-label="Kembali ke atas halaman"
           className="inline-flex flex-col items-center gap-1 text-white/40 hover:text-white transition-colors duration-200 group mb-2"

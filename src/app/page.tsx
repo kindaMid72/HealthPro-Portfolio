@@ -8,71 +8,41 @@
  * spacer <div className="h-16" /> setelah Navbar agar konten tidak tertutup.
  */
 
-import { getAllSiteData } from "@/lib/sheets";
-import Navbar from "@/components/Navbar";
+import { getAllSiteData, getPublishedArticles } from "@/lib/content";
+import { getCtaLinks } from "@/lib/cta";
+import SiteShell from "@/components/SiteShell";
 import HeroSection from "@/components/HeroSection";
 import JsonLd from "@/components/JsonLd";
 import AboutSection from "@/components/AboutSection";
 import ServicesSection from "@/components/ServicesSection";
 import LocationsSection from "@/components/LocationsSection";
+import ArticlesSection from "@/components/ArticlesSection";
 import ContactSection from "@/components/ContactSection";
-import StickyCTA from "@/components/StickyCTA";
-import Footer from "@/components/Footer";
+
+export const revalidate = 3600;
 
 export default async function Home() {
-  const { profile, locations, services } = await getAllSiteData();
+  const [{ profile, locations, services }, articles] = await Promise.all([
+    getAllSiteData(),
+    getPublishedArticles(3),
+  ]);
 
-  /**
-   * Resolusi booking CTA:
-   * - Utama: profile.booking_url (global)
-   * - Fallback: nomor WA dari lokasi pertama yang punya kontak WA
-   *
-   * FR-4: kalau booking_url kosong → jangan tampilkan tombol booking broken.
-   * Ganti dengan CTA WhatsApp kalau tersedia.
-   */
-  const bookingUrl = profile.booking_url ?? null;
-  const firstWa = locations.find((l) => l.whatsapp)?.whatsapp;
-  const whatsappFallback = firstWa
-    ? `https://wa.me/62${firstWa.replace(/\D/g, "").replace(/^0/, "")}`
-    : null;
+  const { bookingUrl, whatsappFallback } = getCtaLinks(profile, locations);
 
   return (
-    <>
+    <SiteShell profile={profile} locations={locations}>
       <JsonLd profile={profile} locations={locations} services={services} />
 
-      {/* Skip to main content — accessibility */}
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-20 focus:z-50 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg focus:text-primary"
-      >
-        Langsung ke konten utama
-      </a>
-
-      <Navbar doctorName={profile.full_name} />
-
-      {/* Spacer kompensasi fixed navbar (h-16 = 64px = tinggi navbar) */}
-      <div className="h-16" aria-hidden="true" />
-
-      <main id="main-content">
-        <HeroSection
-          profile={profile}
-          bookingUrl={bookingUrl}
-          whatsappFallback={whatsappFallback}
-        />
-        <AboutSection profile={profile} />
-        <ServicesSection services={services} />
-        <LocationsSection locations={locations} globalBookingUrl={bookingUrl} />
-        <ContactSection profile={profile} locations={locations} />
-      </main>
-
-      <Footer />
-
-      <StickyCTA bookingUrl={bookingUrl} whatsappFallback={whatsappFallback} />
-
-      {/* Spacer bawah di mobile agar konten tidak tertutup StickyCTA */}
-      {(bookingUrl || whatsappFallback) && (
-        <div className="h-20 md:hidden" aria-hidden="true" />
-      )}
-    </>
+      <HeroSection
+        profile={profile}
+        bookingUrl={bookingUrl}
+        whatsappFallback={whatsappFallback}
+      />
+      <AboutSection profile={profile} />
+      <ServicesSection services={services} />
+      <LocationsSection locations={locations} globalBookingUrl={bookingUrl} />
+      <ArticlesSection articles={articles} />
+      <ContactSection profile={profile} locations={locations} />
+    </SiteShell>
   );
 }

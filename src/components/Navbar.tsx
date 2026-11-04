@@ -19,10 +19,11 @@ interface NavbarProps {
 }
 
 export const NAV_LINKS = [
-  { href: "#tentang", label: "Tentang" },
-  { href: "#layanan", label: "Layanan" },
-  { href: "#lokasi", label: "Jadwal & Lokasi" },
-  { href: "#kontak", label: "Kontak" },
+  { href: "/#tentang", label: "Tentang" },
+  { href: "/#layanan", label: "Layanan" },
+  { href: "/#lokasi", label: "Jadwal & Lokasi" },
+  { href: "/artikel", label: "Artikel" },
+  { href: "/#kontak", label: "Kontak" },
 ] as const;
 
 export default function Navbar({ doctorName }: NavbarProps) {
@@ -38,9 +39,9 @@ export default function Navbar({ doctorName }: NavbarProps) {
       >
         {/* Logo / nama dokter */}
         <Link
-          href="#hero"
+          href="/"
           id="navbar-logo"
-          aria-label="Kembali ke atas halaman"
+          aria-label="Kembali ke beranda"
           className="flex items-center gap-2 text-primary hover:text-primary-dark transition-colors duration-200"
         >
           {/* Pulse dot — trust indicator kecil */}
@@ -64,24 +65,24 @@ export default function Navbar({ doctorName }: NavbarProps) {
         >
           {NAV_LINKS.map(({ href, label }) => (
             <li key={href}>
-              <a
+              <Link
                 href={href}
                 className="relative px-3 py-2 text-sm font-medium font-body text-text-body hover:text-primary transition-colors duration-200 rounded-lg hover:bg-primary/6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary block"
               >
                 {label}
-              </a>
+              </Link>
             </li>
           ))}
 
           {/* CTA Booking di navbar desktop */}
           <li className="ml-3">
-            <a
-              href="#lokasi"
+            <Link
+              href="/#lokasi"
               id="navbar-cta"
               className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold font-heading bg-primary text-white hover:bg-primary-dark transition-colors duration-200 shadow-sm"
             >
               Booking
-            </a>
+            </Link>
           </li>
         </ul>
 

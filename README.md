@@ -1,24 +1,51 @@
-# Docs — Website Profil Dokter Spesialis
+# Website Profil & Portal Edukasi Kesehatan — dr. Yuliana, Sp.THTBKL, M.Kes
 
-Susunan dokumen ini dibangun mengikuti dua pola standar untuk mengarahkan AI coding agent (per Agustus 2026):
-- **AGENTS.md** — instruksi teknis pendek yang dibaca agent tiap sesi (konvensi de facto lintas Claude Code, Cursor, Codex, dll).
-- **Spec-Driven Development** (pola ala GitHub Spec Kit: constitution → spec → plan → tasks) — dipecah jadi dokumen di `docs/`.
+Website profil resmi dokter spesialis THT-BKL, dilengkapi **Portal Artikel Edukasi Pasien (`/artikel`)** dan **Admin Dashboard (`/admin`)** berbasis **Next.js 16 App Router**, **PostgreSQL**, **Drizzle ORM**, dan **Tiptap v3**.
 
-## Urutan Baca / Alur Kerja
-1. `AGENTS.md` — root, selalu dibaca agent duluan.
-2. `docs/00-constitution.md` — aturan non-negotiable proyek.
-3. `docs/01-spec.md` — requirement & scope (functional/non-functional requirements).
-4. `docs/02-content-data.md` — kontrak data dokter (isi manual, jangan dikarang agent).
-5. `docs/03-sitemap.md` — struktur halaman.
-6. `docs/04-design.md` — arahan visual (✅ final: modern-calm, teal+amber, Plus Jakarta Sans/Inter).
-7. `docs/05-tech-plan.md` — stack & arsitektur overview (Next.js + Google Sheets sebagai CMS).
-8. `docs/06-tasks.md` — breakdown fase kerja + status gate (update manual oleh orchestrator).
-9. `docs/07-data-architecture.md` — detail teknis penyimpanan & manipulasi data.
+## Fitur Utama
+- **Profil & Jadwal Praktik Multi-Lokasi (`/`)**: Informasi kredensial dokter, layanan tindakan THT-BKL, jadwal & peta lokasi praktik, serta tombol CTA konsultasi/booking.
+- **Portal Artikel Edukasi Kesehatan THT (`/artikel` & `/artikel/[slug]`)**:
+  - Kategori topik THT (`Telinga & Pendengaran`, `Hidung & Sinus`, `Tenggorok & Suara`, `Bedah Kepala & Leher`, `Edukasi THT Umum`) dan pencarian artikel.
+  - Estimasi waktu baca otomatis, Daftar Isi (TOC) otomatis dari subjudul `H2`/`H3`, penghitung pembaca unik, badge *"Ditinjau secara medis"*, tombol bagikan ke WhatsApp, artikel terkait, dan struktur data `MedicalWebPage` + `BlogPosting`.
+- **Admin Dashboard (`/admin`)**:
+  - Autentikasi sesi cookie `httpOnly` + proteksi lockout otomatis.
+  - Statistik artikel, pembaca, & checklist kelengkapan data website.
+  - Editor kaya Tiptap v3 (Heading, List, Kutipan, Tabel, Unggah Gambar WebP + Caption, Autosave draft, alur `draft` → `in_review` → `published`, catatan review).
+  - Pengelolaan mandiri Profil Dokter, Lokasi Praktik, Layanan Medis, serta Akun & Kata Sandi.
 
-## Status Proyek (28 Agustus 2026)
-- Constitution, spec, sitemap, design, tech-plan, data-architecture: ✅ selesai/final.
-- Content data (`02-content-data.md`): 🔴 belum diisi — development bisa mulai dengan data dummy.
-- Tasks: Fase 0 (Setup) 🟢 siap dikerjakan agent.
+## Persiapan Lokal (Quickstart)
 
-## Cara Pakai
-Kasih seluruh isi repo ini (termasuk `AGENTS.md`) ke AI coding agent (Claude Code, Cursor, dll) sebagai starting point. Agent akan otomatis membaca `AGENTS.md` dan merujuk `docs/` sesuai kebutuhan. Orchestrator (kamu) tetap approve tiap fase di `06-tasks.md` sebelum agent lanjut ke fase berikutnya.
+1. **Jalankan PostgreSQL lokal via Docker Compose**:
+   ```bash
+   docker compose up -d db
+   ```
+2. **Konfigurasi `.env.local`**:
+   Pastikan `DATABASE_URL=postgres://postgres:postgres@localhost:5432/mami` dan `NEXT_PUBLIC_SITE_URL=http://localhost:3000` terisi di `.env.local`.
+3. **Install dependencies & jalankan migrasi database**:
+   ```bash
+   npm install
+   npm run db:migrate
+   ```
+4. **Seed data awal (dari Google Sheets CSV atau fallback JSON lokal) & buat akun admin**:
+   ```bash
+   npm run db:import-sheets
+   USER_PASSWORD='password-aman-123' npm run user:create -- admin@dryuliana.my.id "dr. Yuliana, Sp.THTBKL"
+   ```
+5. **Jalankan server development**:
+   ```bash
+   npm run dev
+   ```
+   - Halaman Publik: `http://localhost:3000`
+   - Portal Artikel: `http://localhost:3000/artikel`
+   - Admin Dashboard: `http://localhost:3000/admin`
+
+## Struktur Dokumentasi (`docs/`)
+1. `AGENTS.md` — Instruksi ringkas untuk AI coding agent.
+2. `docs/00-constitution.md` — Prinsip dasar proyek (v2.0).
+3. `docs/01-spec.md` — Spesifikasi fungsional & non-fungsional.
+4. `docs/02-content-data.md` — Kontrak data faktual dokter.
+5. `docs/03-sitemap.md` — Struktur halaman publik & admin.
+6. `docs/04-design.md` — Arahan desain & palet warna.
+7. `docs/05-tech-plan.md` — Rencana teknis & stack.
+8. `docs/06-tasks.md` — Status tahapan pembangunan.
+9. `docs/07-data-architecture.md` — Arsitektur database PostgreSQL & media.

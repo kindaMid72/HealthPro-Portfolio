@@ -6,13 +6,16 @@
  * Spec: https://llmstxt.org
  */
 
-import { getAllSiteData } from "@/lib/sheets";
+import { getAllSiteData, getPublishedArticles } from "@/lib/content";
 import { getSiteUrl, splitList } from "@/lib/seo";
 
-export const revalidate = 3600; // sama dengan ISR data Sheet
+export const revalidate = 3600;
 
 export async function GET() {
-  const { profile, locations, services } = await getAllSiteData();
+  const [{ profile, locations, services }, articles] = await Promise.all([
+    getAllSiteData(),
+    getPublishedArticles(50),
+  ]);
   const siteUrl = getSiteUrl();
 
   const lines: string[] = [];
@@ -50,8 +53,18 @@ export async function GET() {
       return row;
     }),
   );
-  section("Tautan", [`- [Halaman utama](${siteUrl}): profil lengkap`, `- [Sitemap](${siteUrl}/sitemap.xml)`]);
-
+  section(
+    "Artikel edukasi kesehatan",
+    articles.map(
+      (a) =>
+        `- [${a.title}](${siteUrl}/artikel/${a.slug}) [${a.categoryLabel}]: ${a.excerpt || a.title}`,
+    ),
+  );
+  section("Tautan", [
+    `- [Halaman utama](${siteUrl}): profil lengkap`,
+    `- [Indeks Artikel Edukasi](${siteUrl}/artikel)`,
+    `- [Sitemap](${siteUrl}/sitemap.xml)`,
+  ]);
   lines.push(
     "",
     "## Catatan",

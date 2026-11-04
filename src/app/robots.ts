@@ -38,8 +38,8 @@ export default function robots(): MetadataRoute.Robots {
 
   return {
     rules: [
-      { userAgent: "*", allow: "/" },
-      { userAgent: AI_CRAWLERS, allow: "/" },
+      { userAgent: "*", allow: "/", disallow: ["/admin", "/api/admin"] },
+      { userAgent: AI_CRAWLERS, allow: "/", disallow: ["/admin", "/api/admin"] },
     ],
     sitemap: `${siteUrl}/sitemap.xml`,
     // Host: hanya nama domain tanpa protokol (standar Yandex, diabaikan Google).

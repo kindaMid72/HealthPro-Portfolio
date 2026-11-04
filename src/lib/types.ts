@@ -79,3 +79,56 @@ export interface SiteData {
   locations: Location[];
   services: Service[];
 }
+
+// ---------------------------------------------------------------------------
+// Artikel Edukasi Kesehatan & Kategori THT
+// ---------------------------------------------------------------------------
+export type ArticleCategory = 'telinga' | 'hidung' | 'tenggorok' | 'kepala-leher' | 'umum';
+
+export const ARTICLE_CATEGORY_VALUES: ArticleCategory[] = [
+  'telinga',
+  'hidung',
+  'tenggorok',
+  'kepala-leher',
+  'umum',
+];
+
+export const ARTICLE_CATEGORIES: Record<ArticleCategory, string> = {
+  telinga: 'Telinga & Pendengaran',
+  hidung: 'Hidung & Sinus',
+  tenggorok: 'Tenggorok & Suara',
+  'kepala-leher': 'Bedah Kepala & Leher',
+  umum: 'Edukasi THT Umum',
+};
+
+export function isValidArticleCategory(val: string | undefined): val is ArticleCategory {
+  return !!val && (ARTICLE_CATEGORY_VALUES as string[]).includes(val);
+}
+
+export interface TocItem {
+  id: string;
+  text: string;
+  level: 2 | 3;
+}
+
+export interface PublicArticleSummary {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  category: ArticleCategory;
+  categoryLabel: string;
+  readingTimeMinutes: number;
+  viewCount: number;
+  coverImageUrl: string | null;
+  coverAlt: string;
+  authorName: string;
+  publishedAt: Date;
+  updatedAt: Date;
+}
+
+export interface PublicArticleDetail extends PublicArticleSummary {
+  contentHtml: string;
+  toc: TocItem[];
+  wordCount: number;
+}

@@ -16,21 +16,12 @@
 import { MapPin, Clock, MessageCircle, Phone, CalendarCheck } from "lucide-react";
 import { Location } from "@/lib/types";
 import { mapsSearchUrl } from "@/lib/seo";
+import { toWaLink } from "@/lib/cta";
 
 interface LocationsSectionProps {
   locations: Location[];
   globalBookingUrl: string | null;
 }
-
-/** Konversi nomor WA Indonesia ke format wa.me (08xxx → 628xxx) */
-function toWaLink(wa: string): string {
-  const digits = wa.replace(/\D/g, "");
-  const normalized = digits.startsWith("0")
-    ? `62${digits.slice(1)}`
-    : digits;
-  return `https://wa.me/${normalized}`;
-}
-
 export default function LocationsSection({
   locations,
   globalBookingUrl,
@@ -155,10 +146,10 @@ export default function LocationsSection({
                         id={`location-actions-${i}`}
                         className="flex flex-wrap gap-2 pt-2 border-t border-border"
                       >
-                        {loc.whatsapp && (
+                        {loc.whatsapp && toWaLink(loc.whatsapp) && (
                           <a
                             id={`location-wa-${i}`}
-                            href={toWaLink(loc.whatsapp)}
+                            href={toWaLink(loc.whatsapp) ?? "#"}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold border-2 border-primary text-primary hover:bg-primary hover:text-white transition-all duration-200 mt-3"
