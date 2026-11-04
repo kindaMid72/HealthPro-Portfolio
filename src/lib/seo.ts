@@ -6,7 +6,8 @@
  * Tidak ada fakta medis/personal yang ditulis di sini. Field kosong = dihilangkan.
  */
 
-import type { Location, Profile, Service } from "./types";
+import { parsePracticeHours } from "./schedule";
+import type { Location, Profile } from "./types";
 
 /** Host kanonis tanpa "www." — harus sama dengan property di Google Search Console */
 export function getSiteUrl(): string {
@@ -67,16 +68,6 @@ export function parseAddressLocality(address: string): { locality: string; regio
   return { locality: address, region: "Kalimantan Selatan" };
 }
 
-const DAY_INDEX: Record<string, number> = {
-  senin: 0,
-  selasa: 1,
-  rabu: 2,
-  kamis: 3,
-  jumat: 4,
-  "jum'at": 4,
-  sabtu: 5,
-  minggu: 6,
-};
 const SCHEMA_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 interface OpeningHours {
@@ -92,30 +83,13 @@ interface OpeningHours {
  * Gagal parse → undefined (field dihilangkan, bukan ditebak).
  */
 export function parseOpeningHours(text: string): OpeningHours | undefined {
-  const time = text.match(/(\d{1,2})[.:](\d{2})\s*(?:–|-|—|s\/d|sampai)\s*(\d{1,2})[.:](\d{2})/i);
-  if (!time) return undefined;
-  const pad = (h: string, m: string) => `${h.padStart(2, "0")}:${m}`;
-  const opens = pad(time[1], time[2]);
-  const closes = pad(time[3], time[4]);
-
-  const dayPart = text.slice(0, time.index).toLowerCase();
-  const days = new Set<number>();
-
-  const range = dayPart.match(/([a-z']+)\s*(?:–|-|—|s\/d|sampai)\s*([a-z']+)/);
-  if (range && range[1] in DAY_INDEX && range[2] in DAY_INDEX) {
-    for (let i = DAY_INDEX[range[1]]; i <= DAY_INDEX[range[2]]; i++) days.add(i);
-  } else {
-    for (const token of dayPart.split(/[^a-z']+/)) {
-      if (token in DAY_INDEX) days.add(DAY_INDEX[token]);
-    }
-  }
-  if (days.size === 0) return undefined;
-
+  const parsed = parsePracticeHours(text);
+  if (!parsed) return undefined;
   return {
     "@type": "OpeningHoursSpecification",
-    dayOfWeek: [...days].sort().map((d) => SCHEMA_DAYS[d]),
-    opens,
-    closes,
+    dayOfWeek: parsed.days.map((d) => SCHEMA_DAYS[d]),
+    opens: parsed.opens,
+    closes: parsed.closes,
   };
 }
 
@@ -146,8 +120,29 @@ export function getServiceAreas(locations: Location[]): string[] {
   return [...new Set([...localities, ...regions])].filter(Boolean);
 }
 
+/** ["A","B","C"] → "A, B, dan C"; ["A","B"] → "A dan B" */
+function joinId(items: string[]): string {
+  if (items.length <= 1) return items.join("");
+  if (items.length === 2) return `${items[0]} dan ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")}, dan ${items[items.length - 1]}`;
+}
+
+/** Kalimat wilayah layanan dari data lokasi (bukan teks hardcoded); null bila tak ada lokasi. */
+export function describeServiceArea(locations: Location[]): string | null {
+  if (locations.length === 0) return null;
+  const localities: string[] = [];
+  const regions: string[] = [];
+  for (const l of locations) {
+    const { locality, region } = parseAddressLocality(l.address);
+    if (locality && !localities.includes(locality)) localities.push(locality);
+    if (region && !regions.includes(region)) regions.push(region);
+  }
+  if (localities.length === 0) return null;
+  return `Melayani pasien di ${joinId(localities)}, ${regions.join(" & ")}.`;
+}
+
 /** Ringkasan teks dokter untuk meta description — hanya dari data yang ada */
-export function buildDescription(profile: Profile, locations: Location[], services: Service[]): string {
+export function buildDescription(profile: Profile, locations: Location[], services: { service_name: string }[]): string {
   const areas = getServiceAreas(locations);
   const names = locations.map((l) => l.location_name);
   const svc = services.map((s) => s.service_name);
