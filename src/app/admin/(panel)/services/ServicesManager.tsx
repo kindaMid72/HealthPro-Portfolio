@@ -1,90 +1,52 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ChevronDown, ChevronUp, Plus } from 'lucide-react';
+import Alert from '@/components/admin/Alert';
+import { Button, buttonClassName } from '@/components/admin/Button';
+import Card from '@/components/admin/Card';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
+import EmptyState from '@/components/admin/EmptyState';
+import { TextField } from '@/components/admin/Field';
 import {
+  createServiceAction,
   deleteServiceAction,
   moveServiceAction,
-  saveServiceAction,
   type ServiceItem,
 } from '../../services/actions';
 
-export default function ServicesManager({
-  initialServices,
-}: {
-  initialServices: ServiceItem[];
-}) {
+export default function ServicesManager({ initialServices }: { initialServices: ServiceItem[] }) {
   const router = useRouter();
-  const [servicesList, setServicesList] =
-    useState<ServiceItem[]>(initialServices);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [serviceName, setServiceName] = useState('');
-  const [serviceDescription, setServiceDescription] = useState('');
+  const [servicesList, setServicesList] = useState<ServiceItem[]>(initialServices);
+  const [newName, setNewName] = useState('');
   const [busy, setBusy] = useState(false);
-  const [message, setMessage] = useState<{
-    type: 'ok' | 'err';
-    text: string;
-  } | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<ServiceItem | null>(null);
+  const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
-  function resetForm() {
-    setEditingId(null);
-    setServiceName('');
-    setServiceDescription('');
-  }
-
-  function startEdit(svc: ServiceItem) {
-    setEditingId(svc.id);
-    setServiceName(svc.serviceName);
-    setServiceDescription(svc.serviceDescription);
-    setMessage(null);
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     setMessage(null);
-
-    const res = await saveServiceAction({
-      id: editingId ?? undefined,
-      serviceName,
-      serviceDescription,
-    });
-
+    // Berhasil → server mengarahkan ke editor; hanya kegagalan yang kembali ke sini.
+    const res = await createServiceAction({ serviceName: newName });
     setBusy(false);
-
-    if (!res.success || !res.items) {
-      setMessage({
-        type: 'err',
-        text: res.error ?? 'Gagal menyimpan layanan.',
-      });
-      return;
-    }
-
-    setServicesList(res.items);
-    resetForm();
-    setMessage({
-      type: 'ok',
-      text: editingId
-        ? 'Layanan medis berhasil diperbarui.'
-        : 'Layanan medis baru berhasil ditambahkan.',
-    });
-    router.refresh();
+    if (res && !res.success) setMessage({ type: 'err', text: res.error });
   }
 
-  async function handleDelete(svc: ServiceItem) {
-    if (!window.confirm(`Hapus layanan "${svc.serviceName}"?`)) return;
+  async function handleDelete() {
+    const svc = pendingDelete;
+    if (!svc) return;
     setBusy(true);
     const res = await deleteServiceAction(svc.id);
     setBusy(false);
+    setPendingDelete(null);
     if (res.success && res.items) {
       setServicesList(res.items);
-      if (editingId === svc.id) resetForm();
       router.refresh();
     } else {
-      setMessage({
-        type: 'err',
-        text: res.error ?? 'Gagal menghapus layanan.',
-      });
+      setMessage({ type: 'err', text: res.error ?? 'Gagal menghapus layanan.' });
     }
   }
 
@@ -100,133 +62,97 @@ export default function ServicesManager({
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-      <div className="space-y-3 lg:col-span-7">
-        {message && (
-          <div
-            role="alert"
-            className={`rounded-xl border px-4 py-3 text-xs font-medium ${
-              message.type === 'ok'
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-                : 'border-red-200 bg-red-50 text-red-700'
-            }`}
-          >
-            {message.text}
-          </div>
+      <div className="space-y-3 lg:col-span-8">
+        {message && <Alert tone={message.type === 'ok' ? 'success' : 'error'}>{message.text}</Alert>}
+
+        {servicesList.length === 0 && (
+          <EmptyState title="Belum ada layanan" description="Tambahkan layanan pertama lewat formulir di samping." />
         )}
 
         {servicesList.map((svc, idx) => (
-          <div
-            key={svc.id}
-            className="rounded-2xl border border-border bg-surface p-5 shadow-xs"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h3 className="font-heading text-sm font-bold text-primary-dark">
-                  {svc.serviceName}
-                </h3>
-                <p className="mt-1 text-xs leading-relaxed text-text-body">
-                  {svc.serviceDescription || '(Belum ada deskripsi)'}
+          <div key={svc.id} className="rounded-xl border border-border bg-surface p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-base font-bold">{svc.serviceName}</h3>
+                <p className="mt-1 text-sm">
+                  {svc.serviceDescription || (
+                    <span className="text-text-muted">Belum ada deskripsi singkat</span>
+                  )}
+                </p>
+                <p className="mt-2">
+                  <span
+                    className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-semibold ${
+                      svc.hasDetail
+                        ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                        : 'border-slate-200 bg-slate-100 text-slate-700'
+                    }`}
+                  >
+                    {svc.hasDetail ? 'Halaman detail aktif' : 'Belum ada halaman detail'}
+                  </span>
                 </p>
               </div>
 
-              <div className="flex shrink-0 items-center gap-1.5 text-xs">
-                <button
-                  type="button"
+              <div className="flex items-center gap-1.5">
+                <Button
+                  size="sm"
+                  variant="ghost"
                   disabled={busy || idx === 0}
                   onClick={() => void handleMove(svc.id, 'up')}
-                  className="rounded-lg border border-border px-2 py-1 hover:border-primary disabled:opacity-40"
+                  aria-label={`Pindahkan ${svc.serviceName} ke atas`}
+                  title="Naikkan urutan"
                 >
-                  ↑
-                </button>
-                <button
-                  type="button"
+                  <ChevronUp size={16} aria-hidden="true" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
                   disabled={busy || idx === servicesList.length - 1}
                   onClick={() => void handleMove(svc.id, 'down')}
-                  className="rounded-lg border border-border px-2 py-1 hover:border-primary disabled:opacity-40"
+                  aria-label={`Pindahkan ${svc.serviceName} ke bawah`}
+                  title="Turunkan urutan"
                 >
-                  ↓
-                </button>
-                <button
-                  type="button"
-                  onClick={() => startEdit(svc)}
-                  className="rounded-lg bg-primary/10 px-2.5 py-1 font-semibold text-primary hover:bg-primary hover:text-white"
-                >
+                  <ChevronDown size={16} aria-hidden="true" />
+                </Button>
+                <Link href={`/admin/services/${svc.id}`} className={buttonClassName('secondary', 'sm')}>
                   Edit
-                </button>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => void handleDelete(svc)}
-                  className="rounded-lg border border-red-200 bg-red-50 px-2.5 py-1 font-semibold text-red-700 hover:bg-red-100"
-                >
+                </Link>
+                <Button size="sm" variant="danger" disabled={busy} onClick={() => setPendingDelete(svc)}>
                   Hapus
-                </button>
+                </Button>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="lg:col-span-5">
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 rounded-2xl border border-border bg-surface p-6 shadow-xs"
-        >
-          <div className="flex items-center justify-between">
-            <h2 className="font-heading text-base font-bold text-primary-dark">
-              {editingId ? 'Edit Layanan Medis' : 'Tambah Layanan Baru'}
-            </h2>
-            {editingId && (
-              <button
-                type="button"
-                onClick={resetForm}
-                className="text-xs font-semibold text-text-muted hover:text-primary"
-              >
-                Batal Edit
-              </button>
-            )}
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-primary-dark">
-              Nama Layanan / Tindakan *
-            </label>
-            <input
-              type="text"
-              required
-              value={serviceName}
-              onChange={(e) => setServiceName(e.target.value)}
-              placeholder="Contoh: Endoskopi THT-KL Diagnostik"
-              className="w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-xs text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-primary-dark">
-              Deskripsi Layanan
-            </label>
-            <textarea
-              rows={4}
-              value={serviceDescription}
-              onChange={(e) => setServiceDescription(e.target.value)}
-              placeholder="Jelaskan secara ringkas tujuan pemeriksaan atau tindakan medis bagi pasien..."
-              className="w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-xs leading-relaxed text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={busy}
-            className="w-full rounded-xl bg-primary px-4 py-2.5 font-heading text-xs font-semibold text-white shadow-xs transition-colors hover:bg-primary-dark disabled:opacity-50"
-          >
-            {busy
-              ? 'Menyimpan...'
-              : editingId
-                ? 'Simpan Perubahan Layanan'
-                : '+ Tambah Layanan Medis'}
-          </button>
+      <div className="lg:col-span-4">
+        <form onSubmit={handleCreate} className="lg:sticky lg:top-8">
+          <Card title="Tambah layanan baru" description="Isi nama dulu; deskripsi dan konten detail diisi di halaman edit.">
+            <div className="space-y-4">
+              <TextField
+                label="Nama layanan baru"
+                required
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Contoh: Timpanometri"
+              />
+              <Button type="submit" pending={busy} icon={<Plus size={16} aria-hidden="true" />} className="w-full">
+                Tambah &amp; lanjut edit
+              </Button>
+            </div>
+          </Card>
         </form>
       </div>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="Hapus layanan?"
+        description={`Layanan "${pendingDelete?.serviceName ?? ''}" beserta halaman detailnya akan dihapus dari website.`}
+        confirmLabel="Hapus layanan"
+        pending={busy}
+        onConfirm={() => void handleDelete()}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { getDb } from '@/db/client';
 import { profile as profileTable } from '@/db/schema';
+import PageHeader from '@/components/admin/PageHeader';
 import ProfileForm from './ProfileForm';
 
 export default async function AdminProfilePage() {
@@ -12,15 +13,10 @@ export default async function AdminProfilePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-2xl font-bold text-primary-dark">
-          Profil & Kredensial Dokter
-        </h1>
-        <p className="mt-1 text-xs text-text-muted">
-          Perbarui biodata, riwayat pendidikan, pengalaman klinis, foto profil,
-          dan tautan booking global.
-        </p>
-      </div>
+      <PageHeader
+        title="Profil & Kredensial Dokter"
+        description="Perbarui biodata, riwayat pendidikan, pengalaman klinis, foto profil, dan tautan booking global."
+      />
 
       <ProfileForm
         initialProfile={{

@@ -21,6 +21,7 @@ const nextConfig: NextConfig = {
       { source: "/admin/profil", destination: "/admin/profile" },
       { source: "/admin/lokasi", destination: "/admin/locations" },
       { source: "/admin/layanan", destination: "/admin/services" },
+      { source: "/admin/layanan/:path*", destination: "/admin/services/:path*" },
       { source: "/admin/akun", destination: "/admin/account" },
     ];
   },

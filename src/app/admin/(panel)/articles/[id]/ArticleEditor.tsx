@@ -4,7 +4,16 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { JSONContent } from '@tiptap/core';
-import { EditorContent, useEditor } from '@tiptap/react';
+import { useEditor } from '@tiptap/react';
+import { Check, ExternalLink, ImagePlus } from 'lucide-react';
+import Alert from '@/components/admin/Alert';
+import { Button, buttonClassName } from '@/components/admin/Button';
+import Card from '@/components/admin/Card';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
+import { SelectField, TextAreaField, TextField } from '@/components/admin/Field';
+import RichTextEditor, { RICH_TEXT_EDITOR_CLASS } from '@/components/admin/RichTextEditor';
+import StatusBadge, { ARTICLE_STATUS_META } from '@/components/admin/StatusBadge';
+import { toSlug } from '@/lib/slug';
 import {
   type ArticleStatus,
   calculateReadingTimeMinutes,
@@ -39,34 +48,7 @@ export interface EditableArticle {
   publishedAt: string | null;
 }
 
-function localSlugify(text: string): string {
-  return text
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, 80)
-    .replace(/-+$/g, '');
-}
-
-const STATUS_BADGE: Record<
-  ArticleStatus,
-  { label: string; className: string }
-> = {
-  draft: {
-    label: 'Draft',
-    className: 'bg-slate-100 text-slate-700 border-slate-200',
-  },
-  in_review: {
-    label: 'Menunggu Review',
-    className: 'bg-amber-50 text-amber-800 border-amber-200',
-  },
-  published: {
-    label: 'Dipublikasikan',
-    className: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  },
-};
+const PUBLISH_STEPS: ArticleStatus[] = ['draft', 'in_review', 'published'];
 
 export default function ArticleEditor({
   initialArticle,
@@ -98,7 +80,8 @@ export default function ArticleEditor({
   const [saving, setSaving] = useState(false);
   const [autoSaving, setAutoSaving] = useState(false);
   const [uploadingCover, setUploadingCover] = useState(false);
-  const [uploadingInline, setUploadingInline] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [message, setMessage] = useState<{
     type: 'ok' | 'err';
     text: string;
@@ -107,7 +90,6 @@ export default function ArticleEditor({
     null,
   );
 
-  const inlineImageInputRef = useRef<HTMLInputElement>(null);
   const coverImageInputRef = useRef<HTMLInputElement>(null);
 
   const editor = useEditor({
@@ -116,8 +98,7 @@ export default function ArticleEditor({
     immediatelyRender: false,
     editorProps: {
       attributes: {
-        class:
-          'prose prose-slate article-prose max-w-none min-h-[420px] p-5 focus:outline-none',
+        class: RICH_TEXT_EDITOR_CLASS,
       },
     },
     onUpdate: ({ editor: ed }) => {
@@ -279,43 +260,6 @@ export default function ArticleEditor({
     }
   }
 
-  async function onInlineImageSelected(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = '';
-    if (!file || !editor) return;
-
-    setUploadingInline(true);
-    setMessage(null);
-    let uploaded: { id: string; url: string } | null = null;
-    try {
-      uploaded = await handleUploadImage(file);
-    } finally {
-      setUploadingInline(false);
-    }
-
-    if (!uploaded) return;
-
-    const altInput =
-      window.prompt('Deskripsi gambar (Alt Text) untuk aksesibilitas/SEO:', '') ??
-      '';
-    const captionInput =
-      window.prompt(
-        'Keterangan di bawah gambar (Caption - opsional, kosongkan bila tidak perlu):',
-        '',
-      ) ?? '';
-
-    editor
-      .chain()
-      .focus()
-      .setImage({
-        src: uploaded.url,
-        alt: altInput.trim() || title || 'Ilustrasi medis',
-        title: captionInput.trim() || undefined,
-      })
-      .run();
-    setIsDirty(true);
-  }
-
   async function onCoverSelected(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = '';
@@ -335,243 +279,167 @@ export default function ArticleEditor({
     setIsDirty(true);
   }
 
-  function handleSetLink() {
-    if (!editor) return;
-    const prevUrl = editor.getAttributes('link').href as string | undefined;
-    const url = window.prompt('Masukkan URL tautan (https://...):', prevUrl ?? 'https://');
-    if (url === null) return;
-    const trimmed = url.trim();
-    if (trimmed === '') {
-      editor.chain().focus().extendMarkRange('link').unsetLink().run();
-      return;
-    }
-    if (!/^https?:\/\//i.test(trimmed) && !trimmed.startsWith('/')) {
-      window.alert('Gunakan URL yang diawali https:// atau /');
-      return;
-    }
-    editor
-      .chain()
-      .focus()
-      .extendMarkRange('link')
-      .setLink({ href: trimmed })
-      .run();
-  }
-
   async function handleDelete() {
-    const ok = window.confirm(
-      `Hapus permanen artikel "${title || slug}" beserta seluruh gambarnya? Tindakan ini tidak dapat dibatalkan.`,
-    );
-    if (!ok) return;
+    setDeleting(true);
     await deleteArticleAction(initialArticle.id);
+    setDeleting(false);
+    setConfirmDelete(false);
   }
 
-  const badge = STATUS_BADGE[status];
-  const isInTable = editor?.isActive('table') ?? false;
+  const statusIndex = PUBLISH_STEPS.indexOf(status);
 
   return (
     <div className="space-y-6">
-      {/* Top Action Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-surface p-4 shadow-xs">
-        <div className="flex flex-wrap items-center gap-3">
-          <Link
-            href="/admin/articles"
-            className="text-xs font-semibold text-text-muted hover:text-primary"
-          >
-            ← Daftar Artikel
-          </Link>
-          <span aria-hidden="true" className="text-border">
-            |
-          </span>
-          <span
-            className={`inline-flex rounded-full border px-2.5 py-0.5 text-xs font-semibold ${badge.className}`}
-          >
-            {badge.label}
-          </span>
-          <span className="text-xs text-text-muted">
-            {autoSaving
-              ? 'Menyimpan otomatis...'
-              : isDirty
-                ? '• Belum disimpan'
-                : lastSavedTimeLabel
-                  ? `Tersimpan pukul ${lastSavedTimeLabel}`
-                  : 'Tersimpan'}
-          </span>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href={`/admin/articles/${initialArticle.id}/preview`}
-            className="rounded-xl border border-border bg-bg px-3.5 py-2 text-xs font-semibold text-primary-dark hover:border-primary hover:text-primary"
-          >
-            Pratinjau
-          </Link>
-
-          {status === 'published' && (
-            <Link
-              href={`/artikel/${slug}`}
-              target="_blank"
-              className="rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-800 hover:bg-emerald-100"
-            >
-              Lihat Publik ↗
+      <div className="space-y-4 rounded-xl border border-border bg-surface p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <Link href="/admin/articles" className="text-sm font-semibold text-text-muted hover:text-primary">
+              ← Daftar artikel
             </Link>
-          )}
+            <StatusBadge status={status} />
+            <span aria-live="polite" className="text-sm text-text-muted">
+              {autoSaving
+                ? 'Menyimpan otomatis...'
+                : isDirty
+                  ? '• Belum disimpan'
+                  : lastSavedTimeLabel
+                    ? `Tersimpan pukul ${lastSavedTimeLabel}`
+                    : 'Tersimpan'}
+            </span>
+          </div>
 
-          <button
-            type="button"
-            disabled={saving}
-            onClick={() => void performSave(status)}
-            className="rounded-xl border border-primary bg-white px-4 py-2 font-heading text-xs font-semibold text-primary hover:bg-primary/5 disabled:opacity-50"
-          >
-            {saving
-              ? 'Menyimpan...'
-              : status === 'draft'
-                ? 'Simpan Draft'
-                : 'Simpan Perubahan'}
-          </button>
-
-          {status !== 'in_review' && (
-            <button
-              type="button"
-              disabled={saving}
-              onClick={() => void performSave('in_review')}
-              className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2 font-heading text-xs font-semibold text-amber-900 hover:bg-amber-100 disabled:opacity-50"
-            >
-              Ajukan Review
-            </button>
-          )}
-
-          {status !== 'published' ? (
-            <button
-              type="button"
-              disabled={saving}
-              onClick={() => void performSave('published')}
-              className="rounded-xl bg-primary px-4 py-2 font-heading text-xs font-semibold text-white shadow-xs hover:bg-primary-dark disabled:opacity-50"
-            >
-              Terbitkan
-            </button>
-          ) : (
-            <button
-              type="button"
-              disabled={saving}
-              onClick={() => void performSave('draft')}
-              className="rounded-xl border border-slate-300 bg-slate-100 px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200 disabled:opacity-50"
-            >
-              Tarik ke Draft
-            </button>
-          )}
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href={`/admin/articles/${initialArticle.id}/preview`} className={buttonClassName('secondary')}>
+              Pratinjau
+            </Link>
+            {status === 'published' && (
+              <Link
+                href={`/artikel/${slug}`}
+                target="_blank"
+                className={buttonClassName('secondary')}
+              >
+                Lihat publik
+                <ExternalLink size={14} aria-hidden="true" />
+              </Link>
+            )}
+            <Button variant="secondary" pending={saving} onClick={() => void performSave(status)}>
+              {status === 'draft' ? 'Simpan draft' : 'Simpan perubahan'}
+            </Button>
+            {status !== 'in_review' && (
+              <Button
+                variant="secondary"
+                disabled={saving}
+                className="text-amber-800"
+                onClick={() => void performSave('in_review')}
+              >
+                Ajukan review
+              </Button>
+            )}
+            {status !== 'published' ? (
+              <Button disabled={saving} onClick={() => void performSave('published')}>
+                Terbitkan
+              </Button>
+            ) : (
+              <Button variant="secondary" disabled={saving} onClick={() => void performSave('draft')}>
+                Tarik ke draft
+              </Button>
+            )}
+          </div>
         </div>
+
+        <ol aria-label="Alur publikasi" className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+          {PUBLISH_STEPS.map((step, i) => {
+            const done = i < statusIndex;
+            const current = i === statusIndex;
+            return (
+              <li
+                key={step}
+                aria-current={current ? 'step' : undefined}
+                className={`flex items-center gap-2 ${
+                  current ? 'font-semibold text-text-heading' : done ? 'text-text-body' : 'text-text-muted'
+                }`}
+              >
+                <span
+                  aria-hidden="true"
+                  className={`flex h-5 w-5 items-center justify-center rounded-full border text-xs ${
+                    current
+                      ? 'border-primary bg-primary text-white'
+                      : done
+                        ? 'border-primary text-primary'
+                        : 'border-border'
+                  }`}
+                >
+                  {done ? <Check size={12} /> : i + 1}
+                </span>
+                {ARTICLE_STATUS_META[step].label}
+                {i < PUBLISH_STEPS.length - 1 && <span aria-hidden="true" className="mx-1 h-px w-6 bg-border" />}
+              </li>
+            );
+          })}
+        </ol>
       </div>
 
-      {message && (
-        <div
-          role="alert"
-          className={`rounded-xl border px-4 py-3 text-xs font-medium ${
-            message.type === 'ok'
-              ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-              : 'border-red-200 bg-red-50 text-red-700'
-          }`}
-        >
-          {message.text}
-        </div>
-      )}
+      {message && <Alert tone={message.type === 'ok' ? 'success' : 'error'}>{message.text}</Alert>}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        {/* Kolom Utama: Metadata & Editor Kaya Tiptap */}
         <div className="space-y-6 lg:col-span-8">
-          <div className="space-y-4 rounded-2xl border border-border bg-surface p-6 shadow-xs">
-            <div>
-              <label
-                htmlFor="article-title"
-                className="mb-1.5 block font-heading text-xs font-semibold text-primary-dark"
-              >
-                Judul Artikel
-              </label>
-              <input
-                id="article-title"
-                type="text"
+          <Card>
+            <div className="space-y-4">
+              <TextField
+                label="Judul artikel"
                 value={title}
                 onChange={(e) => {
                   setTitle(e.target.value);
                   setIsDirty(true);
                 }}
                 placeholder="Contoh: Mengenal Gejala Sinusitis Kronis dan Kapan Harus ke Dokter THT"
-                className="w-full rounded-xl border border-border bg-bg px-4 py-2.5 font-heading text-base font-bold text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
+                className="text-lg font-bold sm:text-lg"
               />
-            </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <div className="mb-1.5 flex items-center justify-between">
-                  <label
-                    htmlFor="article-slug"
-                    className="font-heading text-xs font-semibold text-primary-dark"
-                  >
-                    Slug URL (/artikel/...)
-                  </label>
-                  <button
-                    type="button"
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <TextField
+                    label="Slug URL (/artikel/...)"
+                    value={slug}
+                    onChange={(e) => {
+                      setSlug(e.target.value);
+                      setIsDirty(true);
+                    }}
+                  />
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="mt-1.5"
                     onClick={() => {
                       if (title.trim()) {
-                        setSlug(localSlugify(title));
+                        setSlug(toSlug(title));
                         setIsDirty(true);
                       }
                     }}
-                    className="text-[11px] font-semibold text-primary hover:underline"
                   >
-                    Sinkronkan dari Judul
-                  </button>
+                    Sinkronkan dari judul
+                  </Button>
                 </div>
-                <input
-                  id="article-slug"
-                  type="text"
-                  value={slug}
-                  onChange={(e) => {
-                    setSlug(e.target.value);
-                    setIsDirty(true);
-                  }}
-                  className="w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-xs text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
-                />
-              </div>
 
-              <div>
-                <label
-                  htmlFor="article-category"
-                  className="mb-1.5 block font-heading text-xs font-semibold text-primary-dark"
-                >
-                  Kategori Topik THT
-                </label>
-                <select
-                  id="article-category"
+                <SelectField
+                  label="Kategori topik THT"
                   value={category}
                   onChange={(e) => {
                     setCategory(e.target.value as ArticleCategory);
                     setIsDirty(true);
                   }}
-                  className="w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-xs font-medium text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
                 >
                   {ARTICLE_CATEGORY_VALUES.map((cat) => (
                     <option key={cat} value={cat}>
                       {ARTICLE_CATEGORIES[cat]}
                     </option>
                   ))}
-                </select>
+                </SelectField>
               </div>
-            </div>
 
-            <div>
-              <div className="mb-1.5 flex items-center justify-between">
-                <label
-                  htmlFor="article-excerpt"
-                  className="font-heading text-xs font-semibold text-primary-dark"
-                >
-                  Ringkasan Singkat (Excerpt & Meta Description SEO)
-                </label>
-                <span className="text-[11px] text-text-muted">
-                  {excerpt.length}/160 karakter (otomatis terisi bila dikosongkan)
-                </span>
-              </div>
-              <textarea
-                id="article-excerpt"
+              <TextAreaField
+                label="Ringkasan singkat (excerpt & meta description SEO)"
+                hint={`${excerpt.length}/160 karakter (otomatis terisi bila dikosongkan)`}
                 rows={2}
                 value={excerpt}
                 onChange={(e) => {
@@ -579,298 +447,38 @@ export default function ArticleEditor({
                   setIsDirty(true);
                 }}
                 placeholder="Ringkasan 1-2 kalimat yang muncul di kartu artikel dan hasil pencarian Google..."
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-xs leading-relaxed text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
               />
             </div>
-          </div>
+          </Card>
 
-          {/* Tiptap Rich Editor Card */}
-          <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-xs">
-            {/* Toolbar */}
-            <div className="flex flex-wrap items-center gap-1 border-b border-border bg-bg/70 p-2.5 text-xs">
-              <button
-                type="button"
-                onClick={() => editor?.chain().focus().toggleBold().run()}
-                className={`rounded-lg px-2.5 py-1.5 font-bold ${
-                  editor?.isActive('bold')
-                    ? 'bg-primary text-white'
-                    : 'hover:bg-primary/10'
-                }`}
-                title="Tebal (Bold)"
-              >
-                B
-              </button>
-              <button
-                type="button"
-                onClick={() => editor?.chain().focus().toggleItalic().run()}
-                className={`rounded-lg px-2.5 py-1.5 italic ${
-                  editor?.isActive('italic')
-                    ? 'bg-primary text-white'
-                    : 'hover:bg-primary/10'
-                }`}
-                title="Miring (Italic)"
-              >
-                I
-              </button>
-              <button
-                type="button"
-                onClick={() => editor?.chain().focus().toggleUnderline().run()}
-                className={`rounded-lg px-2.5 py-1.5 underline ${
-                  editor?.isActive('underline')
-                    ? 'bg-primary text-white'
-                    : 'hover:bg-primary/10'
-                }`}
-                title="Garis Bawah (Underline)"
-              >
-                U
-              </button>
-              <button
-                type="button"
-                onClick={() => editor?.chain().focus().toggleStrike().run()}
-                className={`rounded-lg px-2.5 py-1.5 line-through ${
-                  editor?.isActive('strike')
-                    ? 'bg-primary text-white'
-                    : 'hover:bg-primary/10'
-                }`}
-                title="Coret (Strikethrough)"
-              >
-                S
-              </button>
-
-              <span className="mx-1 h-4 w-px bg-border" aria-hidden="true" />
-
-              <button
-                type="button"
-                onClick={() =>
-                  editor?.chain().focus().toggleHeading({ level: 2 }).run()
-                }
-                className={`rounded-lg px-2.5 py-1.5 font-heading font-bold ${
-                  editor?.isActive('heading', { level: 2 })
-                    ? 'bg-primary text-white'
-                    : 'hover:bg-primary/10'
-                }`}
-                title="Subjudul Utama (H2 - Masuk Daftar Isi)"
-              >
-                H2
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  editor?.chain().focus().toggleHeading({ level: 3 }).run()
-                }
-                className={`rounded-lg px-2.5 py-1.5 font-heading font-semibold ${
-                  editor?.isActive('heading', { level: 3 })
-                    ? 'bg-primary text-white'
-                    : 'hover:bg-primary/10'
-                }`}
-                title="Subjudul Anak (H3 - Masuk Daftar Isi)"
-              >
-                H3
-              </button>
-
-              <span className="mx-1 h-4 w-px bg-border" aria-hidden="true" />
-
-              <button
-                type="button"
-                onClick={() => editor?.chain().focus().toggleBulletList().run()}
-                className={`rounded-lg px-2.5 py-1.5 ${
-                  editor?.isActive('bulletList')
-                    ? 'bg-primary text-white'
-                    : 'hover:bg-primary/10'
-                }`}
-              >
-                • List
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  editor?.chain().focus().toggleOrderedList().run()
-                }
-                className={`rounded-lg px-2.5 py-1.5 ${
-                  editor?.isActive('orderedList')
-                    ? 'bg-primary text-white'
-                    : 'hover:bg-primary/10'
-                }`}
-              >
-                1. List
-              </button>
-              <button
-                type="button"
-                onClick={() => editor?.chain().focus().toggleBlockquote().run()}
-                className={`rounded-lg px-2.5 py-1.5 ${
-                  editor?.isActive('blockquote')
-                    ? 'bg-primary text-white'
-                    : 'hover:bg-primary/10'
-                }`}
-              >
-                ❝ Kutipan
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  editor?.chain().focus().setHorizontalRule().run()
-                }
-                className="rounded-lg px-2.5 py-1.5 hover:bg-primary/10"
-                title="Garis Pemisah"
-              >
-                ― Garis
-              </button>
-
-              <span className="mx-1 h-4 w-px bg-border" aria-hidden="true" />
-
-              <button
-                type="button"
-                onClick={handleSetLink}
-                className={`rounded-lg px-2.5 py-1.5 ${
-                  editor?.isActive('link')
-                    ? 'bg-primary text-white'
-                    : 'hover:bg-primary/10'
-                }`}
-              >
-                🔗 Tautan
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  editor
-                    ?.chain()
-                    .focus()
-                    .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-                    .run()
-                }
-                className="rounded-lg px-2.5 py-1.5 hover:bg-primary/10"
-              >
-                📊 + Tabel
-              </button>
-
-              {isInTable && (
-                <div className="flex items-center gap-1 rounded-lg border border-primary/20 bg-primary/5 px-1.5 py-0.5">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      editor?.chain().focus().addRowAfter().run()
-                    }
-                    className="rounded px-1.5 py-1 text-[11px] hover:bg-primary/15"
-                  >
-                    +Baris
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => editor?.chain().focus().deleteRow().run()}
-                    className="rounded px-1.5 py-1 text-[11px] hover:bg-primary/15"
-                  >
-                    -Baris
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      editor?.chain().focus().addColumnAfter().run()
-                    }
-                    className="rounded px-1.5 py-1 text-[11px] hover:bg-primary/15"
-                  >
-                    +Kolom
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      editor?.chain().focus().deleteColumn().run()
-                    }
-                    className="rounded px-1.5 py-1 text-[11px] hover:bg-primary/15"
-                  >
-                    -Kolom
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      editor?.chain().focus().deleteTable().run()
-                    }
-                    className="rounded px-1.5 py-1 text-[11px] text-red-700 hover:bg-red-100"
-                  >
-                    Hapus Tabel
-                  </button>
+          <RichTextEditor
+            editor={editor}
+            label="artikel"
+            allowImages
+            onUploadImage={handleUploadImage}
+            fallbackAlt={title || 'Ilustrasi medis'}
+            footer={
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <span>
+                    <strong className="font-semibold text-text-heading">{wordCount}</strong> kata
+                  </span>
+                  <span>Estimasi ~{readingTime} menit baca</span>
+                  <span>
+                    Gunakan <strong>H2 / H3</strong> untuk membentuk Daftar Isi otomatis
+                  </span>
                 </div>
-              )}
-
-              <input
-                ref={inlineImageInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
-                onChange={onInlineImageSelected}
-                className="hidden"
-              />
-              <button
-                type="button"
-                disabled={uploadingInline}
-                onClick={() => inlineImageInputRef.current?.click()}
-                className="rounded-lg bg-primary/10 px-2.5 py-1.5 font-semibold text-primary hover:bg-primary/20 disabled:opacity-50"
-              >
-                {uploadingInline ? 'Mengunggah...' : '🖼️ + Sisipkan Gambar'}
-              </button>
-
-              <span className="mx-1 h-4 w-px bg-border" aria-hidden="true" />
-
-              <button
-                type="button"
-                onClick={() => editor?.chain().focus().undo().run()}
-                className="rounded-lg px-2 py-1.5 hover:bg-primary/10"
-                title="Undo"
-              >
-                ↶
-              </button>
-              <button
-                type="button"
-                onClick={() => editor?.chain().focus().redo().run()}
-                className="rounded-lg px-2 py-1.5 hover:bg-primary/10"
-                title="Redo"
-              >
-                ↷
-              </button>
-            </div>
-
-            {/* Editor Area */}
-            <EditorContent editor={editor} />
-
-            {/* Footer Status Editor */}
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border bg-bg/60 px-4 py-2.5 text-xs text-text-muted">
-              <div className="flex items-center gap-3">
-                <span>
-                  <strong className="font-semibold text-primary-dark">
-                    {wordCount}
-                  </strong>{' '}
-                  kata
-                </span>
-                <span>•</span>
-                <span>Estimasi ~{readingTime} menit baca</span>
-                <span>•</span>
-                <span>
-                  Gunakan <strong>H2 / H3</strong> untuk membentuk Daftar Isi
-                  otomatis
-                </span>
+                {status === 'draft' && <span>Autosave draft aktif (setiap 25 detik)</span>}
               </div>
-              <div>
-                {status === 'draft' && (
-                  <span>Autosave draft aktif (setiap 25 detik)</span>
-                )}
-              </div>
-            </div>
-          </div>
+            }
+          />
         </div>
 
-        {/* Kolom Samping: Cover, Catatan Review, Info & Hapus */}
         <div className="space-y-6 lg:col-span-4">
-          {/* Cover Gambar */}
-          <div className="rounded-2xl border border-border bg-surface p-5 shadow-xs">
-            <h2 className="font-heading text-sm font-bold text-primary-dark">
-              Gambar Sampul (Cover)
-            </h2>
-            <p className="mt-1 text-xs text-text-muted">
-              Otomatis dikompresi ke format WebP oleh server.
-            </p>
-
+          <Card title="Gambar sampul (cover)" description="Otomatis dikompresi ke format WebP oleh server.">
             {coverImageId ? (
-              <div className="mt-3 space-y-3">
-                <div className="overflow-hidden rounded-xl border border-border bg-bg">
+              <div className="space-y-3">
+                <div className="overflow-hidden rounded-lg border border-border bg-bg">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={`/media/${coverImageId}`}
@@ -879,39 +487,36 @@ export default function ArticleEditor({
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    disabled={uploadingCover}
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    pending={uploadingCover}
                     onClick={() => coverImageInputRef.current?.click()}
-                    className="rounded-lg border border-border bg-bg px-3 py-1.5 text-xs font-semibold text-primary-dark hover:border-primary"
                   >
-                    Ganti Sampul
-                  </button>
-                  <button
-                    type="button"
+                    Ganti sampul
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="danger"
                     onClick={() => {
                       setCoverImageId(null);
                       setIsDirty(true);
                     }}
-                    className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100"
                   >
                     Hapus
-                  </button>
+                  </Button>
                 </div>
               </div>
             ) : (
-              <div className="mt-3">
-                <button
-                  type="button"
-                  disabled={uploadingCover}
-                  onClick={() => coverImageInputRef.current?.click()}
-                  className="flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-bg/50 px-4 py-6 text-xs font-semibold text-primary hover:border-primary hover:bg-primary/5"
-                >
-                  {uploadingCover
-                    ? 'Mengunggah & mengompresi...'
-                    : '+ Unggah Gambar Sampul'}
-                </button>
-              </div>
+              <button
+                type="button"
+                disabled={uploadingCover}
+                onClick={() => coverImageInputRef.current?.click()}
+                className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border px-4 py-6 text-sm font-semibold text-primary hover:border-primary hover:bg-primary-tint disabled:opacity-50"
+              >
+                <ImagePlus size={20} aria-hidden="true" />
+                {uploadingCover ? 'Mengunggah & mengompresi...' : 'Unggah gambar sampul'}
+              </button>
             )}
 
             <input
@@ -920,39 +525,29 @@ export default function ArticleEditor({
               accept="image/jpeg,image/png,image/webp,image/avif,image/gif"
               onChange={onCoverSelected}
               className="hidden"
+              tabIndex={-1}
+              aria-hidden="true"
             />
 
             <div className="mt-4">
-              <label
-                htmlFor="cover-alt"
-                className="mb-1 block text-xs font-semibold text-primary-dark"
-              >
-                Keterangan / Alt Text Sampul
-              </label>
-              <input
-                id="cover-alt"
-                type="text"
+              <TextField
+                label="Keterangan / alt text sampul"
                 value={coverAlt}
                 onChange={(e) => {
                   setCoverAlt(e.target.value);
                   setIsDirty(true);
                 }}
                 placeholder="Deskripsi gambar sampul..."
-                className="w-full rounded-xl border border-border bg-bg px-3 py-2 text-xs text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
               />
             </div>
-          </div>
+          </Card>
 
-          {/* Catatan Review */}
-          <div className="rounded-2xl border border-border bg-surface p-5 shadow-xs">
-            <h2 className="font-heading text-sm font-bold text-primary-dark">
-              Catatan Review Kolaboratif
-            </h2>
-            <p className="mt-1 text-xs text-text-muted">
-              Gunakan untuk meninggalkan pesan atau poin revisi antar-akun
-              sebelum artikel diterbitkan.
-            </p>
-            <textarea
+          <Card
+            title="Catatan review kolaboratif"
+            description="Gunakan untuk meninggalkan pesan atau poin revisi antar-akun sebelum artikel diterbitkan."
+          >
+            <TextAreaField
+              label="Catatan review"
               rows={3}
               value={reviewNote}
               onChange={(e) => {
@@ -960,42 +555,41 @@ export default function ArticleEditor({
                 setIsDirty(true);
               }}
               placeholder="Contoh: Mohon dr. Yuliana cek bagian dosis obat semprot hidung..."
-              className="mt-3 w-full rounded-xl border border-border bg-bg px-3 py-2 text-xs leading-relaxed text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
             />
-          </div>
+          </Card>
 
-          {/* Info & Hapus */}
-          <div className="rounded-2xl border border-border bg-surface p-5 shadow-xs">
-            <h2 className="font-heading text-sm font-bold text-primary-dark">
-              Informasi Artikel
-            </h2>
-            <dl className="mt-2 space-y-1.5 text-xs text-text-muted">
+          <Card title="Informasi artikel">
+            <dl className="space-y-1.5 text-sm text-text-muted">
               <div className="flex justify-between">
-                <dt>Penulis Awal:</dt>
-                <dd className="font-medium text-primary-dark">
-                  {initialArticle.authorName}
-                </dd>
+                <dt>Penulis awal:</dt>
+                <dd className="font-medium text-text-heading">{initialArticle.authorName}</dd>
               </div>
               <div className="flex justify-between">
-                <dt>Total Dibaca:</dt>
-                <dd className="font-medium text-primary-dark">
+                <dt>Total dibaca:</dt>
+                <dd className="font-medium text-text-heading">
                   {initialArticle.viewCount.toLocaleString('id-ID')} kali
                 </dd>
               </div>
             </dl>
 
             <div className="mt-5 border-t border-border pt-4">
-              <button
-                type="button"
-                onClick={() => void handleDelete()}
-                className="w-full rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 transition-colors hover:bg-red-100"
-              >
-                Hapus Artikel Ini
-              </button>
+              <Button variant="danger" className="w-full" onClick={() => setConfirmDelete(true)}>
+                Hapus artikel ini
+              </Button>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmDelete}
+        title="Hapus artikel?"
+        description={`Hapus permanen artikel "${title || slug}" beserta seluruh gambarnya? Tindakan ini tidak dapat dibatalkan.`}
+        confirmLabel="Hapus permanen"
+        pending={deleting}
+        onConfirm={() => void handleDelete()}
+        onCancel={() => setConfirmDelete(false)}
+      />
     </div>
   );
 }

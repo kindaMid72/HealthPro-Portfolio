@@ -2,6 +2,10 @@
 
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Alert from '@/components/admin/Alert';
+import { Button } from '@/components/admin/Button';
+import Card from '@/components/admin/Card';
+import { TextAreaField, TextField } from '@/components/admin/Field';
 import {
   type SaveProfileInput,
   saveProfileAction,
@@ -92,40 +96,21 @@ export default function ProfileForm({
     ? `/media/${form.photoImageId}`
     : '/images/dokter-profile.webp';
 
+  const LIST_HINT = 'Pisahkan setiap item dengan tanda | atau baris baru.';
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {message && (
-        <div
-          role="alert"
-          className={`rounded-xl border px-4 py-3 text-xs font-medium ${
-            message.type === 'ok'
-              ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-              : 'border-red-200 bg-red-50 text-red-700'
-          }`}
-        >
-          {message.text}
-        </div>
-      )}
+      {message && <Alert tone={message.type === 'ok' ? 'success' : 'error'}>{message.text}</Alert>}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-        {/* Foto Profil & Identitas Utama */}
         <div className="space-y-6 lg:col-span-4">
-          <div className="rounded-2xl border border-border bg-surface p-5 shadow-xs">
-            <h2 className="font-heading text-sm font-bold text-primary-dark">
-              Foto Profil Dokter
-            </h2>
-            <p className="mt-1 text-xs text-text-muted">
-              Disarankan foto PNG/WebP transparan (tanpa latar) untuk tampilan
-              Hero terbaik.
-            </p>
-
-            <div className="mt-4 flex flex-col items-center rounded-xl border border-border bg-bg p-4">
+          <Card
+            title="Foto profil"
+            description="Disarankan foto PNG/WebP transparan (tanpa latar) untuk tampilan Hero terbaik."
+          >
+            <div className="flex flex-col items-center rounded-lg border border-border bg-bg p-4">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={photoPreviewUrl}
-                alt="Pratinjau Foto Dokter"
-                className="h-56 w-auto object-contain"
-              />
+              <img src={photoPreviewUrl} alt="Pratinjau foto dokter" className="h-56 w-auto object-contain" />
             </div>
 
             <input
@@ -134,209 +119,130 @@ export default function ProfileForm({
               accept="image/jpeg,image/png,image/webp,image/avif"
               onChange={handlePhotoUpload}
               className="hidden"
+              tabIndex={-1}
+              aria-hidden="true"
             />
 
             <div className="mt-3 flex flex-wrap gap-2">
-              <button
-                type="button"
-                disabled={uploadingPhoto}
+              <Button
+                variant="secondary"
+                className="flex-1"
+                pending={uploadingPhoto}
                 onClick={() => fileInputRef.current?.click()}
-                className="flex-1 rounded-xl border border-primary bg-primary/10 px-3 py-2 text-xs font-semibold text-primary hover:bg-primary/20 disabled:opacity-50"
               >
-                {uploadingPhoto ? 'Mengunggah...' : 'Unggah Foto Baru'}
-              </button>
+                {uploadingPhoto ? 'Mengunggah...' : 'Unggah foto baru'}
+              </Button>
               {form.photoImageId && (
-                <button
-                  type="button"
-                  onClick={() => updateField('photoImageId', null)}
-                  className="rounded-xl border border-border bg-bg px-3 py-2 text-xs font-medium text-text-muted hover:text-red-700"
-                >
-                  Pakai Default
-                </button>
+                <Button variant="ghost" onClick={() => updateField('photoImageId', null)}>
+                  Pakai default
+                </Button>
               )}
             </div>
-          </div>
+          </Card>
 
-          <div className="space-y-4 rounded-2xl border border-border bg-surface p-5 shadow-xs">
-            <h2 className="font-heading text-sm font-bold text-primary-dark">
-              Kontak & Tautan Booking Global
-            </h2>
-
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-primary-dark">
-                URL Booking Global (Opsional)
-              </label>
-              <input
+          <Card title="Kontak & booking">
+            <div className="space-y-4">
+              <TextField
+                label="URL booking global (opsional)"
                 type="url"
                 value={form.bookingUrl}
                 onChange={(e) => updateField('bookingUrl', e.target.value)}
                 placeholder="https://..."
-                className="w-full rounded-xl border border-border bg-bg px-3 py-2 text-xs text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
+                hint="Jika dikosongkan, tombol CTA utama otomatis mengarah ke WhatsApp lokasi pertama."
               />
-              <p className="mt-1 text-[11px] text-text-muted">
-                Jika dikosongkan, tombol CTA utama otomatis mengarah ke WhatsApp
-                lokasi pertama.
-              </p>
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-primary-dark">
-                Email Resmi
-              </label>
-              <input
+              <TextField
+                label="Email resmi"
                 type="email"
                 value={form.email}
                 onChange={(e) => updateField('email', e.target.value)}
                 placeholder="dokter@domain.id"
-                className="w-full rounded-xl border border-border bg-bg px-3 py-2 text-xs text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
               />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-primary-dark">
-                Tautan Sosial / Profil Eksternal (Pisahkan dengan baris baru atau |)
-              </label>
-              <textarea
+              <TextAreaField
+                label="Tautan sosial / profil eksternal"
+                hint="Pisahkan dengan baris baru atau |."
                 rows={2}
                 value={form.socialLinks}
                 onChange={(e) => updateField('socialLinks', e.target.value)}
                 placeholder="https://instagram.com/..."
-                className="w-full rounded-xl border border-border bg-bg px-3 py-2 text-xs text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
               />
             </div>
-          </div>
+          </Card>
         </div>
 
-        {/* Kolom Kanan: Kredensial & Riwayat */}
-        <div className="space-y-6 rounded-2xl border border-border bg-surface p-6 shadow-xs lg:col-span-8">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-primary-dark">
-                Nama Lengkap & Gelar *
-              </label>
-              <input
-                type="text"
+        <div className="space-y-6 lg:col-span-8">
+          <Card title="Identitas">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <TextField
+                label="Nama lengkap & gelar"
                 required
                 value={form.fullName}
                 onChange={(e) => updateField('fullName', e.target.value)}
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-xs font-semibold text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
               />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-primary-dark">
-                Spesialisasi Utama *
-              </label>
-              <input
-                type="text"
+              <TextField
+                label="Spesialisasi utama"
                 required
                 value={form.specialty}
                 onChange={(e) => updateField('specialty', e.target.value)}
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-xs text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
               />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-primary-dark">
-                Sub-Spesialisasi (Opsional)
-              </label>
-              <input
-                type="text"
+              <TextField
+                label="Sub-spesialisasi (opsional)"
                 value={form.subSpecialty}
                 onChange={(e) => updateField('subSpecialty', e.target.value)}
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-xs text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
               />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-primary-dark">
-                Nomor STR / SIP
-              </label>
-              <input
-                type="text"
+              <TextField
+                label="Nomor STR / SIP"
                 value={form.strSipDisplay}
                 onChange={(e) => updateField('strSipDisplay', e.target.value)}
                 placeholder="Contoh: SIP: 503/.../DINKES"
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-xs text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
               />
             </div>
-          </div>
+          </Card>
 
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-primary-dark">
-              Biografi Singkat / Pengantar Pelayanan (Personal Story)
-            </label>
-            <textarea
+          <Card title="Pengantar" description="Tampil di bagian Tentang pada beranda.">
+            <TextAreaField
+              label="Biografi singkat / pengantar pelayanan"
               rows={3}
               value={form.personalStory}
               onChange={(e) => updateField('personalStory', e.target.value)}
               placeholder="Tuliskan pengantar singkat mengenai dedikasi dan pendekatan pelayanan kepada pasien..."
-              className="w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-xs leading-relaxed text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
             />
-          </div>
+          </Card>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-primary-dark">
-                Riwayat Pendidikan (Pisahkan per baris atau dengan |)
-              </label>
-              <textarea
+          <Card title="Riwayat & kredensial" description={LIST_HINT}>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <TextAreaField
+                label="Riwayat pendidikan"
                 rows={4}
                 value={form.education}
                 onChange={(e) => updateField('education', e.target.value)}
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-xs leading-relaxed text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
               />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-primary-dark">
-                Riwayat Pengalaman Klinis (Pisahkan per baris atau dengan |)
-              </label>
-              <textarea
+              <TextAreaField
+                label="Riwayat pengalaman klinis"
                 rows={4}
                 value={form.experienceHistory}
-                onChange={(e) =>
-                  updateField('experienceHistory', e.target.value)
-                }
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-xs leading-relaxed text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
+                onChange={(e) => updateField('experienceHistory', e.target.value)}
               />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-primary-dark">
-                Sertifikasi & Pelatihan (Pisahkan per baris atau dengan |)
-              </label>
-              <textarea
+              <TextAreaField
+                label="Sertifikasi & pelatihan"
                 rows={3}
                 value={form.certifications}
                 onChange={(e) => updateField('certifications', e.target.value)}
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-xs leading-relaxed text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
               />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-primary-dark">
-                Organisasi Profesi (Pisahkan per baris atau dengan |)
-              </label>
-              <textarea
+              <TextAreaField
+                label="Organisasi profesi"
                 rows={3}
                 value={form.organizations}
                 onChange={(e) => updateField('organizations', e.target.value)}
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-xs leading-relaxed text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
               />
             </div>
-          </div>
-
-          <div className="flex justify-end border-t border-border pt-4">
-            <button
-              type="submit"
-              disabled={saving}
-              className="rounded-xl bg-primary px-6 py-2.5 font-heading text-xs font-semibold text-white shadow-xs transition-colors hover:bg-primary-dark disabled:opacity-50"
-            >
-              {saving ? 'Menyimpan...' : 'Simpan Profil Dokter'}
-            </button>
-          </div>
+          </Card>
         </div>
+      </div>
+
+      <div className="sticky bottom-0 -mx-4 flex justify-end border-t border-border bg-surface/95 p-3 backdrop-blur md:mx-0 lg:static lg:border-0 lg:bg-transparent lg:p-0 lg:backdrop-blur-none">
+        <Button type="submit" pending={saving}>
+          {saving ? 'Menyimpan...' : 'Simpan profil'}
+        </Button>
       </div>
     </form>
   );

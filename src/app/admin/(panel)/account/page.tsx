@@ -2,6 +2,7 @@ import { asc } from 'drizzle-orm';
 import { getDb } from '@/db/client';
 import { users } from '@/db/schema';
 import { requireUser } from '@/lib/session';
+import PageHeader from '@/components/admin/PageHeader';
 import AccountManager from './AccountManager';
 
 export default async function AdminAccountPage() {
@@ -20,15 +21,10 @@ export default async function AdminAccountPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-2xl font-bold text-primary-dark">
-          Manajemen Akun & Keamanan
-        </h1>
-        <p className="mt-1 text-xs text-text-muted">
-          Perbarui nama tampilan, ganti kata sandi Anda, atau tambahkan akun
-          rekan/asisten admin.
-        </p>
-      </div>
+      <PageHeader
+        title="Manajemen Akun & Keamanan"
+        description="Perbarui nama tampilan, ganti kata sandi Anda, atau tambahkan akun rekan/asisten admin."
+      />
 
       <AccountManager
         currentUser={currentUser}

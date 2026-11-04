@@ -1,6 +1,7 @@
 import { asc } from 'drizzle-orm';
 import { getDb } from '@/db/client';
 import { locations as locationsTable } from '@/db/schema';
+import PageHeader from '@/components/admin/PageHeader';
 import LocationsManager from './LocationsManager';
 
 export default async function AdminLocationsPage() {
@@ -20,15 +21,10 @@ export default async function AdminLocationsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-heading text-2xl font-bold text-primary-dark">
-          Jadwal & Lokasi Praktik
-        </h1>
-        <p className="mt-1 text-xs text-text-muted">
-          Kelola daftar rumah sakit/klinik tempat praktik, jam layanan, dan
-          kontak pendaftaran masing-masing lokasi.
-        </p>
-      </div>
+      <PageHeader
+        title="Jadwal & Lokasi Praktik"
+        description="Kelola daftar rumah sakit/klinik tempat praktik, jam layanan, dan kontak pendaftaran masing-masing lokasi."
+      />
 
       <LocationsManager initialLocations={rows} />
     </div>

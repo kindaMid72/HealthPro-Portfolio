@@ -1,5 +1,9 @@
 import Link from 'next/link';
 import { MessageSquareWarning, Plus, Search } from 'lucide-react';
+import { Button, buttonClassName } from '@/components/admin/Button';
+import EmptyState from '@/components/admin/EmptyState';
+import PageHeader from '@/components/admin/PageHeader';
+import StatusBadge, { ARTICLE_STATUS_META } from '@/components/admin/StatusBadge';
 import {
   type ArticleStatus,
   listArticlesAdmin,
@@ -15,28 +19,11 @@ import { createArticleAction } from '../../articles/actions';
 
 const STATUS_TABS: { value?: ArticleStatus; label: string }[] = [
   { value: undefined, label: 'Semua' },
-  { value: 'draft', label: 'Draft' },
-  { value: 'in_review', label: 'Menunggu Review' },
-  { value: 'published', label: 'Dipublikasikan' },
+  ...(['draft', 'in_review', 'published'] as const).map((value) => ({
+    value,
+    label: ARTICLE_STATUS_META[value].label,
+  })),
 ];
-
-const STATUS_BADGE: Record<
-  ArticleStatus,
-  { label: string; className: string }
-> = {
-  draft: {
-    label: 'Draft',
-    className: 'bg-slate-100 text-slate-700 border-slate-200',
-  },
-  in_review: {
-    label: 'Menunggu Review',
-    className: 'bg-amber-50 text-amber-800 border-amber-200',
-  },
-  published: {
-    label: 'Dipublikasikan',
-    className: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-  },
-};
 
 interface AdminArticlesPageProps {
   searchParams: Promise<{
@@ -82,106 +69,80 @@ export default async function AdminArticlesPage({
     return qs ? `/admin/articles?${qs}` : '/admin/articles';
   }
 
+  const TAB_ACTIVE = 'bg-primary text-white';
+  const TAB_IDLE = 'bg-bg text-text-body hover:bg-primary-tint hover:text-primary';
+
   return (
     <div className="space-y-6">
-      <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="font-heading text-2xl font-bold text-primary-dark">
-            Manajemen Artikel Edukasi
-          </h1>
-          <p className="mt-1 text-xs text-text-muted">
-            Tulis, tinjau bersama rekan/dokter, dan terbitkan artikel kesehatan
-            THT.
-          </p>
-        </div>
+      <PageHeader
+        title="Manajemen Artikel Edukasi"
+        description="Tulis, tinjau bersama rekan/dokter, dan terbitkan artikel kesehatan THT."
+        actions={
+          <form action={createArticleAction}>
+            <Button type="submit" icon={<Plus size={16} aria-hidden="true" />}>
+              Tulis Artikel Baru
+            </Button>
+          </form>
+        }
+      />
 
-        <form action={createArticleAction}>
-          <button
-            type="submit"
-            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 font-heading text-xs font-semibold text-white shadow-xs transition-colors hover:bg-primary-dark"
-          >
-            <Plus size={16} aria-hidden="true" />
-            Tulis Artikel Baru
-          </button>
-        </form>
-      </div>
-
-      {/* Filter Bar */}
-      <div className="space-y-3 rounded-2xl border border-border bg-surface p-4 shadow-xs">
+      <div className="space-y-3 rounded-xl border border-border bg-surface p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          {/* Status Tabs */}
-          <div className="flex flex-wrap items-center gap-1.5">
+          <nav aria-label="Filter status" className="flex flex-wrap items-center gap-1.5">
             {STATUS_TABS.map((tab) => {
               const isActive = activeStatus === tab.value;
               return (
                 <Link
                   key={tab.label}
-                  href={buildFilterUrl({
-                    status: tab.value,
-                    category: activeCategory,
-                    q: searchQuery,
-                  })}
-                  className={`rounded-xl px-3.5 py-1.5 text-xs font-semibold transition-colors ${
-                    isActive
-                      ? 'bg-primary text-white'
-                      : 'bg-bg text-text-body hover:bg-primary/10 hover:text-primary'
+                  href={buildFilterUrl({ status: tab.value, category: activeCategory, q: searchQuery })}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`inline-flex min-h-9 items-center rounded-lg px-3.5 text-sm font-semibold ${
+                    isActive ? TAB_ACTIVE : TAB_IDLE
                   }`}
                 >
                   {tab.label}
                 </Link>
               );
             })}
-          </div>
+          </nav>
 
-          {/* Search Form */}
-          <form
-            method="GET"
-            action="/admin/articles"
-            className="flex w-full items-center gap-2 sm:w-72"
-          >
-            {activeStatus && (
-              <input type="hidden" name="status" value={activeStatus} />
-            )}
-            {activeCategory && (
-              <input type="hidden" name="kategori" value={activeCategory} />
-            )}
+          <form method="GET" action="/admin/articles" className="flex w-full items-center gap-2 sm:w-80">
+            {activeStatus && <input type="hidden" name="status" value={activeStatus} />}
+            {activeCategory && <input type="hidden" name="kategori" value={activeCategory} />}
+            <label htmlFor="admin-artikel-q" className="sr-only">
+              Cari artikel
+            </label>
             <div className="relative flex-1">
               <Search
-                size={14}
+                size={16}
                 className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted"
+                aria-hidden="true"
               />
               <input
+                id="admin-artikel-q"
                 type="search"
                 name="q"
                 defaultValue={searchQuery ?? ''}
                 placeholder="Cari judul artikel..."
-                className="w-full rounded-xl border border-border bg-bg py-1.5 pl-8 pr-3 text-xs text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
+                className="min-h-10 w-full rounded-lg border border-border bg-surface pl-9 pr-3 text-base text-text-heading placeholder:text-text-muted focus:border-primary focus:outline-none sm:text-sm"
               />
             </div>
-            <button
-              type="submit"
-              className="rounded-xl border border-border bg-bg px-3 py-1.5 text-xs font-semibold text-primary-dark hover:border-primary hover:text-primary"
-            >
+            <Button type="submit" variant="secondary">
               Cari
-            </button>
+            </Button>
           </form>
         </div>
 
-        {/* Category Pills */}
-        <div className="flex flex-wrap items-center gap-1.5 border-t border-border/70 pt-3">
-          <span className="mr-1 text-[11px] font-semibold text-text-muted">
-            Topik:
-          </span>
+        <nav
+          aria-label="Filter topik"
+          className="flex flex-wrap items-center gap-1.5 border-t border-border pt-3"
+        >
+          <span className="mr-1 text-xs font-semibold text-text-muted">Topik:</span>
           <Link
-            href={buildFilterUrl({
-              status: activeStatus,
-              category: undefined,
-              q: searchQuery,
-            })}
-            className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-              !activeCategory
-                ? 'bg-primary-dark text-white'
-                : 'bg-bg text-text-muted hover:text-primary'
+            href={buildFilterUrl({ status: activeStatus, category: undefined, q: searchQuery })}
+            aria-current={!activeCategory ? 'page' : undefined}
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+              !activeCategory ? 'bg-primary-dark text-white' : 'bg-bg text-text-muted hover:text-primary'
             }`}
           >
             Semua
@@ -191,119 +152,116 @@ export default async function AdminArticlesPage({
             return (
               <Link
                 key={cat}
-                href={buildFilterUrl({
-                  status: activeStatus,
-                  category: cat,
-                  q: searchQuery,
-                })}
-                className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
-                  isActive
-                    ? 'bg-primary-dark text-white'
-                    : 'bg-bg text-text-muted hover:text-primary'
+                href={buildFilterUrl({ status: activeStatus, category: cat, q: searchQuery })}
+                aria-current={isActive ? 'page' : undefined}
+                className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                  isActive ? 'bg-primary-dark text-white' : 'bg-bg text-text-muted hover:text-primary'
                 }`}
               >
                 {ARTICLE_CATEGORIES[cat]}
               </Link>
             );
           })}
-        </div>
+        </nav>
       </div>
 
-      {/* Tabel Artikel */}
-      <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-xs">
-        {articlesList.length === 0 ? (
-          <div className="p-12 text-center">
-            <p className="font-heading text-sm font-semibold text-primary-dark">
-              Tidak ada artikel yang ditemukan
-            </p>
-            <p className="mt-1 text-xs text-text-muted">
-              Buat artikel baru atau ubah filter pencarian di atas.
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
+      {articlesList.length === 0 ? (
+        <EmptyState
+          title="Tidak ada artikel yang ditemukan"
+          description="Buat artikel baru atau ubah filter pencarian di atas."
+        />
+      ) : (
+        <>
+          <div className="hidden overflow-x-auto rounded-xl border border-border bg-surface md:block">
+            <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-border bg-bg/60 text-text-muted">
                   <th className="px-4 py-3 font-semibold">Judul Artikel</th>
                   <th className="px-4 py-3 font-semibold">Kategori</th>
                   <th className="px-4 py-3 font-semibold">Status</th>
-                  <th className="px-4 py-3 font-semibold">Baca & Pembaca</th>
+                  <th className="px-4 py-3 font-semibold">Baca &amp; Pembaca</th>
                   <th className="px-4 py-3 font-semibold">Penulis</th>
                   <th className="px-4 py-3 font-semibold">Diperbarui</th>
                   <th className="px-4 py-3 text-right font-semibold">Aksi</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-border/70">
-                {articlesList.map((art) => {
-                  const badge = STATUS_BADGE[art.status];
-                  return (
-                    <tr key={art.id} className="hover:bg-bg/40">
-                      <td className="px-4 py-3.5">
-                        <Link
-                          href={`/admin/articles/${art.id}`}
-                          className="font-heading text-sm font-semibold text-primary-dark hover:text-primary"
-                        >
-                          {art.title || '(Draft Tanpa Judul)'}
+              <tbody className="divide-y divide-border">
+                {articlesList.map((art) => (
+                  <tr key={art.id} className="hover:bg-bg/40">
+                    <td className="px-4 py-3.5">
+                      <Link
+                        href={`/admin/articles/${art.id}`}
+                        className="font-semibold text-text-heading hover:text-primary"
+                      >
+                        {art.title || '(Draft Tanpa Judul)'}
+                      </Link>
+                      <div className="mt-0.5 text-xs text-text-muted">/artikel/{art.slug}</div>
+                      {art.reviewNote && (
+                        <div className="mt-1.5 inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs text-amber-800">
+                          <MessageSquareWarning size={12} aria-hidden="true" />
+                          <span className="line-clamp-1">Catatan: {art.reviewNote}</span>
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <span className="rounded-full bg-primary-tint px-2.5 py-0.5 text-xs font-semibold text-primary">
+                        {ARTICLE_CATEGORIES[art.category]}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3.5">
+                      <StatusBadge status={art.status} />
+                    </td>
+                    <td className="px-4 py-3.5 text-text-muted">
+                      {art.readingTimeMinutes} mnt • {art.viewCount.toLocaleString('id-ID')} dibaca
+                    </td>
+                    <td className="px-4 py-3.5">{art.authorName}</td>
+                    <td className="px-4 py-3.5 text-text-muted">{formatDateShortId(art.updatedAt)}</td>
+                    <td className="px-4 py-3.5 text-right">
+                      <div className="inline-flex items-center gap-2">
+                        <Link href={`/admin/articles/${art.id}/preview`} className={buttonClassName('ghost', 'sm')}>
+                          Preview
                         </Link>
-                        <div className="mt-0.5 text-[11px] text-text-muted">
-                          /artikel/{art.slug}
-                        </div>
-                        {art.reviewNote && (
-                          <div className="mt-1.5 inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] text-amber-800">
-                            <MessageSquareWarning size={12} />
-                            <span className="line-clamp-1">
-                              Catatan: {art.reviewNote}
-                            </span>
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
-                          {ARTICLE_CATEGORIES[art.category]}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <span
-                          className={`inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${badge.className}`}
-                        >
-                          {badge.label}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3.5 text-text-muted">
-                        {art.readingTimeMinutes} mnt •{' '}
-                        {art.viewCount.toLocaleString('id-ID')} dibaca
-                      </td>
-                      <td className="px-4 py-3.5 text-text-body">
-                        {art.authorName}
-                      </td>
-                      <td className="px-4 py-3.5 text-text-muted">
-                        {formatDateShortId(art.updatedAt)}
-                      </td>
-                      <td className="px-4 py-3.5 text-right">
-                        <div className="inline-flex items-center gap-3">
-                          <Link
-                            href={`/admin/articles/${art.id}/preview`}
-                            className="font-medium text-text-muted hover:text-primary"
-                          >
-                            Preview
-                          </Link>
-                          <Link
-                            href={`/admin/articles/${art.id}`}
-                            className="rounded-lg bg-primary/10 px-3 py-1 font-heading font-semibold text-primary hover:bg-primary hover:text-white"
-                          >
-                            Edit
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                        <Link href={`/admin/articles/${art.id}`} className={buttonClassName('secondary', 'sm')}>
+                          Edit
+                        </Link>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
-        )}
-      </div>
+
+          <ul className="space-y-3 md:hidden">
+            {articlesList.map((art) => (
+              <li key={art.id} className="rounded-xl border border-border bg-surface p-4">
+                <Link href={`/admin/articles/${art.id}`} className="font-semibold text-text-heading hover:text-primary">
+                  {art.title || '(Draft Tanpa Judul)'}
+                </Link>
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-text-muted">
+                  <StatusBadge status={art.status} />
+                  <span>{ARTICLE_CATEGORIES[art.category]}</span>
+                  <span>{formatDateShortId(art.updatedAt)}</span>
+                </div>
+                {art.reviewNote && (
+                  <div className="mt-2 inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs text-amber-800">
+                    <MessageSquareWarning size={12} aria-hidden="true" />
+                    <span className="line-clamp-1">Catatan: {art.reviewNote}</span>
+                  </div>
+                )}
+                <div className="mt-3 flex gap-2">
+                  <Link href={`/admin/articles/${art.id}`} className={buttonClassName('secondary', 'sm')}>
+                    Edit
+                  </Link>
+                  <Link href={`/admin/articles/${art.id}/preview`} className={buttonClassName('ghost', 'sm')}>
+                    Preview
+                  </Link>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </div>
   );
 }

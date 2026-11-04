@@ -2,6 +2,13 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import Alert from '@/components/admin/Alert';
+import { Button } from '@/components/admin/Button';
+import Card from '@/components/admin/Card';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
+import EmptyState from '@/components/admin/EmptyState';
+import { TextAreaField, TextField } from '@/components/admin/Field';
 import {
   deleteLocationAction,
   type LocationItem,
@@ -26,6 +33,7 @@ export default function LocationsManager({
   const [bookingUrlOverride, setBookingUrlOverride] = useState('');
 
   const [busy, setBusy] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<LocationItem | null>(null);
   const [message, setMessage] = useState<{
     type: 'ok' | 'err';
     text: string;
@@ -88,15 +96,13 @@ export default function LocationsManager({
     router.refresh();
   }
 
-  async function handleDelete(loc: LocationItem) {
-    if (
-      !window.confirm(`Hapus lokasi praktik "${loc.locationName}"?`)
-    ) {
-      return;
-    }
+  async function handleDelete() {
+    const loc = pendingDelete;
+    if (!loc) return;
     setBusy(true);
     const res = await deleteLocationAction(loc.id);
     setBusy(false);
+    setPendingDelete(null);
 
     if (res.success && res.items) {
       setLocationsList(res.items);
@@ -122,197 +128,135 @@ export default function LocationsManager({
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-      {/* Daftar Lokasi */}
       <div className="space-y-4 lg:col-span-7">
-        {message && (
-          <div
-            role="alert"
-            className={`rounded-xl border px-4 py-3 text-xs font-medium ${
-              message.type === 'ok'
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-                : 'border-red-200 bg-red-50 text-red-700'
-            }`}
-          >
-            {message.text}
-          </div>
+        {message && <Alert tone={message.type === 'ok' ? 'success' : 'error'}>{message.text}</Alert>}
+
+        {locationsList.length === 0 && (
+          <EmptyState
+            title="Belum ada lokasi praktik"
+            description="Tambahkan lokasi pertama lewat formulir di samping."
+          />
         )}
 
         {locationsList.map((loc, idx) => (
-          <div
-            key={loc.id}
-            className="rounded-2xl border border-border bg-surface p-5 shadow-xs"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h3 className="font-heading text-base font-bold text-primary-dark">
-                  {loc.locationName}
-                </h3>
-                <p className="mt-1 text-xs text-text-body">{loc.address}</p>
-                <p className="mt-1 text-xs font-medium text-primary">
-                  Jam Praktik: {loc.practiceHours}
-                </p>
-                <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-text-muted">
+          <div key={loc.id} className="rounded-xl border border-border bg-surface p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h3 className="text-base font-bold">{loc.locationName}</h3>
+                <p className="mt-1 text-sm">{loc.address}</p>
+                <p className="mt-1 text-sm font-medium text-primary">Jam praktik: {loc.practiceHours}</p>
+                <div className="mt-2 flex flex-wrap gap-3 text-xs text-text-muted">
                   <span>WA: {loc.whatsapp || '—'}</span>
                   <span>Telp: {loc.phone || '—'}</span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-1.5 text-xs">
-                <button
-                  type="button"
+              <div className="flex items-center gap-1.5">
+                <Button
+                  size="sm"
+                  variant="ghost"
                   disabled={busy || idx === 0}
                   onClick={() => void handleMove(loc.id, 'up')}
-                  className="rounded-lg border border-border px-2 py-1 hover:border-primary disabled:opacity-40"
+                  aria-label={`Pindahkan ${loc.locationName} ke atas`}
                   title="Naikkan urutan"
                 >
-                  ↑
-                </button>
-                <button
-                  type="button"
+                  <ChevronUp size={16} aria-hidden="true" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
                   disabled={busy || idx === locationsList.length - 1}
                   onClick={() => void handleMove(loc.id, 'down')}
-                  className="rounded-lg border border-border px-2 py-1 hover:border-primary disabled:opacity-40"
+                  aria-label={`Pindahkan ${loc.locationName} ke bawah`}
                   title="Turunkan urutan"
                 >
-                  ↓
-                </button>
-                <button
-                  type="button"
-                  onClick={() => startEdit(loc)}
-                  className="rounded-lg bg-primary/10 px-2.5 py-1 font-semibold text-primary hover:bg-primary hover:text-white"
-                >
+                  <ChevronDown size={16} aria-hidden="true" />
+                </Button>
+                <Button size="sm" variant="secondary" onClick={() => startEdit(loc)}>
                   Edit
-                </button>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => void handleDelete(loc)}
-                  className="rounded-lg border border-red-200 bg-red-50 px-2.5 py-1 font-semibold text-red-700 hover:bg-red-100"
-                >
+                </Button>
+                <Button size="sm" variant="danger" disabled={busy} onClick={() => setPendingDelete(loc)}>
                   Hapus
-                </button>
+                </Button>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Form Tambah / Edit Lokasi */}
       <div className="lg:col-span-5">
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4 rounded-2xl border border-border bg-surface p-6 shadow-xs"
-        >
-          <div className="flex items-center justify-between">
-            <h2 className="font-heading text-base font-bold text-primary-dark">
-              {editingId ? 'Edit Lokasi Praktik' : 'Tambah Lokasi Baru'}
-            </h2>
-            {editingId && (
-              <button
-                type="button"
-                onClick={resetForm}
-                className="text-xs font-semibold text-text-muted hover:text-primary"
-              >
-                Batal Edit
-              </button>
-            )}
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-primary-dark">
-              Nama RS / Klinik *
-            </label>
-            <input
-              type="text"
-              required
-              value={locationName}
-              onChange={(e) => setLocationName(e.target.value)}
-              placeholder="Contoh: RSUD dr. H. Andi Abdurrahman Noor"
-              className="w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-xs text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-primary-dark">
-              Alamat Lengkap *
-            </label>
-            <textarea
-              rows={2}
-              required
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-xs text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-primary-dark">
-              Jam Praktik *
-            </label>
-            <input
-              type="text"
-              required
-              value={practiceHours}
-              onChange={(e) => setPracticeHours(e.target.value)}
-              placeholder="Contoh: Senin–Jumat, 08.00–14.00 WITA"
-              className="w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-xs text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-primary-dark">
-                Nomor WhatsApp
-              </label>
-              <input
-                type="text"
-                value={whatsapp}
-                onChange={(e) => setWhatsapp(e.target.value)}
-                placeholder="0812..."
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-xs text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs font-semibold text-primary-dark">
-                Nomor Telepon
-              </label>
-              <input
-                type="text"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="0518..."
-                className="w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-xs text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-semibold text-primary-dark">
-              URL Booking Khusus Lokasi Ini (Opsional)
-            </label>
-            <input
-              type="url"
-              value={bookingUrlOverride}
-              onChange={(e) => setBookingUrlOverride(e.target.value)}
-              placeholder="https://..."
-              className="w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-xs text-primary-dark focus:border-primary focus:bg-white focus:outline-none"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={busy}
-            className="w-full rounded-xl bg-primary px-4 py-2.5 font-heading text-xs font-semibold text-white shadow-xs transition-colors hover:bg-primary-dark disabled:opacity-50"
+        <form onSubmit={handleSubmit} className="lg:sticky lg:top-8">
+          <Card
+            title={editingId ? 'Edit lokasi praktik' : 'Tambah lokasi baru'}
+            actions={
+              editingId ? (
+                <Button size="sm" variant="ghost" onClick={resetForm}>
+                  Batal edit
+                </Button>
+              ) : undefined
+            }
           >
-            {busy
-              ? 'Menyimpan...'
-              : editingId
-                ? 'Simpan Perubahan Lokasi'
-                : '+ Tambah Lokasi Praktik'}
-          </button>
+            <div className="space-y-4">
+              <TextField
+                label="Nama RS / klinik"
+                required
+                value={locationName}
+                onChange={(e) => setLocationName(e.target.value)}
+                placeholder="Contoh: RSUD dr. H. Andi Abdurrahman Noor"
+              />
+              <TextAreaField
+                label="Alamat lengkap"
+                required
+                rows={2}
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+              />
+              <TextField
+                label="Jam praktik"
+                required
+                value={practiceHours}
+                onChange={(e) => setPracticeHours(e.target.value)}
+                placeholder="Contoh: Senin–Jumat, 08.00–14.00"
+                hint="Format hari + jam (mis. Senin–Sabtu, 17.00–21.00) membuat jadwal tampil di papan mingguan dan status “Praktik hari ini”."
+              />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <TextField
+                  label="Nomor WhatsApp"
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(e.target.value)}
+                  placeholder="0812..."
+                />
+                <TextField
+                  label="Nomor telepon"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="0518..."
+                />
+              </div>
+              <TextField
+                label="URL booking khusus lokasi ini (opsional)"
+                type="url"
+                value={bookingUrlOverride}
+                onChange={(e) => setBookingUrlOverride(e.target.value)}
+                placeholder="https://..."
+              />
+              <Button type="submit" pending={busy} className="w-full">
+                {busy ? 'Menyimpan...' : editingId ? 'Simpan perubahan lokasi' : 'Tambah lokasi praktik'}
+              </Button>
+            </div>
+          </Card>
         </form>
       </div>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="Hapus lokasi praktik?"
+        description={`Lokasi "${pendingDelete?.locationName ?? ''}" akan dihapus dari website.`}
+        confirmLabel="Hapus lokasi"
+        pending={busy}
+        onConfirm={() => void handleDelete()}
+        onCancel={() => setPendingDelete(null)}
+      />
     </div>
   );
 }
