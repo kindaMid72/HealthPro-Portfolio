@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Eye } from 'lucide-react';
 
 interface ArticleViewTrackerProps {
   slug: string;
@@ -35,9 +34,6 @@ export default function ArticleViewTracker({
   }, [slug]);
 
   return (
-    <span className="inline-flex items-center gap-1">
-      <Eye size={14} aria-hidden="true" />
-      {views.toLocaleString('id-ID')} kali dibaca
-    </span>
+    <span>{views.toLocaleString('id-ID')} kali dibaca</span>
   );
 }

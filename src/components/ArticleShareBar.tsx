@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Share2, Check, MessageCircle } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Share2, Link2, MessageCircle } from 'lucide-react';
 
 interface ArticleShareBarProps {
   title: string;
@@ -9,57 +9,66 @@ interface ArticleShareBarProps {
 }
 
 export default function ArticleShareBar({ title, url }: ArticleShareBarProps) {
-  const [copied, setCopied] = useState(false);
+  const [canShare, setCanShare] = useState(false);
+  const [copyMessage, setCopyMessage] = useState('');
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const waShareUrl = `https://wa.me/?text=${encodeURIComponent(
-    `${title}\n${url}`,
-  )}`;
+  useEffect(() => {
+    // navigator.share hanya tersedia di klien; cek setelah mount agar HTML server cocok.
+    const id = setTimeout(() => setCanShare('share' in navigator), 0);
+    return () => {
+      clearTimeout(id);
+      if (timer.current) clearTimeout(timer.current);
+    };
+  }, []);
+
+  const waShareUrl = `https://wa.me/?text=${encodeURIComponent(`${title}\n${url}`)}`;
+
+  function flash(message: string) {
+    setCopyMessage(message);
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => setCopyMessage(''), 2000);
+  }
 
   async function handleCopy() {
     try {
       await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      flash('Tautan tersalin');
     } catch {
-      // Fallback jika clipboard tidak diizinkan
+      flash('Gagal menyalin. Salin tautan dari bilah alamat.');
+    }
+  }
+
+  async function handleShare() {
+    try {
+      await navigator.share({ title, url });
+    } catch (err) {
+      if (!(err instanceof DOMException && err.name === 'AbortError')) {
+        flash('Gagal membagikan. Coba salin tautan.');
+      }
     }
   }
 
   return (
-    <div className="my-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-surface p-4 shadow-xs">
-      <span className="font-heading text-xs font-semibold text-primary-dark">
-        Bagikan artikel edukasi ini:
-      </span>
-
-      <div className="flex flex-wrap items-center gap-2.5">
-        <a
-          href={waShareUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 font-heading text-xs font-semibold text-white transition-colors hover:bg-primary-dark"
-        >
-          <MessageCircle size={14} aria-hidden="true" />
-          Bagikan ke WhatsApp
-        </a>
-
-        <button
-          type="button"
-          onClick={handleCopy}
-          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-bg px-4 py-2 font-heading text-xs font-semibold text-text-body transition-colors hover:border-primary hover:text-primary"
-        >
-          {copied ? (
-            <>
-              <Check size={14} className="text-primary" aria-hidden="true" />
-              Tautan Tersalin!
-            </>
-          ) : (
-            <>
-              <Share2 size={14} aria-hidden="true" />
-              Salin Tautan
-            </>
-          )}
+    <div className="my-10 flex flex-wrap items-center gap-3 border-y border-border py-5">
+      <span className="font-semibold text-text-heading">Bagikan artikel</span>
+      {canShare && (
+        <button type="button" onClick={handleShare} className="btn btn-sm btn-secondary">
+          <Share2 size={16} aria-hidden="true" />
+          Bagikan
         </button>
-      </div>
+      )}
+      <a href={waShareUrl} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-secondary">
+        <MessageCircle size={16} aria-hidden="true" />
+        WhatsApp
+      </a>
+      <button type="button" onClick={handleCopy} className="btn btn-sm btn-secondary">
+        <Link2 size={16} aria-hidden="true" />
+        Salin tautan
+      </button>
+      <span aria-live="polite" className="text-sm text-text-muted">
+        {copyMessage}
+      </span>
     </div>
   );
 }
