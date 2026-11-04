@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { getArticleAdminById } from '@/lib/articles';
 import ArticleEditor from './ArticleEditor';
+import { requireUser } from '@/lib/session';
 
 interface EditArticlePageProps {
   params: Promise<{ id: string }>;
@@ -9,6 +10,7 @@ interface EditArticlePageProps {
 export default async function AdminEditArticlePage({
   params,
 }: EditArticlePageProps) {
+  await requireUser();
   const { id } = await params;
   const article = await getArticleAdminById(id);
 

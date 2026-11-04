@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { JSONContent } from '@tiptap/core';
 import { useEditor } from '@tiptap/react';
@@ -30,6 +30,12 @@ export default function ServiceEditor({ initialService }: { initialService: Edit
   const [serviceDescription, setServiceDescription] = useState(initialService.serviceDescription);
   const [category, setCategory] = useState<ArticleCategory | ''>(initialService.category ?? '');
   const [isDirty, setIsDirty] = useState(false);
+  // Naik tiap ada suntingan; simpan hanya menghapus status "kotor" bila tak ada suntingan selama request.
+  const revision = useRef(0);
+  const markDirty = () => {
+    revision.current += 1;
+    setIsDirty(true);
+  };
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const [savedSlug, setSavedSlug] = useState(initialService.slug);
@@ -40,7 +46,7 @@ export default function ServiceEditor({ initialService }: { initialService: Edit
     content: initialService.content,
     immediatelyRender: false,
     editorProps: { attributes: { class: RICH_TEXT_EDITOR_CLASS } },
-    onUpdate: () => setIsDirty(true),
+    onUpdate: () => markDirty(),
   });
 
   // Peringatan sebelum menutup tab jika ada perubahan yang belum disimpan
@@ -58,6 +64,7 @@ export default function ServiceEditor({ initialService }: { initialService: Edit
     if (!editor) return;
     setSaving(true);
     setMessage(null);
+    const revisionAtSave = revision.current;
 
     // attrs ProseMirror berprototipe null; salin ke plain object sebelum dikirim ke server action.
     const content = JSON.parse(JSON.stringify(editor.getJSON())) as JSONContent;
@@ -76,11 +83,11 @@ export default function ServiceEditor({ initialService }: { initialService: Edit
       return;
     }
 
-    const adjusted = res.slug !== slug.trim() && slug.trim() !== '';
+    const adjusted = res.slug !== (toSlug(slug.trim()) || toSlug(serviceName));
     setSlug(res.slug);
     setSavedSlug(res.slug);
     setSavedHasContent(countWords(content) > 0);
-    setIsDirty(false);
+    if (revision.current === revisionAtSave) setIsDirty(false);
     setMessage({
       type: 'ok',
       text: `Layanan disimpan.${adjusted ? ` Slug disesuaikan menjadi ${res.slug}.` : ''}`,
@@ -119,7 +126,7 @@ export default function ServiceEditor({ initialService }: { initialService: Edit
             value={serviceName}
             onChange={(e) => {
               setServiceName(e.target.value);
-              setIsDirty(true);
+              markDirty();
             }}
           />
 
@@ -130,7 +137,7 @@ export default function ServiceEditor({ initialService }: { initialService: Edit
               value={slug}
               onChange={(e) => {
                 setSlug(e.target.value);
-                setIsDirty(true);
+                markDirty();
               }}
             />
             <Button
@@ -140,7 +147,7 @@ export default function ServiceEditor({ initialService }: { initialService: Edit
               onClick={() => {
                 if (serviceName.trim()) {
                   setSlug(toSlug(serviceName));
-                  setIsDirty(true);
+                  markDirty();
                 }
               }}
             >
@@ -155,7 +162,7 @@ export default function ServiceEditor({ initialService }: { initialService: Edit
             value={serviceDescription}
             onChange={(e) => {
               setServiceDescription(e.target.value);
-              setIsDirty(true);
+              markDirty();
             }}
           />
 
@@ -164,7 +171,7 @@ export default function ServiceEditor({ initialService }: { initialService: Edit
             value={category}
             onChange={(e) => {
               setCategory(e.target.value as ArticleCategory | '');
-              setIsDirty(true);
+              markDirty();
             }}
           >
             <option value="">Tidak ada</option>

@@ -13,12 +13,14 @@ import {
 import { getAllSiteData } from '@/lib/content';
 import { formatDateId } from '@/lib/format';
 import { ARTICLE_CATEGORIES } from '@/lib/types';
+import { requireUser } from '@/lib/session';
 
 interface PreviewPageProps {
   params: Promise<{ id: string }>;
 }
 
 export default async function AdminArticlePreviewPage({ params }: PreviewPageProps) {
+  await requireUser();
   const { id } = await params;
   const [{ profile }, article] = await Promise.all([getAllSiteData(), getArticleAdminById(id)]);
 

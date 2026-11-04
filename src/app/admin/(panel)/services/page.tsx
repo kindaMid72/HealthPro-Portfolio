@@ -4,8 +4,10 @@ import { services as servicesTable } from '@/db/schema';
 import PageHeader from '@/components/admin/PageHeader';
 import { countWords } from '@/lib/tiptap';
 import ServicesManager from './ServicesManager';
+import { requireUser } from '@/lib/session';
 
 export default async function AdminServicesPage() {
+  await requireUser();
   const rows = await getDb()
     .select({
       id: servicesTable.id,

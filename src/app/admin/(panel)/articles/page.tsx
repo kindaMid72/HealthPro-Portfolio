@@ -16,6 +16,7 @@ import {
   isValidArticleCategory,
 } from '@/lib/types';
 import { createArticleAction } from '../../articles/actions';
+import { requireUser } from '@/lib/session';
 
 const STATUS_TABS: { value?: ArticleStatus; label: string }[] = [
   { value: undefined, label: 'Semua' },
@@ -36,6 +37,7 @@ interface AdminArticlesPageProps {
 export default async function AdminArticlesPage({
   searchParams,
 }: AdminArticlesPageProps) {
+  await requireUser();
   const { status: rawStatus, kategori, q } = await searchParams;
   const activeStatus: ArticleStatus | undefined =
     rawStatus === 'draft' ||

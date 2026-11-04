@@ -5,9 +5,10 @@ import { redirect } from 'next/navigation';
 import type { JSONContent } from '@tiptap/core';
 import { getDb } from '@/db/client';
 import { services } from '@/db/schema';
-import { findAvailableSlug, slugify } from '@/lib/articles';
+import { findAvailableSlug } from '@/lib/articles';
 import { revalidatePublicSite } from '@/lib/revalidate';
 import { requireUser } from '@/lib/session';
+import { toSlug } from '@/lib/slug';
 import { countWords, EMPTY_TIPTAP_DOC } from '@/lib/tiptap';
 import { type ArticleCategory, isValidArticleCategory } from '@/lib/types';
 
@@ -34,6 +35,23 @@ async function fetchServicesOrdered(): Promise<ServiceItem[]> {
     .orderBy(asc(services.sortOrder));
 
   return rows.map(({ content, ...rest }) => ({ ...rest, hasDetail: countWords(content) > 0 }));
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const SLUG_FALLBACK = 'layanan';
+
+/** Pesan aman untuk klien; detail galat (SQL/parameter) hanya masuk log server. */
+function failure(err: unknown, fallback: string): string {
+  console.error('[admin/services]', err);
+  const code = (err as { cause?: { code?: string }; code?: string } | null);
+  if ((code?.cause?.code ?? code?.code) === '23505') return 'Slug sudah dipakai layanan lain, coba lagi.';
+  return fallback;
+}
+
+/** Layanan tidak membawa gambar: buang node image dari konten yang dikirim klien. */
+function sanitizeServiceContent(node: JSONContent): JSONContent {
+  const content = node.content?.filter((c) => c.type !== 'image').map(sanitizeServiceContent);
+  return content ? { ...node, content } : node;
 }
 
 async function isServiceSlugTaken(candidate: string, excludeId?: string): Promise<boolean> {
@@ -64,7 +82,7 @@ export async function createServiceAction(input: {
   try {
     const current = await fetchServicesOrdered();
     const nextSort = current.length > 0 ? Math.max(...current.map((c) => c.sortOrder)) + 1 : 0;
-    const slug = await findAvailableSlug(slugify(serviceName), (c) => isServiceSlugTaken(c));
+    const slug = await findAvailableSlug(toSlug(serviceName) || SLUG_FALLBACK, (c) => isServiceSlugTaken(c));
     const [row] = await getDb()
       .insert(services)
       .values({ sortOrder: nextSort, serviceName, slug })
@@ -72,10 +90,7 @@ export async function createServiceAction(input: {
     id = row.id;
     revalidatePublicSite();
   } catch (err) {
-    return {
-      success: false,
-      error: err instanceof Error ? err.message : 'Gagal membuat layanan.',
-    };
+    return { success: false, error: failure(err, 'Gagal membuat layanan.') };
   }
 
   redirect(`/admin/services/${id}`);
@@ -96,15 +111,26 @@ export async function saveServiceAction(input: {
     return { success: false, error: 'Nama layanan wajib diisi.' };
   }
 
-  const content = input.content && input.content.type === 'doc' ? input.content : EMPTY_TIPTAP_DOC;
+  if (!UUID_RE.test(input.id)) {
+    return { success: false, error: 'Layanan tidak ditemukan.' };
+  }
+
+  // Salin ke plain object (attrs ProseMirror berprototipe null) lalu buang node image.
+  let parsed: JSONContent | null = null;
+  try {
+    parsed = JSON.parse(JSON.stringify(input.content)) as JSONContent;
+  } catch {
+    parsed = null;
+  }
+  const content = parsed && parsed.type === 'doc' ? sanitizeServiceContent(parsed) : EMPTY_TIPTAP_DOC;
   const category = isValidArticleCategory(input.category ?? undefined) ? input.category : null;
 
   try {
     const slug = await findAvailableSlug(
-      slugify(input.slug.trim() || serviceName),
+      toSlug(input.slug.trim()) || toSlug(serviceName) || SLUG_FALLBACK,
       (c) => isServiceSlugTaken(c, input.id),
     );
-    await getDb()
+    const updated = await getDb()
       .update(services)
       .set({
         serviceName,
@@ -114,15 +140,17 @@ export async function saveServiceAction(input: {
         content,
         updatedAt: new Date(),
       })
-      .where(eq(services.id, input.id));
+      .where(eq(services.id, input.id))
+      .returning({ id: services.id });
+
+    if (updated.length === 0) {
+      return { success: false, error: 'Layanan tidak ditemukan (mungkin sudah dihapus).' };
+    }
 
     revalidatePublicSite();
     return { success: true, slug };
   } catch (err) {
-    return {
-      success: false,
-      error: err instanceof Error ? err.message : 'Gagal menyimpan layanan.',
-    };
+    return { success: false, error: failure(err, 'Gagal menyimpan layanan.') };
   }
 }
 
@@ -132,16 +160,14 @@ export async function deleteServiceAction(id: string): Promise<{
   items?: ServiceItem[];
 }> {
   await requireUser();
+  if (!UUID_RE.test(id)) return { success: false, error: 'Layanan tidak ditemukan.' };
   try {
     await getDb().delete(services).where(eq(services.id, id));
     revalidatePublicSite();
     const items = await fetchServicesOrdered();
     return { success: true, items };
   } catch (err) {
-    return {
-      success: false,
-      error: err instanceof Error ? err.message : 'Gagal menghapus layanan.',
-    };
+    return { success: false, error: failure(err, 'Gagal menghapus layanan.') };
   }
 }
 
@@ -182,9 +208,6 @@ export async function moveServiceAction(
     const items = await fetchServicesOrdered();
     return { success: true, items };
   } catch (err) {
-    return {
-      success: false,
-      error: err instanceof Error ? err.message : 'Gagal mengubah urutan.',
-    };
+    return { success: false, error: failure(err, 'Gagal mengubah urutan.') };
   }
 }

@@ -3,8 +3,10 @@ import { getDb } from '@/db/client';
 import { locations as locationsTable } from '@/db/schema';
 import PageHeader from '@/components/admin/PageHeader';
 import LocationsManager from './LocationsManager';
+import { requireUser } from '@/lib/session';
 
 export default async function AdminLocationsPage() {
+  await requireUser();
   const rows = await getDb()
     .select({
       id: locationsTable.id,

@@ -11,6 +11,8 @@ interface DialogProps {
   footer?: ReactNode;
   /** Variasi tata letak: dialog tengah (default) atau laci kiri untuk navigasi mobile. */
   variant?: 'center' | 'drawer';
+  /** false = Escape dan klik latar diabaikan (mis. saat aksi sedang berjalan). */
+  dismissible?: boolean;
 }
 
 export default function Dialog({
@@ -21,8 +23,10 @@ export default function Dialog({
   children,
   footer,
   variant = 'center',
+  dismissible = true,
 }: DialogProps) {
   const ref = useRef<HTMLDialogElement>(null);
+  const pressedOnBackdrop = useRef(false);
   const titleId = useId();
   const descId = useId();
 
@@ -45,10 +49,15 @@ export default function Dialog({
       aria-describedby={description ? descId : undefined}
       onCancel={(e) => {
         e.preventDefault();
-        onClose();
+        if (dismissible) onClose();
+      }}
+      onMouseDown={(e) => {
+        pressedOnBackdrop.current = e.target === ref.current;
       }}
       onClick={(e) => {
-        if (e.target === ref.current) onClose();
+        // Tutup hanya bila tekan DAN lepas di latar; seret teks dari input ke luar tidak menutup.
+        if (dismissible && pressedOnBackdrop.current && e.target === ref.current) onClose();
+        pressedOnBackdrop.current = false;
       }}
       className={`p-0 text-text-body backdrop:bg-primary-dark/40 ${layout}`}
     >

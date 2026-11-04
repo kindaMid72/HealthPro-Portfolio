@@ -18,6 +18,7 @@ import { getAdminDashboardStats } from '@/lib/articles';
 import { formatDateShortId } from '@/lib/format';
 import { ARTICLE_CATEGORIES } from '@/lib/types';
 import { createArticleAction } from '../articles/actions';
+import { requireUser } from '@/lib/session';
 
 function StatCard({
   label,
@@ -49,6 +50,7 @@ function StatCard({
 }
 
 export default async function AdminDashboardPage() {
+  await requireUser();
   const stats = await getAdminDashboardStats();
   const completedCount = stats.completeness.filter((c) => c.completed).length;
   const totalChecklist = stats.completeness.length;

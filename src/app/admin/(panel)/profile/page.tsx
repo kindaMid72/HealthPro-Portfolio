@@ -3,8 +3,10 @@ import { getDb } from '@/db/client';
 import { profile as profileTable } from '@/db/schema';
 import PageHeader from '@/components/admin/PageHeader';
 import ProfileForm from './ProfileForm';
+import { requireUser } from '@/lib/session';
 
 export default async function AdminProfilePage() {
+  await requireUser();
   const [row] = await getDb()
     .select()
     .from(profileTable)

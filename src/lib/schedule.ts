@@ -42,6 +42,12 @@ export function parsePracticeHours(text: string): ParsedHours | null {
   const pad = (h: string, m: string) => `${h.padStart(2, "0")}:${m}`;
   const opens = pad(time[1], time[2]);
   const closes = pad(time[3], time[4]);
+  // Jam lewat tengah malam tidak dimodelkan.
+  if (closes <= opens) return null;
+  // Lebih dari satu rentang jam / hari berbeda per jam ("08.00–12.00 dan 16.00–20.00") tidak dimodelkan:
+  // lebih baik tampil sebagai teks apa adanya daripada status "praktik" yang salah.
+  const rest = text.slice(time.index! + time[0].length).toLowerCase();
+  if (/\d{1,2}[.:]\d{2}/.test(rest) || /\b(senin|selasa|rabu|kamis|jum'?at|sabtu|minggu)\b/.test(rest)) return null;
 
   const dayPart = text.slice(0, time.index).toLowerCase();
   const days = new Set<number>();

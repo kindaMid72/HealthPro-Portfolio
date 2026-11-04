@@ -6,6 +6,6 @@ WITH base AS (
 ), numbered AS (
   SELECT id, s, row_number() OVER (PARTITION BY s ORDER BY sort_order) AS n FROM base
 )
-UPDATE services SET slug = CASE WHEN numbered.n = 1 THEN numbered.s ELSE numbered.s || '-' || numbered.n END FROM numbered WHERE services.id = numbered.id;--> statement-breakpoint
+UPDATE services SET slug = CASE WHEN numbered.n = 1 THEN numbered.s ELSE numbered.s || '-' || left(services.id::text, 8) END FROM numbered WHERE services.id = numbered.id;--> statement-breakpoint
 ALTER TABLE "services" ALTER COLUMN "slug" SET NOT NULL;--> statement-breakpoint
 ALTER TABLE "services" ADD CONSTRAINT "services_slug_unique" UNIQUE("slug");

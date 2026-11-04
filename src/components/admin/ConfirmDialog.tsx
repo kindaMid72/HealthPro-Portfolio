@@ -29,6 +29,7 @@ export default function ConfirmDialog({
     <Dialog
       open={open}
       onClose={onCancel}
+      dismissible={!pending}
       title={title}
       description={description}
       footer={
