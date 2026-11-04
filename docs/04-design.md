@@ -14,21 +14,27 @@ Kalem, bersih, kredibel. Bukan "brosur RS korporat" yang dingin, tapi juga bukan
 | Neutral Background | Off-white | `#F7F8F7` | Background utama, lebih lembut dari putih pekat. |
 | Neutral Surface | Putih | `#FFFFFF` | Card, section alternatif. |
 | Neutral Text | Abu gelap hangat | `#4A5257` | Body text — kontras cukup tapi tidak setajam hitam. |
+| Muted Text | Abu sedang | `#5F686D` | Teks sekunder (tanggal, keterangan). Kontras 5,35:1 di atas background (nilai lama `#6E777D` hanya 4,29:1 sehingga tidak lolos AA). |
+| Primary Hover | Teal gelap | `#2F5560` | Hover tombol primary. |
+| Primary Tint | Teal sangat muda | `#EAF0F1` | Panel lembut: foto hero, kartu status praktik, chip aktif, catatan tinjauan medis. |
 | Accent (CTA/action) | Amber muted | `#D98C4A` | **Khusus untuk CTA booking & elemen aksi** — kontras hangat terhadap primary yang dingin, menarik perhatian tanpa kesan alarm/urgent seperti merah. |
 | Border/Divider | Abu sangat muda | `#E4E7E6` | Garis pemisah halus, jangan pakai border tebal/gelap. |
 
 **Aturan penting**: warna accent (`#D98C4A`) HANYA dipakai untuk CTA dan elemen yang butuh perhatian (tombol booking, link penting). Jangan dipakai dekoratif berlebihan — kalau semua berwarna aksen, tidak ada yang menonjol.
 
+**Teks di atas accent** memakai `#243138` (kontras 4,96:1), bukan putih (2,69:1, tidak lolos AA). Hover accent: `#E39A5E`.
+
 ## Tipografi
-- **Heading**: `Plus Jakarta Sans` (Semibold/Bold) — modern, sedikit karakter tapi tetap profesional, bukan generic system font.
-- **Body**: `Inter` (Regular/Medium) — sangat terbaca di ukuran kecil, standar aksesibilitas tinggi, penting untuk konten medis yang dibaca lintas usia.
-- Ukuran dasar body: minimal 16px di mobile (jangan lebih kecil, demi keterbacaan pasien lanjut usia).
-- Line-height lega: 1.5–1.6 untuk paragraf.
+- **UI & judul**: `Plus Jakarta Sans` (variable font) di seluruh situs dan admin — modern, sedikit karakter tapi tetap profesional. Inter tidak dipakai lagi.
+- **Bacaan panjang**: `Literata` (kelas `.font-reading`) KHUSUS isi artikel (`/artikel/[slug]`) dan layanan (`/layanan/[slug]`) serta tampilan menulis di editor admin. Tidak dipakai di kartu atau elemen UI.
+- Ukuran dasar body: 17px (jangan lebih kecil, demi keterbacaan pasien lanjut usia). Judul halaman memakai skala fluid `text-display`, judul section `text-h2`.
+- Line-height lega: 1.65 untuk paragraf.
 - Hindari huruf kapital semua (all-caps) untuk paragraf panjang — oke untuk label kecil saja (mis. "SPESIALISASI").
 
 ## Prinsip Layout & Komponen
 - **Whitespace generous** — jangan padat, beri ruang antar section minimal 64–96px di desktop, 40–56px di mobile.
-- **Card & elemen**: sudut membulat halus (`border-radius: 12px`), shadow sangat tipis (`0 1px 3px rgba(0,0,0,0.06)`) — kesan kalem, bukan flat tajam maupun skeuomorphic berat.
+- **Card & elemen**: sudut membulat halus — `rounded-full` untuk CTA/chip publik, `rounded-xl` (12px) untuk kartu/panel, `rounded-lg` untuk input dan tombol admin. Satu shadow kartu tipis (`--shadow-card`) — kesan kalem, bukan flat tajam maupun skeuomorphic berat.
+- **Struktur beranda** berorientasi kebutuhan pasien: Hero (+ status "Praktik hari ini") → Jadwal & Lokasi → Layanan → Tentang → Artikel → Kontak. Tanpa dekorasi latar (blob, grid, kaca) dan tanpa animasi selain satu entrance hero; `prefers-reduced-motion` dihormati.
 - **Foto dokter** jadi elemen visual utama di hero — pakai foto profesional asli (bukan stock generic), proporsi natural, hindari filter berlebihan. Kalau foto belum ada, treatment sementara: silhouette/placeholder abu netral, JANGAN pakai foto stock orang random sebagai pengganti (menyesatkan).
 - **Ikon**: line icon, stroke 1.5–2px, sudut membulat (rounded cap/join), warna mengikuti `primary` atau `neutral text` — konsisten satu set ikon (mis. Lucide/Phosphor), jangan campur beberapa gaya ikon.
 - **CTA booking**: tombol pill/rounded-rect (`border-radius: 8–999px`, pilih salah satu konsisten), warna accent, teks kontras tinggi, ukuran cukup besar untuk mobile tap target (min 44x44px).

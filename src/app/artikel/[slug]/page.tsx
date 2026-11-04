@@ -200,7 +200,8 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
         }}
       />
 
-      <article className="mx-auto max-w-6xl px-4 py-10 md:px-6 md:py-16">
+      <article className="px-4 py-10 md:px-6 md:py-16">
+        <div className="mx-auto max-w-6xl">
         <Breadcrumbs
           items={[
             { label: 'Beranda', href: '/' },
@@ -292,6 +293,7 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
             </div>
           </section>
         )}
+        </div>
       </article>
     </SiteShell>
   );
