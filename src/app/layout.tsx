@@ -1,30 +1,21 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Inter } from "next/font/google";
+import { Plus_Jakarta_Sans, Literata } from "next/font/google";
 import "./globals.css";
 import { getAllSiteData } from "@/lib/content";
 import { buildDescription, getServiceAreas, getSiteUrl } from "@/lib/seo";
 
-/**
- * Plus Jakarta Sans — heading font (Semibold/Bold)
- * Modern, sedikit karakter tapi tetap profesional.
- * Sesuai 04-design.md.
- */
+/** Plus Jakarta Sans — satu-satunya font UI & judul (variable font). */
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
   display: "swap", // cegah CLS saat font load
 });
 
-/**
- * Inter — body font (Regular/Medium)
- * Sangat terbaca di ukuran kecil, penting untuk keterbacaan
- * konten medis lintas usia. Sesuai 04-design.md.
- */
-const inter = Inter({
-  variable: "--font-inter",
+/** Literata — khusus isi artikel/layanan panjang (kelas `.font-reading`). */
+const literata = Literata({
+  variable: "--font-literata",
   subsets: ["latin"],
-  weight: ["400", "500"],
+  style: ["normal", "italic"],
   display: "swap",
 });
 
@@ -99,9 +90,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="id"
-      className={`${plusJakartaSans.variable} ${inter.variable}`}
+      className={`${plusJakartaSans.variable} ${literata.variable}`}
     >
-      <body className="antialiased">{children}</body>
+      <body>{children}</body>
     </html>
   );
 }
