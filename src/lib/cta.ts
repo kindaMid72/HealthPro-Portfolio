@@ -17,3 +17,5 @@ export function getCtaLinks(
   const whatsappFallback = toWaLink(firstWa);
   return { bookingUrl, whatsappFallback };
 }
+
+export const EMERGENCY_NOTE = 'Untuk kondisi darurat, segera ke fasilitas kesehatan terdekat.';

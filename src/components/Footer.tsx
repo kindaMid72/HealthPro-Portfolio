@@ -1,54 +1,55 @@
 /**
  * components/Footer.tsx
- * Footer sederhana — copyright, back-to-top, disclaimer.
- * Static content only — tidak ada database/backend.
- *
- * Konten disclaimer: placeholder [BELUM DIISI] sesuai aturan 02-content-data.md.
- * Styling: sesuai 04-design.md — primary-dark background, teks muted.
- * Note: Server Component — tidak ada event handler.
+ * Footer 3 kolom: identitas, navigasi, disclaimer + catatan darurat.
  */
 
-const currentYear = new Date().getFullYear();
+import Link from "next/link";
+import { ArrowUp } from "lucide-react";
+import { NAV_LINKS } from "@/lib/nav";
+import { EMERGENCY_NOTE } from "@/lib/cta";
+import type { Profile } from "@/lib/types";
 
-export default function Footer() {
+export default function Footer({ profile }: { profile: Profile }) {
+  const year = new Date().getFullYear();
   return (
-    <footer
-      id="footer"
-      role="contentinfo"
-      className="bg-primary-dark text-white/70 py-10 px-4"
-    >
-      <div className="mx-auto max-w-5xl flex flex-col items-center gap-4 text-center">
+    <footer id="footer" className="bg-primary-dark px-4 py-12 text-white/75 md:px-6">
+      <div className="mx-auto max-w-6xl">
+        <div className="grid gap-10 text-sm md:grid-cols-3">
+          <div>
+            <p className="text-base font-semibold text-white">{profile.full_name}</p>
+            <p className="mt-1">{profile.specialty}</p>
+          </div>
 
-        {/* Back to top */}
-        <a
-          href="#top"
-          id="footer-back-to-top"
-          aria-label="Kembali ke atas halaman"
-          className="inline-flex flex-col items-center gap-1 text-white/40 hover:text-white transition-colors duration-200 group mb-2"
-        >
-          <span
-            aria-hidden="true"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-white/20 group-hover:border-white/50 transition-colors duration-200 text-xs"
-          >
-            ↑
-          </span>
-          <span className="text-xs font-medium tracking-wide">Kembali ke atas</span>
-        </a>
+          <nav aria-label="Navigasi footer">
+            <ul className="space-y-2">
+              {NAV_LINKS.map(({ href, label }) => (
+                <li key={href}>
+                  <Link href={href} className="hover:text-white hover:underline">
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
 
-        {/* Divider */}
-        <div className="w-12 h-px bg-white/15" aria-hidden="true" />
+          <div className="space-y-3 leading-relaxed">
+            <p>
+              Informasi yang tersaji di website ini bersifat umum dan tidak menggantikan konsultasi
+              medis langsung. Untuk keperluan medis, silakan hubungi dokter secara langsung.
+            </p>
+            <p>{EMERGENCY_NOTE}</p>
+          </div>
+        </div>
 
-        {/* Copyright */}
-        <p id="footer-copyright" className="text-xs">
-          © {currentYear} — Hak cipta dilindungi.
-        </p>
-
-        {/* Disclaimer — placeholder sesuai 02-content-data.md */}
-        <p id="footer-disclaimer" className="text-xs max-w-xl leading-relaxed text-white/40">
-          Informasi yang tersaji di website ini bersifat umum dan tidak menggantikan konsultasi medis langsung.
-          Untuk keperluan medis, silakan hubungi dokter secara langsung.
-        </p>
-
+        <div className="mt-10 flex flex-col gap-3 border-t border-white/15 pt-6 text-xs sm:flex-row sm:items-center sm:justify-between">
+          <p>
+            © {year} {profile.full_name}
+          </p>
+          <a href="#top" className="inline-flex items-center gap-1.5 hover:text-white">
+            <ArrowUp size={14} aria-hidden="true" />
+            Kembali ke atas
+          </a>
+        </div>
       </div>
     </footer>
   );

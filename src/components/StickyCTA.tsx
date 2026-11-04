@@ -1,17 +1,9 @@
 /**
  * components/StickyCTA.tsx
- * Fixed bottom navigation bar untuk mobile (FR-5).
- * Tersembunyi di desktop via md:hidden.
- *
- * Logika:
- * - bookingUrl ada → tombol "Booking Sekarang" (primary, accent amber)
- * - whatsappFallback ada → tombol "WhatsApp" (outline primary)
- * - Keduanya null → komponen tidak di-render sama sekali
- *
- * Styling: sesuai 04-design.md — accent untuk booking, primary untuk WA,
- *          pill shape, min tap target 44px. Hover via CSS class saja.
- * Note: onTouchStart/End dihapus — Server Component tidak bisa event handlers.
- *       Touch feedback di-handle via CSS :active pseudo-class.
+ * Bilah aksi tetap di bawah untuk mobile (FR-5), disembunyikan di desktop.
+ * - bookingUrl ada → "Booking sekarang" (+ tombol WA sempit bila ada)
+ * - hanya WhatsApp → tombol WhatsApp penuh
+ * - keduanya null → tidak dirender
  */
 
 import { CalendarCheck, MessageCircle } from "lucide-react";
@@ -21,11 +13,7 @@ interface StickyCTAProps {
   whatsappFallback: string | null;
 }
 
-export default function StickyCTA({
-  bookingUrl,
-  whatsappFallback,
-}: StickyCTAProps) {
-  // Tidak render kalau tidak ada CTA sama sekali
+export default function StickyCTA({ bookingUrl, whatsappFallback }: StickyCTAProps) {
   if (!bookingUrl && !whatsappFallback) return null;
 
   return (
@@ -33,7 +21,7 @@ export default function StickyCTA({
       id="sticky-cta-mobile"
       role="navigation"
       aria-label="Navigasi aksi cepat"
-      className="fixed bottom-0 left-0 right-0 z-50 flex gap-3 p-4 pb-safe md:hidden bg-white/85 backdrop-blur-lg border-t border-border shadow-[0_-8px_30px_rgba(36,49,56,0.08)]"
+      className="fixed inset-x-0 bottom-0 z-50 flex gap-3 border-t border-border bg-surface/95 p-3 pb-safe backdrop-blur md:hidden"
     >
       {bookingUrl ? (
         <a
@@ -41,10 +29,10 @@ export default function StickyCTA({
           href={bookingUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex flex-1 items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold text-white bg-accent hover:brightness-90 active:scale-[0.98] transition-all duration-200 shadow-md font-heading"
+          className="btn btn-accent flex-1"
         >
-          <CalendarCheck size={17} aria-hidden="true" />
-          Booking Sekarang
+          <CalendarCheck size={18} aria-hidden="true" />
+          Booking sekarang
         </a>
       ) : null}
 
@@ -54,12 +42,10 @@ export default function StickyCTA({
           href={whatsappFallback}
           target="_blank"
           rel="noopener noreferrer"
-          className={`flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold border-2 border-primary text-primary hover:bg-primary hover:text-white active:scale-[0.98] transition-all duration-200 font-heading bg-white/50 ${
-            bookingUrl ? "w-28 shrink-0" : "flex-1"
-          }`}
+          className={`btn ${bookingUrl ? "btn-secondary w-28 shrink-0" : "btn-accent flex-1"}`}
         >
-          <MessageCircle size={17} aria-hidden="true" />
-          {bookingUrl ? "WA" : "WhatsApp"}
+          <MessageCircle size={18} aria-hidden="true" />
+          WhatsApp
         </a>
       ) : null}
     </div>

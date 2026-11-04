@@ -1,42 +1,70 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
-import { NAV_LINKS } from "./Navbar";
+import { NAV_LINKS } from "@/lib/nav";
+import NavCta from "./NavCta";
 
-export default function MobileMenu() {
+interface MobileMenuProps {
+  bookingUrl: string | null;
+  whatsappFallback: string | null;
+}
+
+export default function MobileMenu({ bookingUrl, whatsappFallback }: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
 
-  const toggleMenu = () => setIsOpen((prev) => !prev);
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsOpen(false);
+        toggleRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [isOpen]);
 
   return (
     <div className="md:hidden">
       <button
-        onClick={toggleMenu}
-        className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors"
-        aria-label="Toggle menu"
+        ref={toggleRef}
+        type="button"
+        onClick={() => setIsOpen((prev) => !prev)}
+        className="flex h-11 w-11 items-center justify-center rounded-lg text-primary hover:bg-primary-tint"
+        aria-label={isOpen ? "Tutup menu" : "Buka menu"}
+        aria-controls="mobile-menu"
         aria-expanded={isOpen}
       >
         {isOpen ? <X size={24} aria-hidden="true" /> : <Menu size={24} aria-hidden="true" />}
       </button>
 
       {isOpen && (
-        <div className="absolute top-16 left-0 right-0 bg-white/95 backdrop-blur-md shadow-lg border-b border-border p-4 animate-slide-in-down z-40 flex flex-col">
-          <ul className="flex flex-col gap-2" role="menu">
+        <div
+          id="mobile-menu"
+          className="absolute inset-x-0 top-16 border-b border-border bg-surface p-4 shadow-card"
+        >
+          <ul className="flex flex-col">
             {NAV_LINKS.map(({ href, label }) => (
-              <li key={href} role="none">
+              <li key={href}>
                 <Link
                   href={href}
-                  role="menuitem"
                   onClick={() => setIsOpen(false)}
-                  className="block px-4 py-3 text-base font-medium font-body text-text-body hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
+                  className="flex min-h-12 items-center rounded-lg px-3 text-base font-medium text-text-heading hover:bg-primary-tint hover:text-primary"
                 >
                   {label}
                 </Link>
               </li>
             ))}
           </ul>
+          <NavCta
+            bookingUrl={bookingUrl}
+            whatsappFallback={whatsappFallback}
+            size="md"
+            className="mt-3 w-full"
+          />
         </div>
       )}
     </div>
