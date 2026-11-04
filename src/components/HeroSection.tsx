@@ -1,39 +1,35 @@
 /**
  * components/HeroSection.tsx
- * Section pertama, harus above the fold di mobile (FR-1).
- * Berisi foto, nama, spesialisasi, dan CTA booking (FR-2 + FR-4).
+ * Section pertama, harus above the fold di mobile 375×667 (FR-1):
+ * nama, foto, spesialisasi, dan CTA terlihat tanpa scroll.
  *
- * Logika CTA booking:
- *  1. booking_url ada  → tombol "Booking Sekarang" → buka tab baru
- *  2. booking_url kosong & whatsapp ada → tombol "Hubungi via WhatsApp"
- *  3. Keduanya kosong → tidak ada CTA booking (jangan broken link)
- *
- * PENTING: btn-accent dan btn-outline-primary SUDAH terdefinisi di globals.css.
- * Mereka sudah include flex, items-center, gap — jadi ikon dan teks otomatis sejajar.
- *
- * Styling: Layout dua kolom untuk desktop, stacked untuk mobile. Dirancang 
- * khusus untuk foto dokter tanpa background (no-bg) agar terlihat profesional.
+ * Logika CTA booking (FR-4):
+ *  1. booking_url ada → "Booking sekarang" (+ WhatsApp sekunder bila ada)
+ *  2. booking_url kosong & WhatsApp ada → "Hubungi via WhatsApp"
+ *  3. Keduanya kosong → tanpa tombol (tidak ada link rusak)
  */
 
 import Image from "next/image";
 import { CalendarCheck, MessageCircle, ShieldCheck } from "lucide-react";
-import { Profile } from "@/lib/types";
+import type { Profile } from "@/lib/types";
+import type { PracticeSlot } from "@/lib/schedule";
+import TodayStatus from "./TodayStatus";
 
 interface HeroSectionProps {
   profile: Profile;
   bookingUrl: string | null;
   whatsappFallback: string | null;
+  slots: PracticeSlot[];
+  serviceArea: string | null;
 }
 
 export default function HeroSection({
   profile,
   bookingUrl,
   whatsappFallback,
+  slots,
+  serviceArea,
 }: HeroSectionProps) {
-  // Tentukan apakah ada foto (termasuk placeholder)
-  const hasPhoto = !!profile.photo_url;
-
-  // Inisial untuk avatar placeholder
   const initials = profile.full_name
     .split(" ")
     .filter((w) => /^[A-Za-z]/.test(w))
@@ -41,121 +37,77 @@ export default function HeroSection({
     .map((w) => w[0].toUpperCase())
     .join("");
 
+  const strSip =
+    profile.str_sip_display && !profile.str_sip_display.includes("[BELUM DIISI]")
+      ? profile.str_sip_display
+      : null;
+
   return (
-    <section
-      id="hero"
-      aria-label="Profil Dokter"
-      className="relative flex min-h-[calc(100dvh-64px)] w-full flex-col overflow-hidden bg-bg px-4 pt-16 md:pt-24"
-    >
-      {/* ── Latar Dekoratif Premium (Glassmorphism & Floating Shapes) ── */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        {/* Latar Dasar Halus */}
-        <div className="absolute inset-0 bg-gradient-to-br from-bg via-bg to-primary/5" />
-        
-        {/* Ambient Aurora Glows */}
-        <div className="absolute top-[20%] left-[10%] w-[500px] h-[500px] rounded-full bg-primary/15 blur-[100px] animate-pulse-slow mix-blend-multiply opacity-50 md:opacity-70" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-[30%] right-[15%] w-[600px] h-[600px] rounded-full bg-accent/10 blur-[120px] animate-pulse-slow mix-blend-multiply opacity-50 md:opacity-70" style={{ animationDelay: '3s' }} />
-
-        {/* Graph Paper Grid Pattern */}
-        <div
-          className="absolute inset-0 opacity-15"
-          style={{
-            backgroundImage: `
-              linear-gradient(to right, #3F6B74 1px, transparent 1px),
-              linear-gradient(to bottom, #3F6B74 1px, transparent 1px)
-            `,
-            backgroundSize: "40px 40px",
-            maskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%)",
-            WebkitMaskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%)",
-          }}
-        />
-
-        {/* Floating Glass Shape 1 (Kanan Atas) */}
-        <div 
-          className="absolute top-[10%] right-[10%] md:right-[15%] animate-float"
-          style={{ animationDelay: '1s', animationDuration: '9s' }}
-        >
-          <div className="w-32 h-32 md:w-48 md:h-48 rounded-3xl border border-white/80 bg-white/40 backdrop-blur-md shadow-2xl shadow-primary/10 rotate-12" />
+    <section id="hero" aria-label="Profil Dokter" className="bg-bg px-4 pb-12 pt-6 md:px-6 md:pb-20 md:pt-14">
+      <div className="mx-auto grid max-w-6xl grid-cols-[5.5rem_1fr] gap-x-4 gap-y-5 md:grid-cols-12 md:grid-rows-[1fr_repeat(5,auto)_1fr] md:gap-x-10 md:gap-y-0">
+        {/* Foto: tile kecil di samping nama (mobile), panel besar di kanan (desktop) */}
+        <div className="relative col-start-1 row-start-1 h-[6.875rem] w-[5.5rem] overflow-hidden rounded-xl bg-primary-tint md:col-span-5 md:col-start-8 md:row-span-7 md:h-auto md:w-full md:self-center md:aspect-[4/5] md:rounded-[1.75rem]">
+          {profile.photo_url ? (
+            <Image
+              src={profile.photo_url}
+              alt={`Foto ${profile.full_name}, ${profile.specialty}`}
+              fill
+              unoptimized={profile.photo_url.startsWith("/media/")}
+              priority
+              sizes="(max-width: 767px) 88px, 40vw"
+              className="object-cover object-top md:object-contain md:object-bottom"
+            />
+          ) : (
+            <span
+              aria-hidden="true"
+              className="flex h-full w-full items-center justify-center text-2xl font-bold text-primary md:text-6xl"
+            >
+              {initials || "Dr"}
+            </span>
+          )}
         </div>
 
-        {/* Floating Glass Shape 2 (Kiri Bawah) */}
-        <div 
-          className="absolute bottom-[20%] left-[5%] md:left-[8%] animate-float"
-          style={{ animationDelay: '3s', animationDuration: '10s' }}
-        >
-          <div className="w-24 h-48 md:w-40 md:h-64 rounded-full border border-white/80 bg-white/40 backdrop-blur-xl shadow-xl shadow-accent/10 -rotate-12" />
-        </div>
-
-        {/* Floating Glass Pill 3 (Tengah Kanan - Dekat Foto) */}
-        <div 
-          className="hidden md:block absolute top-[45%] right-[35%] animate-float"
-          style={{ animationDelay: '0.5s', animationDuration: '7s' }}
-        >
-          <div className="w-20 h-20 rounded-2xl border-2 border-primary/20 bg-primary/5 backdrop-blur-2xl shadow-lg shadow-primary/5 rotate-45" />
-        </div>
-        
-        {/* Floating Glass Pill 4 (Tengah Kiri - Baru) */}
-        <div 
-          className="hidden md:block absolute top-[35%] left-[20%] animate-float"
-          style={{ animationDelay: '2s', animationDuration: '8s' }}
-        >
-          <div className="w-16 h-16 rounded-full border border-white/60 bg-white/30 backdrop-blur-xl shadow-lg shadow-primary/10 -rotate-12" />
-        </div>
-      </div>
-
-      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col-reverse justify-end gap-0 md:flex-row md:items-center md:justify-between md:gap-12">
-        {/* ── Kiri: Teks & CTA ── */}
-        <div className="z-10 mb-12 flex w-full flex-col items-center text-center md:mb-0 md:w-1/2 md:items-start md:text-left md:pr-8">
+        <div className="col-start-2 row-start-1 self-center md:col-span-7 md:col-start-1 md:row-start-2">
           <h1
             id="doctor-name"
-            className="mb-3 animate-fade-in-up font-heading text-4xl font-bold tracking-tight text-primary-dark md:text-5xl lg:text-6xl"
+            className="animate-fade-in-up text-[1.75rem] font-bold leading-tight md:text-display"
           >
             {profile.full_name}
           </h1>
-
           <p
             id="doctor-specialty"
-            className="mb-2 animate-fade-in-up font-body text-lg font-semibold text-primary md:text-2xl"
-            style={{ animationDelay: "150ms" }}
+            className="animate-fade-in-up mt-2 font-semibold text-primary md:text-xl"
+            style={{ animationDelay: "80ms" }}
           >
             {profile.specialty}
           </p>
-
           {profile.sub_specialty && (
-            <p
-              id="doctor-subspecialty"
-              className="mb-4 animate-fade-in-up text-base text-text-body md:text-lg"
-              style={{ animationDelay: "300ms" }}
-            >
+            <p id="doctor-subspecialty" className="mt-1 text-text-body">
               {profile.sub_specialty}
             </p>
           )}
+        </div>
 
-          <p
-            id="doctor-geography"
-            className="mb-4 animate-fade-in-up text-sm text-text-body/80 md:text-base max-w-lg"
-            style={{ animationDelay: "375ms" }}
-          >
-            Melayani pasien di wilayah <strong>Tanah Bumbu</strong>, meliputi <strong>Batulicin</strong>, <strong>Simpang Empat</strong>, dan <strong>Angsana</strong>.
+        {serviceArea && (
+          <p id="doctor-geography" className="col-span-2 max-w-xl md:col-span-7 md:row-start-3 md:mt-5">
+            {serviceArea}
           </p>
+        )}
 
-          {profile.str_sip_display && (
-            <div className="mb-8 mt-2 animate-fade-in-up" style={{ animationDelay: "450ms" }}>
-              <span
-                id="hero-str-sip"
-                className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/40 px-4 py-1.5 text-xs font-semibold tracking-wide text-primary shadow-sm backdrop-blur-md"
-              >
-                <ShieldCheck size={14} aria-hidden="true" />
-                No. STR/SIP: {profile.str_sip_display}
-              </span>
-            </div>
-          )}
+        {strSip && (
+          <div className="col-span-2 md:col-span-7 md:row-start-4 md:mt-4">
+            <span id="hero-str-sip" className="chip bg-primary-tint text-primary gap-2">
+              <ShieldCheck size={16} aria-hidden="true" />
+              STR/SIP {strSip}
+            </span>
+          </div>
+        )}
 
-          {/* ── CTA booking — logika fallback FR-4 ── */}
+        {(bookingUrl || whatsappFallback) && (
           <div
             id="hero-cta-group"
-            className="flex w-full max-w-xs animate-fade-in-up flex-col gap-3 sm:max-w-none sm:flex-row md:justify-start"
-            style={{ animationDelay: "600ms" }}
+            className="animate-fade-in-up col-span-2 flex flex-col gap-3 sm:flex-row md:col-span-7 md:row-start-5 md:mt-7"
+            style={{ animationDelay: "160ms" }}
           >
             {bookingUrl ? (
               <a
@@ -163,80 +115,40 @@ export default function HeroSection({
                 href={bookingUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn-accent w-full sm:w-auto"
+                className="btn btn-accent"
               >
                 <CalendarCheck size={18} aria-hidden="true" />
-                Booking Sekarang
+                Booking sekarang
               </a>
-            ) : whatsappFallback ? (
+            ) : (
               <a
                 id="cta-whatsapp-hero"
-                href={whatsappFallback}
+                href={whatsappFallback ?? "#"}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn-accent w-full sm:w-auto"
+                className="btn btn-accent"
               >
                 <MessageCircle size={18} aria-hidden="true" />
                 Hubungi via WhatsApp
               </a>
-            ) : null}
-
-            {/* Tombol WA sekunder */}
+            )}
             {bookingUrl && whatsappFallback && (
               <a
                 id="cta-whatsapp-secondary-hero"
                 href={whatsappFallback}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="btn-outline-primary w-full sm:w-auto"
+                className="btn btn-secondary"
               >
                 <MessageCircle size={18} aria-hidden="true" />
                 WhatsApp
               </a>
             )}
           </div>
-        </div>
+        )}
 
-        {/* ── Kanan: Foto Tanpa Background ── */}
-        <div className="relative z-10 flex w-full justify-center md:w-1/2 md:justify-end md:self-end">
-          {hasPhoto ? (
-            <div className="relative flex h-[500px] w-full items-end justify-center [mask-image:linear-gradient(to_bottom,black_70%,transparent_100%)] md:h-[600px] md:[mask-image:none] lg:h-[700px]">
-              {/* Lingkaran highlight di belakang foto agar foto lebih stand out */}
-              <div className="absolute bottom-10 h-64 w-64 rounded-full bg-gradient-to-t from-primary/30 to-transparent blur-3xl animate-pulse-slow md:bottom-0 md:h-[500px] md:w-[500px]"></div>
-              
-              <Image
-                src={profile.photo_url}
-                alt={`Foto ${profile.full_name}, ${profile.specialty}`}
-                fill
-                unoptimized={profile.photo_url.startsWith("/media/")}
-                className="animate-fade-in object-contain object-bottom drop-shadow-2xl md:scale-110 md:origin-bottom"
-                priority
-                sizes="(max-width: 768px) 100vw, 50vw"
-                style={{ animationDelay: "300ms" }}
-              />
-            </div>
-          ) : (
-            <div className="relative mx-auto flex h-36 w-36 items-center justify-center rounded-full text-3xl font-bold text-white md:h-48 md:w-48 font-heading ring-4 ring-surface shadow-2xl shadow-primary/30"
-              style={{ background: "linear-gradient(135deg, #3F6B74 0%, #243138 100%)" }}
-            >
-              {initials || "Dr"}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── Scroll indicator — absolute bottom ── */}
-      <div
-        id="hero-scroll-hint"
-        aria-hidden="true"
-        className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 md:flex animate-fade-in"
-        style={{ animationDelay: "1000ms" }}
-      >
-        <span className="font-body text-xs font-medium tracking-widest text-text-body/40 uppercase">
-          Scroll
-        </span>
-        <div className="flex h-8 w-5 items-start justify-center rounded-full border-2 border-text-body/20 pt-1.5 relative">
-          <div className="h-2 w-1 animate-bounce rounded-full bg-text-body/30" />
+        <div className="col-span-2 md:col-span-7 md:row-start-6 md:mt-7 md:max-w-xl">
+          <TodayStatus slots={slots} />
         </div>
       </div>
     </section>

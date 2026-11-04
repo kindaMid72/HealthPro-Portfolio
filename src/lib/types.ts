@@ -77,7 +77,7 @@ export type Service = z.infer<typeof ServiceSchema>;
 export interface SiteData {
   profile: Profile;
   locations: Location[];
-  services: Service[];
+  services: PublicService[];
 }
 
 // ---------------------------------------------------------------------------
@@ -109,6 +109,23 @@ export interface TocItem {
   id: string;
   text: string;
   level: 2 | 3;
+}
+
+/** Layanan untuk tampilan publik (sudah difilter & dilengkapi slug/detail). */
+export interface PublicService {
+  service_name: string;
+  /** Kosong bila deskripsi belum layak tampil (placeholder / terlalu pendek). */
+  service_description: string;
+  slug: string;
+  category: ArticleCategory | null;
+  /** true bila konten rich-text terisi → halaman /layanan/[slug] tersedia. */
+  hasDetail: boolean;
+}
+
+export interface PublicServiceDetail extends PublicService {
+  contentHtml: string;
+  toc: TocItem[];
+  updatedAt: Date;
 }
 
 export interface PublicArticleSummary {

@@ -1,15 +1,14 @@
 /**
- * app/page.tsx — Home Page (Fase 1: semua section terpasang)
+ * app/page.tsx — Beranda, urutan berorientasi kebutuhan pasien:
+ * Hero (status praktik hari ini) → Jadwal & Lokasi → Layanan → Tentang → Artikel → Kontak.
  *
- * Server Component: fetch data via getAllSiteData(), lalu render semua section.
- * Logika resolusi CTA booking diselesaikan di sini sebelum diturunkan ke komponen.
- *
- * CATATAN: Navbar menggunakan `fixed` positioning, sehingga dibutuhkan
- * spacer <div className="h-16" /> setelah Navbar agar konten tidak tertutup.
+ * Server Component: data lewat getAllSiteData(); logika CTA diselesaikan di sini.
  */
 
 import { getAllSiteData, getPublishedArticles } from "@/lib/content";
 import { getCtaLinks } from "@/lib/cta";
+import { buildPracticeSlots } from "@/lib/schedule";
+import { describeServiceArea } from "@/lib/seo";
 import SiteShell from "@/components/SiteShell";
 import HeroSection from "@/components/HeroSection";
 import JsonLd from "@/components/JsonLd";
@@ -28,6 +27,7 @@ export default async function Home() {
   ]);
 
   const { bookingUrl, whatsappFallback } = getCtaLinks(profile, locations);
+  const slots = buildPracticeSlots(locations);
 
   return (
     <SiteShell profile={profile} locations={locations}>
@@ -37,10 +37,12 @@ export default async function Home() {
         profile={profile}
         bookingUrl={bookingUrl}
         whatsappFallback={whatsappFallback}
+        slots={slots}
+        serviceArea={describeServiceArea(locations)}
       />
-      <AboutSection profile={profile} />
+      <LocationsSection locations={locations} slots={slots} globalBookingUrl={bookingUrl} />
       <ServicesSection services={services} />
-      <LocationsSection locations={locations} globalBookingUrl={bookingUrl} />
+      <AboutSection profile={profile} />
       <ArticlesSection articles={articles} />
       <ContactSection profile={profile} locations={locations} />
     </SiteShell>

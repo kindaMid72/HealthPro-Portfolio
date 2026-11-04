@@ -1,141 +1,91 @@
 /**
  * components/ContactSection.tsx
- * Section kontak — agregasi semua channel komunikasi.
- *
- * Nomor WA diambil dari semua lokasi yang punya kontaknya (deduplicated).
- * Email diambil dari profile.
- * Kalau semua kosong → fallback message (FR-4).
- *
- * Styling: sesuai 04-design.md — background gradient subtle, ikon Lucide,
- *          hover via CSS class saja (Server Component compatible).
- *
- * CATATAN: ContactRow menggunakan inline-flex items-center agar ikon selalu
- * sejajar dengan label dan teks — termasuk untuk "Hubungi via WhatsApp".
+ * Agregasi kanal kontak: WhatsApp/telepon per lokasi, email, tautan sosial.
+ * Semua kosong → pesan fallback (FR-4).
  */
 
-import { MessageCircle, Phone, Mail, ArrowRight } from "lucide-react";
-import { Profile, Location } from "@/lib/types";
-import { toWaLink } from "@/lib/cta";
+import type { ReactNode } from "react";
+import { MessageCircle, Phone, Mail, Globe, ArrowRight } from "lucide-react";
+import type { Profile, Location } from "@/lib/types";
+import { toWaLink, EMERGENCY_NOTE } from "@/lib/cta";
+import { parseSocialLinks } from "@/lib/seo";
+import SectionHeading from "./SectionHeading";
 
-interface ContactSectionProps {
-  profile: Profile;
-  locations: Location[];
-}
 interface ContactRowProps {
   id: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   label: string;
   href: string;
   displayText: string;
   isExternal?: boolean;
 }
 
-function ContactRow({
-  id,
-  icon,
-  label,
-  href,
-  displayText,
-  isExternal = false,
-}: ContactRowProps) {
+function ContactRow({ id, icon, label, href, displayText, isExternal = false }: ContactRowProps) {
   return (
     <a
       id={id}
       href={href}
-      {...(isExternal
-        ? { target: "_blank", rel: "noopener noreferrer" }
-        : {})}
-      className="group flex items-center gap-4 rounded-2xl px-5 py-4 bg-surface border border-border
-                 hover:shadow-md hover:border-primary/25 hover:-translate-y-0.5
-                 transition-all duration-300"
+      {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+      className="group flex items-center gap-4 rounded-xl border border-border bg-surface px-5 py-4 hover:border-primary"
     >
-      {/* Icon circle */}
       <span
-        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 group-hover:bg-primary/18 transition-colors duration-200"
-        aria-label={label}
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary-tint text-primary"
+        aria-hidden="true"
       >
         {icon}
       </span>
-
-      {/* Text */}
-      <div className="min-w-0 flex-1">
-        <p className="mb-0.5 text-xs font-semibold uppercase tracking-wider text-text-body/60">
-          {label}
-        </p>
-        <span className="truncate text-sm font-semibold text-primary group-hover:text-primary-dark transition-colors duration-200 block">
-          {displayText}
-        </span>
-      </div>
-
-      {/* Arrow */}
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm text-text-muted">{label}</span>
+        <span className="block truncate text-base font-semibold text-text-heading">{displayText}</span>
+      </span>
       <ArrowRight
         size={16}
         aria-hidden="true"
-        className="shrink-0 text-text-body/30 group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-200"
+        className="shrink-0 text-text-muted group-hover:text-primary"
       />
     </a>
   );
 }
 
-export default function ContactSection({
-  profile,
-  locations,
-}: ContactSectionProps) {
-  // Ambil lokasi yang punya setidaknya satu nomor kontak
-  const locationsWithContact = locations.filter(
-    (l) => l.whatsapp || l.phone
-  );
+function hostname(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
 
-  const hasAnyContact = locationsWithContact.length > 0 || !!profile.email;
+export default function ContactSection({ profile, locations }: { profile: Profile; locations: Location[] }) {
+  const locationsWithContact = locations.filter((l) => l.whatsapp || l.phone);
+  const socials = parseSocialLinks(profile.social_links);
+  const hasAnyContact = locationsWithContact.length > 0 || !!profile.email || socials.length > 0;
 
   return (
     <section
       id="kontak"
       aria-labelledby="kontak-heading"
-      className="section-divider section-spacing px-4"
-      style={{
-        background:
-          "linear-gradient(160deg, #F7F8F7 0%, #EEF2F3 50%, #F7F8F7 100%)",
-      }}
+      className="section-spacing border-t border-border bg-surface px-4 md:px-6"
     >
-      <div className="mx-auto max-w-3xl">
-        {/* Heading dengan accent underline */}
-        <div className="mb-12">
-          <h2
-            id="kontak-heading"
-            className="text-3xl font-bold md:text-4xl text-primary-dark font-heading tracking-tight"
-          >
-            Hubungi Kami
-          </h2>
-          <div aria-hidden="true" className="mt-3 flex items-center gap-2">
-            <div className="h-1 w-12 rounded-full bg-primary" />
-            <div className="h-1 w-4 rounded-full bg-accent" />
-          </div>
-          <p className="mt-4 text-sm text-text-body/70 max-w-md">
-            Ada pertanyaan atau ingin membuat janji temu? Hubungi kami melalui saluran berikut.
-          </p>
-        </div>
+      <div className="mx-auto max-w-6xl">
+        <SectionHeading
+          id="kontak-heading"
+          title="Kontak & pendaftaran"
+          intro="Hubungi lokasi praktik untuk mendaftar atau bertanya."
+        />
 
         {!hasAnyContact ? (
-          <p id="contact-empty" className="text-text-body text-center py-8">
+          <p id="contact-empty" className="py-8 text-text-body">
             Informasi kontak segera hadir.
           </p>
         ) : (
-          <div className="space-y-3 max-w-xl">
-            {/* Kontak per Lokasi */}
+          <div className="grid max-w-3xl gap-3">
             {locationsWithContact.map((loc, i) => (
-              <div key={`loc-${i}`} className="space-y-3">
+              <div key={`loc-${i}`} className="grid gap-3">
                 {loc.whatsapp && toWaLink(loc.whatsapp) && (
                   <ContactRow
                     id={`contact-wa-item-${i}`}
-                    icon={
-                      <MessageCircle
-                        size={22}
-                        className="text-primary"
-                        aria-hidden="true"
-                      />
-                    }
-                    label={`WhatsApp - ${loc.location_name}`}
+                    icon={<MessageCircle size={20} />}
+                    label={`WhatsApp — ${loc.location_name}`}
                     href={toWaLink(loc.whatsapp) ?? "#"}
                     displayText={loc.whatsapp}
                     isExternal
@@ -144,39 +94,38 @@ export default function ContactSection({
                 {loc.phone && (
                   <ContactRow
                     id={`contact-phone-item-${i}`}
-                    icon={
-                      <Phone
-                        size={22}
-                        className="text-primary"
-                        aria-hidden="true"
-                      />
-                    }
-                    label={`Telepon - ${loc.location_name}`}
+                    icon={<Phone size={20} />}
+                    label={`Telepon — ${loc.location_name}`}
                     href={`tel:${loc.phone}`}
                     displayText={loc.phone}
                   />
                 )}
               </div>
             ))}
-
-            {/* Email (dari profile, opsional) */}
             {profile.email && (
               <ContactRow
                 id="contact-email-item"
-                icon={
-                  <Mail
-                    size={22}
-                    className="text-primary"
-                    aria-hidden="true"
-                  />
-                }
+                icon={<Mail size={20} />}
                 label="Email"
                 href={`mailto:${profile.email}`}
                 displayText={profile.email}
               />
             )}
+            {socials.map((url) => (
+              <ContactRow
+                key={url}
+                id={`contact-social-${hostname(url)}`}
+                icon={<Globe size={20} />}
+                label="Media sosial"
+                href={url}
+                displayText={hostname(url)}
+                isExternal
+              />
+            ))}
           </div>
         )}
+
+        <p className="mt-6 max-w-3xl rounded-xl border border-border p-4 text-sm">{EMERGENCY_NOTE}</p>
       </div>
     </section>
   );
