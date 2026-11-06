@@ -1,6 +1,7 @@
 import { asc } from 'drizzle-orm';
 import { getDb } from '@/db/client';
 import { users } from '@/db/schema';
+import { accountKeyFor, getLockedAccountKeys } from '@/lib/login-throttle';
 import { requireUser } from '@/lib/session';
 import PageHeader from '@/components/admin/PageHeader';
 import AccountManager from './AccountManager';
@@ -12,12 +13,12 @@ export default async function AdminAccountPage() {
       id: users.id,
       email: users.email,
       name: users.name,
-      failedLoginCount: users.failedLoginCount,
-      lockedUntil: users.lockedUntil,
       createdAt: users.createdAt,
     })
     .from(users)
     .orderBy(asc(users.createdAt));
+
+  const locked = await getLockedAccountKeys();
 
   return (
     <div className="space-y-6">
@@ -32,8 +33,7 @@ export default async function AdminAccountPage() {
           id: u.id,
           email: u.email,
           name: u.name,
-          failedLoginCount: u.failedLoginCount,
-          isLocked: Boolean(u.lockedUntil && u.lockedUntil > new Date()),
+          isLocked: locked.has(accountKeyFor(u.email)),
           createdAt: u.createdAt.toISOString(),
         }))}
       />

@@ -47,7 +47,7 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
         {error === 'locked' && (
           <div className="mb-5">
             <Alert tone="error">
-              Akun dikunci sementara selama 15 menit karena terlalu banyak percobaan gagal.
+              Terlalu banyak percobaan gagal. Coba lagi dalam 15 menit.
             </Alert>
           </div>
         )}

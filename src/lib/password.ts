@@ -19,11 +19,15 @@ function scryptAsync(
   return promise;
 }
 
-const N = 16384;
-const R = 8;
-const P = 1;
+export const N = 16384;
+export const R = 8;
+export const P = 5; // naikkan dari 1; hash lama dengan p=1 di-rehash saat login berikutnya
 const KEYLEN = 64;
 const MAXMEM = 64 * 1024 * 1024;
+
+export function needsRehash(stored: string): boolean {
+  return !stored.startsWith(`scrypt$${N}$${R}$${P}$`);
+}
 
 export async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(16);

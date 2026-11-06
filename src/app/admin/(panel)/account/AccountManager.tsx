@@ -18,7 +18,6 @@ interface AdminAccountRow {
   id: string;
   email: string;
   name: string;
-  failedLoginCount: number;
   isLocked: boolean;
   createdAt: string;
 }

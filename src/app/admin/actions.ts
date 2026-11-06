@@ -1,70 +1,54 @@
 'use server';
 
+import { randomBytes } from 'node:crypto';
 import { eq } from 'drizzle-orm';
+import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getDb } from '@/db/client';
 import { users } from '@/db/schema';
-import { verifyPassword } from '@/lib/password';
+import { getClientIp } from '@/lib/client-ip';
+import { clearLoginAttempts, reserveLoginAttempt } from '@/lib/login-throttle';
+import { hashPassword, needsRehash, verifyPassword } from '@/lib/password';
 import { createSession, destroySession } from '@/lib/session';
 
-const MAX_FAILED_ATTEMPTS = 5;
-const LOCKOUT_MS = 15 * 60 * 1000; // 15 menit
+// Dipakai saat email tidak ditemukan agar waktu respons sama dengan akun yang ada.
+let dummyHash: Promise<string> | undefined;
+const getDummyHash = () => (dummyHash ??= hashPassword(randomBytes(16).toString('hex')));
 
 export async function loginAction(formData: FormData): Promise<void> {
-  const emailRaw = String(formData.get('email') ?? '')
+  const email = String(formData.get('email') ?? '')
     .trim()
     .toLowerCase();
   const password = String(formData.get('password') ?? '');
 
-  if (!emailRaw || !password) {
+  if (!email || !password || email.length > 254 || password.length > 1024) {
     redirect('/admin/login?error=invalid');
   }
 
-  const db = getDb();
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.email, emailRaw))
-    .limit(1);
-
-  if (!user) {
-    redirect('/admin/login?error=invalid');
-  }
-
-  const now = new Date();
-  if (user.lockedUntil && user.lockedUntil > now) {
+  const ip = getClientIp(await headers());
+  // Dicek sebelum scrypt dan sebelum tahu apakah email ada: respons "locked" tidak membocorkan akun.
+  if (!(await reserveLoginAttempt(email, ip))) {
     redirect('/admin/login?error=locked');
   }
 
-  const valid = await verifyPassword(password, user.passwordHash);
-  if (!valid) {
-    const nextCount = (user.failedLoginCount ?? 0) + 1;
-    const lockedUntil =
-      nextCount >= MAX_FAILED_ATTEMPTS
-        ? new Date(Date.now() + LOCKOUT_MS)
-        : null;
+  const [user] = await getDb()
+    .select()
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1);
 
-    await db
-      .update(users)
-      .set({
-        failedLoginCount: nextCount,
-        lockedUntil,
-      })
-      .where(eq(users.id, user.id));
-
-    if (lockedUntil) {
-      redirect('/admin/login?error=locked');
-    }
+  const valid = await verifyPassword(password, user?.passwordHash ?? (await getDummyHash()));
+  if (!user || !valid) {
     redirect('/admin/login?error=invalid');
   }
 
-  await db
-    .update(users)
-    .set({
-      failedLoginCount: 0,
-      lockedUntil: null,
-    })
-    .where(eq(users.id, user.id));
+  await clearLoginAttempts(email, ip);
+  if (needsRehash(user.passwordHash)) {
+    await getDb()
+      .update(users)
+      .set({ passwordHash: await hashPassword(password) })
+      .where(eq(users.id, user.id));
+  }
 
   await createSession(user.id);
   redirect('/admin');

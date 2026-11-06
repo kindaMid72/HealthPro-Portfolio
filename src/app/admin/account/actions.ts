@@ -3,8 +3,10 @@
 import { eq } from 'drizzle-orm';
 import { getDb } from '@/db/client';
 import { users } from '@/db/schema';
+import { clearAllLoginAttempts } from '@/lib/login-throttle';
 import { hashPassword, verifyPassword } from '@/lib/password';
 import { destroyOtherSessions, requireUser } from '@/lib/session';
+import { isUuid } from '@/lib/uuid';
 
 export async function updateOwnAccountAction(input: {
   name: string;
@@ -124,13 +126,19 @@ export async function unlockAdminAccountAction(
   targetUserId: string,
 ): Promise<{ success: boolean; error?: string }> {
   await requireUser();
-  await getDb()
-    .update(users)
-    .set({
-      failedLoginCount: 0,
-      lockedUntil: null,
-    })
-    .where(eq(users.id, targetUserId));
+  if (!isUuid(targetUserId)) {
+    return { success: false, error: 'Akun tidak ditemukan.' };
+  }
 
+  const [target] = await getDb()
+    .select({ email: users.email })
+    .from(users)
+    .where(eq(users.id, targetUserId))
+    .limit(1);
+  if (!target) {
+    return { success: false, error: 'Akun tidak ditemukan.' };
+  }
+
+  await clearAllLoginAttempts(target.email);
   return { success: true };
 }
