@@ -15,7 +15,16 @@ export function getDb(): Db {
   const url = process.env.DATABASE_URL;
   if (!url) throw new Error('DATABASE_URL belum di-set');
 
-  const sql = postgres(url, { prepare: false, max: 5 });
+  const host = new URL(url).hostname;
+  const isLocal = ['localhost', '127.0.0.1', '::1', '[::1]'].includes(host);
+  const sql = postgres(url, {
+    prepare: false,
+    max: 5,
+    ssl:
+      process.env.NODE_ENV === 'production' && !isLocal
+        ? { rejectUnauthorized: true }
+        : undefined,
+  });
   const db = drizzle(sql, { schema });
 
   globalForDb.__mamiSql = sql;

@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og';
+import { notFound } from 'next/navigation';
 import { hasLocale, type Locale } from '@/i18n/config';
 import { getDictionaryFor } from '@/i18n/dictionary';
 import { getAllSiteData } from '@/lib/content';
@@ -20,7 +21,8 @@ export default async function OGImage({
   params: Promise<{ lang: string }>;
 }) {
   const { lang: rawLang } = await params;
-  const locale: Locale = hasLocale(rawLang) ? rawLang : 'id';
+  if (!hasLocale(rawLang)) notFound();
+  const locale: Locale = rawLang;
   const dict = await getDictionaryFor(locale);
   const { profile, locations } = await getAllSiteData(locale);
 

@@ -13,6 +13,8 @@ export function generateStaticParams() {
   return LOCALES.map((lang) => ({ lang }));
 }
 
+export const dynamicParams = false;
+
 interface LayoutProps {
   children: React.ReactNode;
   params: Promise<{ lang: string }>;
