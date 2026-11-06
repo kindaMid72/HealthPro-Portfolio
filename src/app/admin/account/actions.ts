@@ -8,6 +8,14 @@ import { hashPassword, verifyPassword } from '@/lib/password';
 import { destroyOtherSessions, requireUser } from '@/lib/session';
 import { isUuid } from '@/lib/uuid';
 
+// Aksi sensitif (ganti sandi, tambah/hapus admin) wajib konfirmasi kata sandi akun yang sedang login.
+async function checkCurrentPassword(storedHash: string, candidate: string | undefined): Promise<string | null> {
+  if (!candidate || candidate.length > 1024 || !(await verifyPassword(candidate, storedHash))) {
+    return 'Kata sandi saat ini tidak sesuai.';
+  }
+  return null;
+}
+
 export async function updateOwnAccountAction(input: {
   name: string;
   currentPassword?: string;
@@ -32,20 +40,9 @@ export async function updateOwnAccountAction(input: {
 
   const newPass = input.newPassword ?? '';
   if (newPass.length > 0) {
-    const currPass = input.currentPassword ?? '';
-    if (!currPass) {
-      return {
-        success: false,
-        error: 'Masukkan kata sandi saat ini untuk mengganti kata sandi.',
-      };
-    }
-
-    const valid = await verifyPassword(currPass, row.passwordHash);
-    if (!valid) {
-      return {
-        success: false,
-        error: 'Kata sandi saat ini tidak sesuai.',
-      };
+    const err = await checkCurrentPassword(row.passwordHash, input.currentPassword);
+    if (err) {
+      return { success: false, error: err };
     }
 
     if (newPass.length < 12) {
@@ -80,8 +77,22 @@ export async function createAdminAccountAction(input: {
   name: string;
   email: string;
   password: string;
+  currentPassword: string;
 }): Promise<{ success: boolean; error?: string }> {
-  await requireUser();
+  const actor = await requireUser();
+  const db = getDb();
+  const [actorRow] = await db
+    .select({ passwordHash: users.passwordHash })
+    .from(users)
+    .where(eq(users.id, actor.id))
+    .limit(1);
+  if (!actorRow) {
+    return { success: false, error: 'Akun tidak ditemukan.' };
+  }
+  const pwError = await checkCurrentPassword(actorRow.passwordHash, input.currentPassword);
+  if (pwError) {
+    return { success: false, error: pwError };
+  }
 
   const name = input.name.trim();
   const email = input.email.trim().toLowerCase();
@@ -98,7 +109,6 @@ export async function createAdminAccountAction(input: {
     };
   }
 
-  const db = getDb();
   const existing = await db
     .select({ id: users.id })
     .from(users)
@@ -140,5 +150,42 @@ export async function unlockAdminAccountAction(
   }
 
   await clearAllLoginAttempts(target.email);
+  return { success: true };
+}
+
+export async function deleteAdminAccountAction(input: {
+  targetUserId: string;
+  currentPassword: string;
+}): Promise<{ success: boolean; error?: string }> {
+  const actor = await requireUser();
+  if (!isUuid(input.targetUserId)) {
+    return { success: false, error: 'Akun tidak ditemukan.' };
+  }
+  if (input.targetUserId === actor.id) {
+    return { success: false, error: 'Tidak dapat menghapus akun sendiri.' };
+  }
+
+  const db = getDb();
+  const [actorRow] = await db
+    .select({ passwordHash: users.passwordHash })
+    .from(users)
+    .where(eq(users.id, actor.id))
+    .limit(1);
+  if (!actorRow) {
+    return { success: false, error: 'Akun tidak ditemukan.' };
+  }
+  const pwError = await checkCurrentPassword(actorRow.passwordHash, input.currentPassword);
+  if (pwError) {
+    return { success: false, error: pwError };
+  }
+
+  // Sesi ikut terhapus (ON DELETE CASCADE); artikel tetap, authorId di-set null.
+  const deleted = await db
+    .delete(users)
+    .where(eq(users.id, input.targetUserId))
+    .returning({ id: users.id });
+  if (deleted.length === 0) {
+    return { success: false, error: 'Akun tidak ditemukan.' };
+  }
   return { success: true };
 }

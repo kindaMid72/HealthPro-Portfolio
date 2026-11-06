@@ -4,12 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Alert from '@/components/admin/Alert';
 import { Button } from '@/components/admin/Button';
+import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import Card from '@/components/admin/Card';
 import { TextField } from '@/components/admin/Field';
 import { formatDateShort } from '@/lib/format';
 import type { SessionUser } from '@/lib/session';
 import {
   createAdminAccountAction,
+  deleteAdminAccountAction,
   unlockAdminAccountAction,
   updateOwnAccountAction,
 } from '../../account/actions';
@@ -44,6 +46,9 @@ export default function AccountManager({
   const [newEmail, setNewEmail] = useState('');
   const [newUserPassword, setNewUserPassword] = useState('');
   const [creatingUser, setCreatingUser] = useState(false);
+  const [teamCurrentPassword, setTeamCurrentPassword] = useState('');
+  const [pendingDelete, setPendingDelete] = useState<AdminAccountRow | null>(null);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const [teamMessage, setTeamMessage] = useState<{
     type: 'ok' | 'err';
     text: string;
@@ -96,6 +101,7 @@ export default function AccountManager({
       name: newName,
       email: newEmail,
       password: newUserPassword,
+      currentPassword: teamCurrentPassword,
     });
     setCreatingUser(false);
 
@@ -124,6 +130,24 @@ export default function AccountManager({
       res.success
         ? { type: 'ok', text: 'Akun dibuka kembali.' }
         : { type: 'err', text: res.error ?? 'Gagal membuka kunci akun.' },
+    );
+    router.refresh();
+  }
+
+  async function handleDelete() {
+    if (!pendingDelete) return;
+    setTeamMessage(null);
+    setDeletingAccount(true);
+    const res = await deleteAdminAccountAction({
+      targetUserId: pendingDelete.id,
+      currentPassword: teamCurrentPassword,
+    });
+    setDeletingAccount(false);
+    setPendingDelete(null);
+    setTeamMessage(
+      res.success
+        ? { type: 'ok', text: 'Akun admin berhasil dihapus.' }
+        : { type: 'err', text: res.error ?? 'Gagal menghapus akun.' },
     );
     router.refresh();
   }
@@ -185,6 +209,16 @@ export default function AccountManager({
           title="Daftar akun admin terdaftar"
           description="Semua akun memiliki akses setara untuk menulis dan meninjau artikel."
         >
+          <div className="mb-4">
+            <TextField
+              label="Kata sandi Anda saat ini"
+              hint="Wajib untuk menambah atau menghapus akun admin."
+              type="password"
+              value={teamCurrentPassword}
+              onChange={(e) => setTeamCurrentPassword(e.target.value)}
+              autoComplete="current-password"
+            />
+          </div>
           <ul className="space-y-2 text-sm">
             {accounts.map((acc) => (
               <li
@@ -211,16 +245,23 @@ export default function AccountManager({
                   </div>
                 </div>
 
-                {acc.isLocked ? (
-                  <Button size="sm" variant="secondary" className="text-amber-800" onClick={() => void handleUnlock(acc.id)}>
-                    Terkunci — buka kunci
-                  </Button>
-                ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-                    <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    Aktif
-                  </span>
-                )}
+                <div className="flex flex-wrap items-center gap-2">
+                  {acc.isLocked ? (
+                    <Button size="sm" variant="secondary" className="text-amber-800" onClick={() => void handleUnlock(acc.id)}>
+                      Terkunci — buka kunci
+                    </Button>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+                      <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                      Aktif
+                    </span>
+                  )}
+                  {acc.id !== currentUser.id && (
+                    <Button size="sm" variant="danger" onClick={() => setPendingDelete(acc)}>
+                      Hapus
+                    </Button>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
@@ -262,6 +303,16 @@ export default function AccountManager({
             </div>
           </Card>
         </form>
+
+        <ConfirmDialog
+          open={pendingDelete !== null}
+          title="Hapus akun admin?"
+          description={`Akun "${pendingDelete?.email ?? ''}" akan dihapus permanen dan sesi loginnya diakhiri. Pastikan kata sandi Anda sudah diisi di daftar akun.`}
+          confirmLabel="Hapus akun"
+          pending={deletingAccount}
+          onConfirm={() => void handleDelete()}
+          onCancel={() => setPendingDelete(null)}
+        />
       </div>
     </div>
   );
