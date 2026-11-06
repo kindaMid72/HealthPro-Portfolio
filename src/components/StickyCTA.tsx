@@ -21,7 +21,7 @@ export default function StickyCTA({ bookingUrl, whatsappFallback }: StickyCTAPro
       id="sticky-cta-mobile"
       role="navigation"
       aria-label="Navigasi aksi cepat"
-      className="fixed inset-x-0 bottom-0 z-50 flex gap-3 border-t border-border bg-surface/95 p-3 pb-safe backdrop-blur md:hidden"
+      className="fixed inset-x-3 bottom-3 z-40 flex gap-2.5 rounded-2xl border border-border bg-surface/95 p-2.5 shadow-elevated backdrop-blur-md md:hidden"
     >
       {bookingUrl ? (
         <a

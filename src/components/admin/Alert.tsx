@@ -14,7 +14,7 @@ export default function Alert({ tone, children }: { tone: Tone; children: ReactN
   return (
     <div
       role={tone === 'error' ? 'alert' : 'status'}
-      className={`flex items-start gap-2.5 rounded-lg border px-4 py-3 text-sm font-medium ${className}`}
+      className={`flex items-start gap-2.5 rounded-xl border px-4 py-3 text-sm font-medium shadow-2xs ${className}`}
     >
       <Icon size={18} className="mt-0.5 shrink-0" aria-hidden="true" />
       <div>{children}</div>

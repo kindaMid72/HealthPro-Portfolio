@@ -11,9 +11,9 @@ interface ConsultCtaProps {
 export default function ConsultCta({ heading, doctorName, bookingUrl, whatsappFallback }: ConsultCtaProps) {
   if (!bookingUrl && !whatsappFallback) return null;
   return (
-    <section aria-label="Konsultasi" className="rounded-xl bg-primary-tint p-6 md:p-8">
-      <h2 className="text-xl font-bold md:text-2xl">{heading}</h2>
-      <p className="mt-2 text-text-body">
+    <section aria-label="Konsultasi" className="rounded-2xl bg-primary-dark p-6 text-white shadow-elevated md:p-8">
+      <h2 className="font-display text-xl font-semibold text-white md:text-2xl">{heading}</h2>
+      <p className="mt-2 text-white/80">
         Konsultasikan keluhan Anda langsung dengan {doctorName}.
       </p>
       <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -33,13 +33,20 @@ export default function ConsultCta({ heading, doctorName, bookingUrl, whatsappFa
             href={whatsappFallback}
             target="_blank"
             rel="noopener noreferrer"
-            className={bookingUrl ? "btn btn-secondary" : "btn btn-accent"}
+            className={
+              bookingUrl
+                ? "btn border border-white/25 bg-white/10 text-white hover:bg-white/20"
+                : "btn btn-accent"
+            }
           >
             <MessageCircle size={18} aria-hidden="true" />
             Chat WhatsApp
           </a>
         )}
-        <Link href="/#lokasi" className="link sm:ml-2">
+        <Link
+          href="/#lokasi"
+          className="text-sm font-semibold text-white underline underline-offset-4 hover:text-white/80 sm:ml-2"
+        >
           Lihat jadwal praktik
         </Link>
       </div>

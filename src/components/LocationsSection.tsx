@@ -6,7 +6,7 @@
  * kontak kosong → kartu tetap tampil tanpa baris aksi.
  */
 
-import { MapPin, Clock, MessageCircle, Phone, CalendarCheck } from "lucide-react";
+import { MessageCircle, Phone, CalendarCheck, ExternalLink } from "lucide-react";
 import type { Location } from "@/lib/types";
 import { mapsSearchUrl } from "@/lib/seo";
 import { toWaLink } from "@/lib/cta";
@@ -29,7 +29,7 @@ export default function LocationsSection({ locations, slots, globalBookingUrl }:
     <section
       id="lokasi"
       aria-labelledby="lokasi-heading"
-      className="section-spacing border-t border-border bg-surface px-4 md:px-6"
+      className="section-spacing border-t border-border bg-bg px-4 md:px-6"
     >
       <div className="mx-auto max-w-6xl">
         <SectionHeading
@@ -55,38 +55,41 @@ export default function LocationsSection({ locations, slots, globalBookingUrl }:
                   <li
                     key={i}
                     id={`location-card-${i}`}
-                    className="flex flex-col rounded-xl border border-border bg-surface p-6 shadow-card"
+                    className="card-clinical flex flex-col justify-between p-6"
                   >
-                    <h3 id={`location-name-${i}`} className="text-lg font-semibold leading-snug">
-                      {loc.location_name}
-                    </h3>
+                    <div>
+                      <h3 id={`location-name-${i}`} className="text-xl font-semibold leading-snug text-text-heading">
+                        {loc.location_name}
+                      </h3>
 
-                    <address
-                      id={`location-address-${i}`}
-                      className="mt-3 flex items-start gap-3 text-[0.9375rem] not-italic"
-                    >
-                      <MapPin size={18} className="mt-0.5 shrink-0 text-primary" aria-hidden="true" />
-                      <span>
-                        {loc.address}{" "}
-                        <a
-                          id={`location-map-${i}`}
-                          href={mapsSearchUrl(loc)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="link whitespace-nowrap"
-                        >
-                          Buka di Google Maps
-                        </a>
-                      </span>
-                    </address>
-
-                    <p id={`location-hours-${i}`} className="mt-3 flex items-start gap-3 text-[0.9375rem]">
-                      <Clock size={18} className="mt-0.5 shrink-0 text-primary" aria-hidden="true" />
-                      <span>{loc.practice_hours}</span>
-                    </p>
+                      <dl className="mt-4 space-y-4 text-sm">
+                        <div>
+                          <dt className="text-xs font-medium text-text-muted">Alamat</dt>
+                          <dd id={`location-address-${i}`} className="mt-1 text-text-body">
+                            <address className="not-italic">{loc.address}</address>
+                            <a
+                              id={`location-map-${i}`}
+                              href={mapsSearchUrl(loc)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                            >
+                              Buka di Google Maps
+                              <ExternalLink size={12} aria-hidden="true" />
+                            </a>
+                          </dd>
+                        </div>
+                        <div>
+                          <dt className="text-xs font-medium text-text-muted">Jam praktik (WITA)</dt>
+                          <dd id={`location-hours-${i}`} className="mt-1 font-semibold tabular-nums text-text-heading">
+                            {loc.practice_hours}
+                          </dd>
+                        </div>
+                      </dl>
+                    </div>
 
                     {hasContact && (
-                      <div id={`location-actions-${i}`} className="mt-auto flex flex-wrap gap-2 pt-5">
+                      <div id={`location-actions-${i}`} className="mt-6 flex flex-wrap gap-2 border-t border-border pt-4">
                         {wa && (
                           <a
                             id={`location-wa-${i}`}

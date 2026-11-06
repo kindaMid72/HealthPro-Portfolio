@@ -9,7 +9,7 @@ import {
 } from 'react';
 
 const CONTROL =
-  'w-full rounded-lg border border-border bg-surface px-3 text-base text-text-heading placeholder:text-text-muted focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:text-sm disabled:opacity-60';
+  'w-full rounded-lg border border-border-strong bg-surface px-3 text-base text-text-heading shadow-2xs placeholder:text-text-muted focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:text-sm disabled:bg-bg disabled:opacity-60';
 
 interface FieldMeta {
   label: string;

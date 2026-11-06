@@ -64,7 +64,7 @@ function ToolbarButton({ label, onClick, active, disabled, children }: ToolbarBu
 }
 
 function Divider() {
-  return <div aria-hidden="true" className="mx-1 h-6 w-px bg-border" />;
+  return <div aria-hidden="true" className="mx-1 h-5 w-px bg-border" />;
 }
 
 const ICON = { size: 18, 'aria-hidden': true } as const;
@@ -164,11 +164,11 @@ export default function RichTextEditor({
   const disabled = !editor;
 
   return (
-    <div className="rounded-xl border border-border bg-surface focus-within:ring-2 focus-within:ring-primary/30">
+    <div className="rounded-2xl border border-border bg-surface shadow-card focus-within:ring-2 focus-within:ring-primary/30">
       <div
         role="toolbar"
         aria-label={`Format ${label}`}
-        className="sticky top-14 z-10 flex flex-wrap items-center gap-0.5 rounded-t-xl border-b border-border bg-surface p-2 lg:top-0"
+        className="sticky top-16 z-10 flex flex-wrap items-center gap-0.5 rounded-t-2xl border-b border-border bg-bg-subtle/60 p-2 backdrop-blur-md lg:top-0"
       >
         <ToolbarButton label="Tebal" active={state?.bold} disabled={disabled} onClick={() => chain()?.toggleBold().run()}>
           <Bold {...ICON} />
@@ -277,7 +277,7 @@ export default function RichTextEditor({
       <EditorContent editor={editor} />
 
       {footer && (
-        <div className="rounded-b-xl border-t border-border bg-bg px-4 py-2.5 text-sm text-text-muted">{footer}</div>
+        <div className="rounded-b-2xl border-t border-border bg-bg px-4 py-2.5 text-sm text-text-muted">{footer}</div>
       )}
 
       <Dialog

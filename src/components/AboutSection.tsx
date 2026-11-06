@@ -1,82 +1,74 @@
 /**
  * components/AboutSection.tsx
- * Pendidikan, pengalaman, sertifikasi, organisasi — daftar definisi tanpa kartu.
+ * Pendidikan, pengalaman, sertifikasi, organisasi — daftar kredensial.
  * Grup kosong disembunyikan; field berisi [BELUM DIISI] disaring (02-content-data.md).
  */
 
-import { GraduationCap, Briefcase, Award, Users } from "lucide-react";
-import type { ReactNode } from "react";
 import type { Profile } from "@/lib/types";
-import { getPlainName, splitList } from "@/lib/seo";
+import { getDisplayName, splitList } from "@/lib/seo";
 import SectionHeading from "./SectionHeading";
 
 interface Group {
   id: string;
-  icon: ReactNode;
   title: string;
   items: string[];
 }
 
 export default function AboutSection({ profile }: { profile: Profile }) {
-  const hasTitle = /^dr\.?\s/i.test(profile.full_name);
-  const title = `Tentang ${hasTitle ? "dr. " : ""}${getPlainName(profile.full_name)}`;
+  const title = `Tentang ${getDisplayName(profile.full_name)}`;
 
   const groups: Group[] = [
-    { id: "education-block", icon: <GraduationCap size={18} />, title: "Pendidikan", items: splitList(profile.education) },
-    { id: "experience-block", icon: <Briefcase size={18} />, title: "Pengalaman", items: splitList(profile.experience_history) },
-    { id: "certifications-block", icon: <Award size={18} />, title: "Sertifikasi", items: splitList(profile.certifications) },
-    { id: "organizations-block", icon: <Users size={18} />, title: "Organisasi profesi", items: splitList(profile.organizations) },
+    { id: "education-block", title: "Pendidikan", items: splitList(profile.education) },
+    { id: "experience-block", title: "Pengalaman", items: splitList(profile.experience_history) },
+    { id: "certifications-block", title: "Sertifikasi", items: splitList(profile.certifications) },
+    { id: "organizations-block", title: "Organisasi profesi", items: splitList(profile.organizations) },
   ].filter((g) => g.items.length > 0);
 
   const personalStory =
     profile.personal_story && !profile.personal_story.includes("[BELUM DIISI]")
       ? profile.personal_story.trim()
       : "";
+  const hasSide = Boolean(personalStory);
 
   return (
     <section
       id="tentang"
       aria-labelledby="tentang-heading"
-      className="section-spacing border-t border-border bg-surface px-4 md:px-6"
+      className="section-spacing border-t border-border bg-bg px-4 md:px-6"
     >
       <div className="mx-auto max-w-6xl">
-        {!personalStory && groups.length === 0 ? (
-          <>
-            <SectionHeading id="tentang-heading" title={title} />
-            <p id="about-empty" className="py-8 text-text-body">
-              Informasi profil akan segera hadir.
-            </p>
-          </>
+        <SectionHeading id="tentang-heading" title={title} />
+        {!hasSide && groups.length === 0 ? (
+          <p id="about-empty" className="py-8 text-text-body">
+            Informasi profil akan segera hadir.
+          </p>
         ) : (
-          <div className="grid gap-10 md:grid-cols-12 md:gap-12">
-            <div className="md:col-span-4">
-              <h2 id="tentang-heading" className="text-h2 font-bold">
-                {title}
-              </h2>
-              {personalStory && (
-                <p id="personal-story-block" className="mt-5 whitespace-pre-line text-lg">
-                  {personalStory}
-                </p>
-              )}
-            </div>
+          <div className="grid gap-10 lg:grid-cols-12">
+            {hasSide && (
+              <blockquote
+                id="personal-story-block"
+                className="font-reading whitespace-pre-line text-lg leading-relaxed text-text-heading lg:col-span-4"
+              >
+                {personalStory}
+              </blockquote>
+            )}
             {groups.length > 0 && (
-              <dl className="md:col-span-8">
+              <dl
+                className={`grid gap-x-10 gap-y-8 sm:grid-cols-2 ${hasSide ? "lg:col-span-8" : "lg:col-span-12"}`}
+              >
                 {groups.map((g) => (
-                  <div
-                    key={g.id}
-                    id={g.id}
-                    className="grid gap-2 border-t border-border py-5 sm:grid-cols-[10rem_1fr]"
-                  >
-                    <dt className="flex items-center gap-2 font-semibold text-text-heading">
-                      <span className="text-primary" aria-hidden="true">
-                        {g.icon}
-                      </span>
-                      {g.title}
-                    </dt>
-                    <dd>
-                      <ul className="space-y-1.5">
+                  <div key={g.id} id={g.id} className="border-t border-border pt-5">
+                    <dt className="text-sm font-semibold text-text-heading">{g.title}</dt>
+                    <dd className="mt-3">
+                      <ul className="space-y-2 text-sm leading-relaxed text-text-body">
                         {g.items.map((item, i) => (
-                          <li key={i}>{item}</li>
+                          <li key={i} className="flex gap-2.5">
+                            <span
+                              className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary/60"
+                              aria-hidden="true"
+                            />
+                            <span>{item}</span>
+                          </li>
                         ))}
                       </ul>
                     </dd>

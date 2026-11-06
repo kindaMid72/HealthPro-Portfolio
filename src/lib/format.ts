@@ -15,3 +15,12 @@ export function formatDateShortId(date: Date | string | number): string {
     timeZone: 'Asia/Makassar',
   }).format(d);
 }
+
+/** "628115553556" / "08115553556" → "+62 811-5553-556"; format tak dikenali → dikembalikan apa adanya. */
+export function formatPhoneId(raw: string): string {
+  const digits = raw.replace(/\D/g, '');
+  const national = digits.startsWith('62') ? digits.slice(2) : digits.startsWith('0') ? digits.slice(1) : null;
+  if (!national || national.length < 9) return raw;
+  const rest = national.slice(7);
+  return `+62 ${national.slice(0, 3)}-${national.slice(3, 7)}${rest ? `-${rest}` : ''}`;
+}

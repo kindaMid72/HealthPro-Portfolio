@@ -5,7 +5,7 @@ type Variant = 'primary' | 'secondary' | 'danger' | 'ghost';
 type Size = 'sm' | 'md';
 
 const BASE =
-  'inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50';
+  'inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50';
 
 const SIZES: Record<Size, string> = {
   md: 'min-h-10 px-4 text-sm',
@@ -13,10 +13,10 @@ const SIZES: Record<Size, string> = {
 };
 
 const VARIANTS: Record<Variant, string> = {
-  primary: 'bg-primary text-white hover:bg-primary-hover',
-  secondary: 'border border-border bg-surface text-text-heading hover:border-primary hover:text-primary',
+  primary: 'bg-primary text-white shadow-2xs hover:bg-primary-hover',
+  secondary: 'border border-border-strong bg-surface text-text-heading hover:border-primary hover:bg-primary-tint hover:text-primary',
   danger: 'border border-red-200 bg-red-50 text-red-700 hover:bg-red-100',
-  ghost: 'text-text-body hover:bg-primary-tint hover:text-primary',
+  ghost: 'text-text-body hover:bg-bg-subtle hover:text-text-heading',
 };
 
 /** Kelas tombol admin — juga dipakai untuk <Link> yang tampil sebagai tombol. */

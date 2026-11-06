@@ -14,9 +14,8 @@ export default async function NotFound() {
   return (
     <SiteShell profile={profile} locations={locations}>
       <section className="bg-bg px-4 py-20 md:py-28">
-        <div className="mx-auto max-w-xl text-center">
-          <p className="font-semibold text-text-muted">404</p>
-          <h1 className="mt-3 text-h2 font-bold">Halaman tidak ditemukan</h1>
+        <div className="card-clinical mx-auto max-w-xl p-8 text-center md:p-10">
+          <h1 className="font-display text-h2 font-semibold">Halaman tidak ditemukan</h1>
           <p className="mt-4">
             Alamat yang Anda buka tidak tersedia atau sudah dipindahkan. Silakan kembali ke beranda
             atau telusuri artikel edukasi kesehatan.

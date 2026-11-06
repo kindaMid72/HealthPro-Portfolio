@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ChevronDown, ListTree } from "lucide-react";
 import type { TocItem } from "@/lib/types";
 
 interface TableOfContentsProps {
@@ -56,9 +57,15 @@ export default function TableOfContents({ items, placement }: TableOfContentsPro
 
   if (placement === "inline") {
     return (
-      <details className="rounded-xl border border-border bg-surface lg:hidden">
-        <summary className="cursor-pointer px-4 py-3 font-semibold text-text-heading">Daftar isi</summary>
-        <div className="px-4 pb-4">
+      <details className="card-clinical group p-4 lg:hidden">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-semibold text-text-heading [&::-webkit-details-marker]:hidden">
+          <span className="inline-flex items-center gap-2">
+            <ListTree size={18} className="text-primary" aria-hidden="true" />
+            Daftar isi
+          </span>
+          <ChevronDown size={18} className="text-text-muted transition-transform group-open:rotate-180" aria-hidden="true" />
+        </summary>
+        <div className="mt-3 border-t border-border pt-3">
           <TocList items={items} />
         </div>
       </details>
@@ -66,8 +73,11 @@ export default function TableOfContents({ items, placement }: TableOfContentsPro
   }
 
   return (
-    <nav aria-label="Daftar isi" className="hidden lg:sticky lg:top-24 lg:block">
-      <p className="mb-3 font-semibold text-text-heading">Daftar isi</p>
+    <nav aria-label="Daftar isi" className="card-clinical hidden p-5 lg:sticky lg:top-24 lg:block">
+      <p className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-text-heading">
+        <ListTree size={14} aria-hidden="true" />
+        Daftar Isi
+      </p>
       <TocList items={items} activeId={activeId} />
     </nav>
   );

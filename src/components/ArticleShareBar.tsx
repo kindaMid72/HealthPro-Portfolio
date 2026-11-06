@@ -50,7 +50,7 @@ export default function ArticleShareBar({ title, url }: ArticleShareBarProps) {
   }
 
   return (
-    <div className="my-10 flex flex-wrap items-center gap-3 border-y border-border py-5">
+    <div className="card-clinical my-8 flex flex-wrap items-center gap-3 px-5 py-4">
       <span className="font-semibold text-text-heading">Bagikan artikel</span>
       {canShare && (
         <button type="button" onClick={handleShare} className="btn btn-sm btn-secondary">

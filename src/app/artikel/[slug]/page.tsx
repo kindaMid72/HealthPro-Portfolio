@@ -211,15 +211,9 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
           ]}
         />
 
-        <header className="max-w-3xl">
-          <Link
-            href={`/artikel?kategori=${article.category}`}
-            className="chip bg-primary-tint text-primary hover:bg-primary hover:text-white"
-          >
-            {article.categoryLabel}
-          </Link>
-          <h1 className="mt-4 text-display font-bold">{article.title}</h1>
-          {article.excerpt && <p className="mt-4 text-xl text-text-body">{article.excerpt}</p>}
+        <header className="card-clinical p-6 md:p-8">
+          <h1 className="max-w-4xl font-display text-display font-semibold">{article.title}</h1>
+          {article.excerpt && <p className="mt-4 max-w-3xl text-xl text-text-body">{article.excerpt}</p>}
 
           <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-text-muted">
             <span>
@@ -238,7 +232,7 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
         </header>
 
         {article.coverImageUrl && (
-          <figure className="mt-8 max-w-4xl overflow-hidden rounded-xl bg-primary-tint">
+          <figure className="card-clinical mx-auto mt-6 max-w-6xl overflow-hidden bg-primary-tint">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={article.coverImageUrl}
@@ -246,19 +240,23 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
               className="max-h-[460px] w-full object-cover"
             />
             {article.coverAlt && (
-              <figcaption className="px-4 py-2.5 text-sm text-text-muted">{article.coverAlt}</figcaption>
+              <figcaption className="border-t border-border bg-surface px-4 py-2.5 text-sm text-text-muted">
+                {article.coverAlt}
+              </figcaption>
             )}
           </figure>
         )}
 
-        <div className="mt-10 lg:grid lg:grid-cols-12 lg:gap-12">
+        <div className="mt-8 lg:grid lg:grid-cols-12 lg:gap-8">
           <div className="lg:col-span-8">
             {article.toc.length >= 2 && (
-              <div className="mb-8">
+              <div className="mb-6">
                 <TableOfContents placement="inline" items={article.toc} />
               </div>
             )}
-            <ProseContent html={article.contentHtml} />
+            <div className="card-clinical p-6 sm:p-8 md:p-10">
+              <ProseContent html={article.contentHtml} />
+            </div>
             <ArticleShareBar title={article.title} url={canonicalUrl} />
             <MedicalDisclaimer />
             <ConsultCta

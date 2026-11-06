@@ -70,10 +70,10 @@ export default function ServicesManager({ initialServices }: { initialServices: 
         )}
 
         {servicesList.map((svc, idx) => (
-          <div key={svc.id} className="rounded-xl border border-border bg-surface p-5">
+          <div key={svc.id} className="card-clinical card-clinical-interactive p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <h3 className="text-base font-bold">{svc.serviceName}</h3>
+                <h3 className="text-base font-bold text-text-heading">{svc.serviceName}</h3>
                 <p className="mt-1 text-sm">
                   {svc.serviceDescription || (
                     <span className="text-text-muted">Belum ada deskripsi singkat</span>

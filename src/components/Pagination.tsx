@@ -37,7 +37,7 @@ function pageWindow(current: number, total: number): (number | 'gap')[] {
 }
 
 const NAV_CLASS =
-  'inline-flex min-h-11 items-center gap-1 rounded-full border border-border bg-surface px-4 text-sm font-semibold text-text-body hover:border-primary hover:text-primary';
+  'card-clinical inline-flex min-h-11 items-center gap-1 rounded-full! px-4 text-sm font-semibold text-text-body hover:border-primary hover:text-primary';
 
 export default function Pagination({
   currentPage,
@@ -74,10 +74,10 @@ export default function Pagination({
             key={item}
             href={buildHref(item, basePath, queryParams)}
             aria-current={active ? 'page' : undefined}
-            className={`flex min-h-11 min-w-11 items-center justify-center rounded-full text-sm font-semibold ${
+            className={`flex min-h-11 min-w-11 items-center justify-center rounded-full border text-sm font-semibold transition-colors ${
               active
-                ? 'bg-primary text-white'
-                : 'border border-border bg-surface text-text-body hover:border-primary hover:text-primary'
+                ? 'border-primary bg-primary text-white'
+                : 'border-border bg-surface text-text-body shadow-card hover:border-primary hover:text-primary'
             }`}
           >
             {item}

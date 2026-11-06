@@ -42,7 +42,7 @@ export default function SiteShell({
       <StickyCTA bookingUrl={bookingUrl} whatsappFallback={whatsappFallback} />
 
       {(bookingUrl || whatsappFallback) && (
-        <div className="h-20 md:hidden" aria-hidden="true" />
+        <div className="h-24 md:hidden" aria-hidden="true" />
       )}
     </>
   );

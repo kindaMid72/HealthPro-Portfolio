@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
+import { CalendarClock, ChevronRight } from "lucide-react";
 import { DAY_LABELS, formatClock, getTodayStatus, getWitaClock, type PracticeSlot } from "@/lib/schedule";
 import { useNowMinute } from "./useNowMinute";
 
@@ -29,20 +30,28 @@ export default function TodayStatus({ slots }: { slots: PracticeSlot[] }) {
   if (slots.length === 0) return null;
 
   return (
-    <div className="min-h-[4.5rem] rounded-xl bg-primary-tint p-4">
-      <p aria-live="polite" className="flex items-start gap-2.5 text-[0.9375rem] font-semibold text-text-heading">
-        {info ? (
-          <>
-            <span
-              aria-hidden="true"
-              className={`mt-2 h-2.5 w-2.5 shrink-0 rounded-full ${info.ongoing ? "bg-primary" : "border-2 border-primary"}`}
-            />
-            <span>{info.text}</span>
-          </>
-        ) : null}
+    <div className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3.5 shadow-card">
+      {info?.ongoing ? (
+        <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center">
+          <span className="h-3 w-3 animate-pulse rounded-full bg-emerald-500 ring-4 ring-emerald-500/20" />
+        </span>
+      ) : (
+        <span
+          aria-hidden="true"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-tint text-primary"
+        >
+          <CalendarClock size={18} />
+        </span>
+      )}
+      <p aria-live="polite" className="min-w-0 flex-1 text-sm font-semibold leading-snug text-text-heading">
+        {info ? info.text : "Lihat jadwal praktik"}
       </p>
-      <Link href="#lokasi" className="link mt-1 inline-block text-sm">
-        {info ? "Lihat jadwal lengkap" : "Lihat jadwal praktik"}
+      <Link
+        href="#lokasi"
+        className="link inline-flex shrink-0 items-center gap-0.5 text-xs font-semibold sm:text-sm"
+      >
+        Jadwal lengkap
+        <ChevronRight size={14} aria-hidden="true" />
       </Link>
     </div>
   );

@@ -6,14 +6,13 @@
  *
  * CATATAN TEKNIS (Next.js ImageResponse constraints):
  *  - Tidak support: z-index, fit-content, CSS vars, gradient shorthand kompleks
- *  - Image eksternal di build time bisa gagal load → pakai desain text-only saat ini
- *  - Setelah foto dokter asli tersedia sebagai file statis, bisa diganti pakai
- *    fs.readFile untuk embed base64 image
+ *  - Setiap <div> wajib display: flex; font kustom tidak dimuat (font default)
+ *  - Geometri logo harus sinkron dengan src/components/BrandMark.tsx
  */
 
 import { ImageResponse } from "next/og";
 import { getAllSiteData } from "@/lib/content";
-import { getServiceAreas } from "@/lib/seo";
+import { getCredentials, getDisplayName, getServiceAreas } from "@/lib/seo";
 
 export const runtime = "nodejs";
 
@@ -31,150 +30,53 @@ export const alt = "Profil dokter spesialis";
 export default async function OGImage() {
   const { profile, locations } = await getAllSiteData();
   const areas = getServiceAreas(locations);
-  const [namePart, ...creds] = profile.full_name.split(",");
-  const badge = [profile.specialty, areas[areas.length - 1]].filter(Boolean).join(" · ");
+  const area = areas[areas.length - 1];
+  const credentials = getCredentials(profile.full_name).join(", ");
+  const specialtyLine = `${profile.specialty}${area ? ` di ${area}` : ""}`;
 
   return new ImageResponse(
     (
       <div
         style={{
-          width: "1200px",
-          height: "630px",
+          width: "100%",
+          height: "100%",
           display: "flex",
           flexDirection: "column",
-          alignItems: "flex-start",
           justifyContent: "center",
-          backgroundColor: "#243138",
+          alignItems: "flex-start",
           padding: "80px 100px",
-          position: "relative",
+          background: "#13252c",
         }}
       >
-        {/* Accent bar kiri */}
-        <div
-          style={{
-            position: "absolute",
-            left: "0px",
-            top: "0px",
-            bottom: "0px",
-            width: "8px",
-            background: "#D98C4A",
-            display: "flex",
-          }}
-        />
-
-        {/* Background dekoratif: lingkaran blur kanan */}
-        <div
-          style={{
-            position: "absolute",
-            right: "-120px",
-            top: "-120px",
-            width: "500px",
-            height: "500px",
-            borderRadius: "50%",
-            backgroundColor: "#3F6B7430",
-            display: "flex",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            right: "80px",
-            bottom: "-80px",
-            width: "300px",
-            height: "300px",
-            borderRadius: "50%",
-            backgroundColor: "#D98C4A20",
-            display: "flex",
-          }}
-        />
-
-        {/* Badge spesialisasi */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            backgroundColor: "#3F6B7440",
-            borderRadius: "999px",
-            padding: "8px 24px",
-            marginBottom: "32px",
-          }}
-        >
-          <span
-            style={{
-              color: "#7BBDC5",
-              fontSize: "16px",
-              fontWeight: 600,
-              letterSpacing: "0.1em",
-              textTransform: "uppercase",
-              display: "flex",
-            }}
-          >
-            {badge}
-          </span>
+        <svg width="96" height="96" viewBox="0 0 48 48" fill="none" style={{ marginBottom: 40 }}>
+          <path
+            d="M12 9C12 19 17 24.5 24 26.5C31 24.5 36 19 36 9"
+            stroke="#FFFFFF"
+            strokeWidth="3.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <path
+            d="M24 26.5V34"
+            stroke="#FFFFFF"
+            strokeWidth="3.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <circle cx="24" cy="39.5" r="4.6" stroke="#FFFFFF" strokeWidth="3.4" />
+          <circle cx="12" cy="8" r="2.4" fill="#FFFFFF" />
+          <circle cx="36" cy="8" r="2.4" fill="#FFFFFF" />
+        </svg>
+        <div style={{ display: "flex", fontSize: 80, fontWeight: 700, color: "#FFFFFF", lineHeight: 1.1 }}>
+          {getDisplayName(profile.full_name)}
         </div>
-
-        {/* Nama dokter */}
-        <div
-          style={{
-            color: "#FFFFFF",
-            fontSize: "72px",
-            fontWeight: 700,
-            lineHeight: 1.0,
-            letterSpacing: "-0.02em",
-            display: "flex",
-            marginBottom: "8px",
-          }}
-        >
-          {creds.length ? `${namePart},` : namePart}
-        </div>
-        <div
-          style={{
-            color: "#FFFFFF",
-            fontSize: "72px",
-            fontWeight: 700,
-            lineHeight: 1.0,
-            letterSpacing: "-0.02em",
-            display: "flex",
-            marginBottom: "32px",
-          }}
-        >
-          {creds.join(",").trim()}
-        </div>
-
-        {/* Deskripsi */}
-        <div
-          style={{
-            color: "#A8B5BB",
-            fontSize: "22px",
-            lineHeight: 1.5,
-            marginBottom: "40px",
-            display: "flex",
-            maxWidth: "700px",
-          }}
-        >
-          Jadwal praktik, lokasi, dan informasi layanan tersedia di sini.
-        </div>
-
-        {/* CTA pill */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            backgroundColor: "#D98C4A",
-            borderRadius: "999px",
-            padding: "16px 40px",
-          }}
-        >
-          <span
-            style={{
-              color: "#FFFFFF",
-              fontSize: "20px",
-              fontWeight: 700,
-              display: "flex",
-            }}
-          >
-            Booking Sekarang →
-          </span>
+        {credentials ? (
+          <div style={{ display: "flex", marginTop: 8, fontSize: 40, fontWeight: 500, color: "#A8B5BB" }}>
+            {credentials}
+          </div>
+        ) : null}
+        <div style={{ display: "flex", marginTop: 32, fontSize: 28, color: "#7BBDC5" }}>
+          {specialtyLine}
         </div>
       </div>
     ),

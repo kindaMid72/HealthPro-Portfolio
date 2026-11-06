@@ -139,12 +139,14 @@ export default function LocationsManager({
         )}
 
         {locationsList.map((loc, idx) => (
-          <div key={loc.id} className="rounded-xl border border-border bg-surface p-5">
+          <div key={loc.id} className="card-clinical card-clinical-interactive p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
-                <h3 className="text-base font-bold">{loc.locationName}</h3>
+                <h3 className="text-base font-bold text-text-heading">{loc.locationName}</h3>
                 <p className="mt-1 text-sm">{loc.address}</p>
-                <p className="mt-1 text-sm font-medium text-primary">Jam praktik: {loc.practiceHours}</p>
+                <p className="mt-2 inline-block rounded-lg bg-primary-tint px-2.5 py-1 text-sm font-medium text-primary">
+                  Jam praktik: {loc.practiceHours}
+                </p>
                 <div className="mt-2 flex flex-wrap gap-3 text-xs text-text-muted">
                   <span>WA: {loc.whatsapp || '—'}</span>
                   <span>Telp: {loc.phone || '—'}</span>

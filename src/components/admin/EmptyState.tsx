@@ -8,9 +8,9 @@ interface EmptyStateProps {
 
 export default function EmptyState({ title, description, action }: EmptyStateProps) {
   return (
-    <div className="rounded-xl border border-dashed border-border p-10 text-center">
+    <div className="rounded-2xl border border-dashed border-border-strong bg-bg/60 p-10 text-center">
       <p className="font-semibold text-text-heading">{title}</p>
-      {description && <p className="mt-1 text-sm text-text-muted">{description}</p>}
+      {description && <p className="mx-auto mt-1 max-w-md text-sm text-text-muted">{description}</p>}
       {action && <div className="mt-4 flex justify-center">{action}</div>}
     </div>
   );

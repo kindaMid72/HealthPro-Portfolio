@@ -40,7 +40,7 @@ export default function Dialog({
   const layout =
     variant === 'drawer'
       ? 'm-0 h-dvh max-h-none w-72 max-w-[85vw] rounded-none'
-      : 'm-auto max-h-[calc(100dvh-2rem)] w-[min(32rem,calc(100vw-2rem))] rounded-xl';
+      : 'm-auto max-h-[calc(100dvh-2rem)] w-[min(32rem,calc(100vw-2rem))] rounded-2xl shadow-elevated';
 
   return (
     <dialog
@@ -59,7 +59,7 @@ export default function Dialog({
         if (dismissible && pressedOnBackdrop.current && e.target === ref.current) onClose();
         pressedOnBackdrop.current = false;
       }}
-      className={`p-0 text-text-body backdrop:bg-primary-dark/40 ${layout}`}
+      className={`border border-border bg-surface p-0 text-text-body backdrop:bg-primary-dark/50 backdrop:backdrop-blur-xs ${layout}`}
     >
       {open && variant === 'drawer' && (
         <div className="flex h-full flex-col">

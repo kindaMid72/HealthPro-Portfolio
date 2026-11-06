@@ -16,8 +16,10 @@ export default function NavLinks() {
             <Link
               href={href}
               aria-current={active ? "page" : undefined}
-              className={`block rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:text-primary ${
-                active ? "text-primary underline decoration-2 underline-offset-8" : "text-text-body"
+              className={`block rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
+                active
+                  ? "bg-primary-tint font-semibold text-primary"
+                  : "text-text-body hover:bg-bg-subtle hover:text-primary"
               }`}
             >
               {label}

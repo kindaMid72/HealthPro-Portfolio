@@ -1,21 +1,22 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Literata } from "next/font/google";
+import { Figtree, Literata } from "next/font/google";
 import "./globals.css";
 import { getAllSiteData } from "@/lib/content";
 import { buildDescription, getServiceAreas, getSiteUrl } from "@/lib/seo";
 
-/** Plus Jakarta Sans — satu-satunya font UI & judul (variable font). */
-const plusJakartaSans = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta-sans",
+/** Figtree — font UI & isi halaman (variable font). */
+const figtree = Figtree({
+  variable: "--font-figtree",
   subsets: ["latin"],
   display: "swap", // cegah CLS saat font load
 });
 
-/** Literata — khusus isi artikel/layanan panjang (kelas `.font-reading`). */
+/** Literata — judul display (h1/h2) dan isi artikel/layanan panjang. */
 const literata = Literata({
   variable: "--font-literata",
   subsets: ["latin"],
   style: ["normal", "italic"],
+  axes: ["opsz"],
   display: "swap",
 });
 
@@ -90,7 +91,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="id"
-      className={`${plusJakartaSans.variable} ${literata.variable}`}
+      className={`${figtree.variable} ${literata.variable}`}
     >
       <body>{children}</body>
     </html>

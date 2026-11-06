@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { Lock } from 'lucide-react';
+import BrandMark from '@/components/BrandMark';
 import Alert from '@/components/admin/Alert';
 import { TextField } from '@/components/admin/Field';
 import { getSessionUser } from '@/lib/session';
@@ -27,16 +27,16 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center bg-bg px-4 py-12">
-      <div className="w-full max-w-md rounded-xl border border-border bg-surface p-8">
+      <div className="w-full max-w-md">
         <div className="mb-6 flex flex-col items-center text-center">
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary-tint text-primary">
-            <Lock size={22} aria-hidden="true" />
-          </div>
-          <h1 className="text-2xl font-bold">Panel Admin Dokter</h1>
-          <p className="mt-1 text-sm text-text-muted">
+          <BrandMark className="mb-4 h-14 w-14 text-primary" />
+          <h1 className="text-2xl font-bold text-text-heading">Panel Admin Klinik THT-BKL</h1>
+          <p className="mt-1.5 text-sm text-text-muted">
             Masuk untuk mengelola artikel edukasi, profil, lokasi, dan layanan.
           </p>
         </div>
+
+      <div className="card-clinical p-6 shadow-elevated sm:p-8">
 
         {error === 'invalid' && (
           <div className="mb-5">
@@ -77,6 +77,7 @@ export default async function AdminLoginPage({ searchParams }: LoginPageProps) {
             ← Kembali ke halaman publik
           </Link>
         </div>
+      </div>
       </div>
     </div>
   );

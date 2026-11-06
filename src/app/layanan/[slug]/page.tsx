@@ -134,10 +134,10 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
           ]}
         />
 
-        <header className="max-w-3xl">
-          <h1 className="text-display font-bold">{service.service_name}</h1>
+        <header className="card-clinical p-6 md:p-8">
+          <h1 className="max-w-4xl font-display text-display font-semibold">{service.service_name}</h1>
           {service.service_description && (
-            <p className="mt-4 text-xl text-text-body">{service.service_description}</p>
+            <p className="mt-4 max-w-3xl text-xl text-text-body">{service.service_description}</p>
           )}
           <MedicalReviewNote
             fullName={profile.full_name}
@@ -146,17 +146,19 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
           />
         </header>
 
-        <div className="mt-10 lg:grid lg:grid-cols-12 lg:gap-12">
+        <div className="mt-8 lg:grid lg:grid-cols-12 lg:gap-8">
           <div className="lg:col-span-8">
             {service.toc.length >= 2 && (
-              <div className="mb-8">
+              <div className="mb-6">
                 <TableOfContents placement="inline" items={service.toc} />
               </div>
             )}
-            <ProseContent html={service.contentHtml} />
+            <div className="card-clinical p-6 sm:p-8 md:p-10">
+              <ProseContent html={service.contentHtml} />
+            </div>
 
             {locations.length > 0 && (
-              <section aria-labelledby="jadwal-layanan" className="mt-12 rounded-xl border border-border bg-surface p-6">
+              <section aria-labelledby="jadwal-layanan" className="card-clinical mt-8 p-6">
                 <h2 id="jadwal-layanan" className="text-xl font-bold">
                   Jadwal praktik
                 </h2>

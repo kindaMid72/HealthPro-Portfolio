@@ -107,6 +107,12 @@ export function getCredentials(fullName: string): string[] {
     .filter(Boolean);
 }
 
+/** "dr. Yuliana, Sp.THTBKL, M.Kes" → "dr. Yuliana" (nama + gelar depan "dr." bila ada). */
+export function getDisplayName(fullName: string): string {
+  const hasTitle = /^dr\.?\s/i.test(fullName);
+  return `${hasTitle ? "dr. " : ""}${getPlainName(fullName)}`;
+}
+
 /** Daftar wilayah layanan unik dari alamat lokasi (kecamatan/kab) */
 export function getServiceAreas(locations: Location[]): string[] {
   const localities = new Set<string>();

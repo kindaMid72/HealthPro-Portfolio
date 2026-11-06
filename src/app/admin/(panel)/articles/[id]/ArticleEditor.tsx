@@ -290,7 +290,7 @@ export default function ArticleEditor({
 
   return (
     <div className="space-y-6">
-      <div className="space-y-4 rounded-xl border border-border bg-surface p-4">
+      <div className="space-y-4 rounded-2xl border border-border bg-surface p-4 shadow-card md:p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3">
             <Link href="/admin/articles" className="text-sm font-semibold text-text-muted hover:text-primary">
@@ -478,7 +478,7 @@ export default function ArticleEditor({
           <Card title="Gambar sampul (cover)" description="Otomatis dikompresi ke format WebP oleh server.">
             {coverImageId ? (
               <div className="space-y-3">
-                <div className="overflow-hidden rounded-lg border border-border bg-bg">
+                <div className="overflow-hidden rounded-xl border border-border bg-bg">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={`/media/${coverImageId}`}
@@ -512,7 +512,7 @@ export default function ArticleEditor({
                 type="button"
                 disabled={uploadingCover}
                 onClick={() => coverImageInputRef.current?.click()}
-                className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border px-4 py-6 text-sm font-semibold text-primary hover:border-primary hover:bg-primary-tint disabled:opacity-50"
+                className="flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border-strong px-4 py-6 text-sm font-semibold text-primary hover:border-primary hover:bg-primary-tint disabled:opacity-50"
               >
                 <ImagePlus size={20} aria-hidden="true" />
                 {uploadingCover ? 'Mengunggah & mengompresi...' : 'Unggah gambar sampul'}

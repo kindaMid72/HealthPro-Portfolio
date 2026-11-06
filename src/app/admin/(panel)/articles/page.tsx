@@ -88,7 +88,7 @@ export default async function AdminArticlesPage({
         }
       />
 
-      <div className="space-y-3 rounded-xl border border-border bg-surface p-4">
+      <div className="space-y-3 rounded-2xl border border-border bg-surface p-4 shadow-card">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <nav aria-label="Filter status" className="flex flex-wrap items-center gap-1.5">
             {STATUS_TABS.map((tab) => {
@@ -126,7 +126,7 @@ export default async function AdminArticlesPage({
                 name="q"
                 defaultValue={searchQuery ?? ''}
                 placeholder="Cari judul artikel..."
-                className="min-h-10 w-full rounded-lg border border-border bg-surface pl-9 pr-3 text-base text-text-heading placeholder:text-text-muted focus:border-primary focus:outline-none sm:text-sm"
+                className="min-h-10 w-full rounded-lg border border-border-strong bg-surface pl-9 pr-3 text-base text-text-heading placeholder:text-text-muted focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 sm:text-sm"
               />
             </div>
             <Button type="submit" variant="secondary">
@@ -144,7 +144,7 @@ export default async function AdminArticlesPage({
             href={buildFilterUrl({ status: activeStatus, category: undefined, q: searchQuery })}
             aria-current={!activeCategory ? 'page' : undefined}
             className={`rounded-full px-3 py-1 text-xs font-semibold ${
-              !activeCategory ? 'bg-primary-dark text-white' : 'bg-bg text-text-muted hover:text-primary'
+              !activeCategory ? 'bg-primary-dark text-white' : 'bg-bg-subtle text-text-body hover:bg-primary-tint hover:text-primary'
             }`}
           >
             Semua
@@ -157,7 +157,7 @@ export default async function AdminArticlesPage({
                 href={buildFilterUrl({ status: activeStatus, category: cat, q: searchQuery })}
                 aria-current={isActive ? 'page' : undefined}
                 className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                  isActive ? 'bg-primary-dark text-white' : 'bg-bg text-text-muted hover:text-primary'
+                  isActive ? 'bg-primary-dark text-white' : 'bg-bg-subtle text-text-body hover:bg-primary-tint hover:text-primary'
                 }`}
               >
                 {ARTICLE_CATEGORIES[cat]}
@@ -174,10 +174,10 @@ export default async function AdminArticlesPage({
         />
       ) : (
         <>
-          <div className="hidden overflow-x-auto rounded-xl border border-border bg-surface md:block">
+          <div className="hidden overflow-x-auto rounded-2xl border border-border bg-surface shadow-card md:block">
             <table className="w-full text-left text-sm">
               <thead>
-                <tr className="border-b border-border bg-bg/60 text-text-muted">
+                <tr className="border-b border-border bg-bg-subtle/60 text-xs uppercase tracking-wide text-text-muted">
                   <th className="px-4 py-3 font-semibold">Judul Artikel</th>
                   <th className="px-4 py-3 font-semibold">Kategori</th>
                   <th className="px-4 py-3 font-semibold">Status</th>
@@ -236,7 +236,7 @@ export default async function AdminArticlesPage({
 
           <ul className="space-y-3 md:hidden">
             {articlesList.map((art) => (
-              <li key={art.id} className="rounded-xl border border-border bg-surface p-4">
+              <li key={art.id} className="card-clinical p-4">
                 <Link href={`/admin/articles/${art.id}`} className="font-semibold text-text-heading hover:text-primary">
                   {art.title || '(Draft Tanpa Judul)'}
                 </Link>

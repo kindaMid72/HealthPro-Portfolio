@@ -11,10 +11,10 @@ export default function SectionHeading({ id, title, intro, action }: SectionHead
   return (
     <div className="mb-10 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
       <div className="max-w-2xl">
-        <h2 id={id} className="text-h2 font-bold">
+        <h2 id={id} className="font-display text-h2 font-semibold">
           {title}
         </h2>
-        {intro ? <p className="mt-3 text-text-body">{intro}</p> : null}
+        {intro ? <p className="mt-2.5 text-base leading-relaxed text-text-body">{intro}</p> : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { ChevronRight, Menu, X } from "lucide-react";
 import { NAV_LINKS } from "@/lib/nav";
 import NavCta from "./NavCta";
 
@@ -42,30 +42,40 @@ export default function MobileMenu({ bookingUrl, whatsappFallback }: MobileMenuP
       </button>
 
       {isOpen && (
-        <div
-          id="mobile-menu"
-          className="absolute inset-x-0 top-16 border-b border-border bg-surface p-4 shadow-card"
-        >
-          <ul className="flex flex-col">
-            {NAV_LINKS.map(({ href, label }) => (
-              <li key={href}>
-                <Link
-                  href={href}
-                  onClick={() => setIsOpen(false)}
-                  className="flex min-h-12 items-center rounded-lg px-3 text-base font-medium text-text-heading hover:bg-primary-tint hover:text-primary"
-                >
-                  {label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-          <NavCta
-            bookingUrl={bookingUrl}
-            whatsappFallback={whatsappFallback}
-            size="md"
-            className="mt-3 w-full"
+        <>
+          <button
+            type="button"
+            tabIndex={-1}
+            aria-hidden="true"
+            onClick={() => setIsOpen(false)}
+            className="absolute inset-x-0 top-full z-40 h-[100dvh] cursor-default bg-primary-dark/30 backdrop-blur-xs"
           />
-        </div>
+          <div
+            id="mobile-menu"
+            className="absolute inset-x-0 top-full z-50 border-b border-border bg-surface px-4 pb-5 pt-3 shadow-elevated"
+          >
+            <ul className="flex flex-col gap-1">
+              {NAV_LINKS.map(({ href, label }) => (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    onClick={() => setIsOpen(false)}
+                    className="flex min-h-12 items-center justify-between rounded-xl px-3 text-base font-medium text-text-heading transition-colors hover:bg-primary-tint hover:text-primary"
+                  >
+                    {label}
+                    <ChevronRight size={18} aria-hidden="true" className="text-text-muted" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <NavCta
+              bookingUrl={bookingUrl}
+              whatsappFallback={whatsappFallback}
+              size="md"
+              className="mt-3 w-full"
+            />
+          </div>
+        </>
       )}
     </div>
   );

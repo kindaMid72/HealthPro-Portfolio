@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { BookOpen } from 'lucide-react';
+import { BookOpen, Clock } from 'lucide-react';
 import { formatDateShortId } from '@/lib/format';
 import type { PublicArticleSummary } from '@/lib/types';
 
@@ -33,10 +33,11 @@ export default function ArticleCard({ article, variant = 'default' }: ArticleCar
 
   if (variant === 'compact') {
     return (
-      <article className="group relative grid grid-cols-[6.5rem_1fr] gap-4">
-        <Cover article={article} className="aspect-square rounded-lg" />
+      <article className="group card-clinical card-clinical-interactive relative grid grid-cols-[6rem_1fr] items-center gap-4 p-3.5">
+        <Cover article={article} className="aspect-square rounded-xl border border-border" />
         <div className="min-w-0">
-          <h3 className="line-clamp-2 text-base font-semibold leading-snug group-hover:text-primary">
+          <span className="text-xs font-semibold text-primary">{article.categoryLabel}</span>
+          <h3 className="mt-0.5 line-clamp-2 text-base font-semibold leading-snug group-hover:text-primary">
             <Link href={href} className="after:absolute after:inset-0">
               {article.title}
             </Link>
@@ -50,21 +51,31 @@ export default function ArticleCard({ article, variant = 'default' }: ArticleCar
   }
 
   return (
-    <article className="group relative flex flex-col">
-      <Cover article={article} className="aspect-[16/10] rounded-xl" />
-      <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-muted">
-        <span className="chip min-h-7 bg-primary-tint px-2.5 text-xs font-semibold text-primary">
-          {article.categoryLabel}
-        </span>
-        <time dateTime={article.publishedAt.toISOString()}>{formatDateShortId(article.publishedAt)}</time>
+    <article className="group card-clinical card-clinical-interactive relative flex flex-col overflow-hidden">
+      <Cover article={article} className="aspect-[16/10] border-b border-border" />
+      <div className="flex flex-1 flex-col justify-between p-5">
+        <div>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-text-muted">
+            <span className="text-xs font-semibold text-primary">
+              {article.categoryLabel}
+            </span>
+            <time dateTime={article.publishedAt.toISOString()}>{formatDateShortId(article.publishedAt)}</time>
+          </div>
+          <h3 className="mt-3 line-clamp-3 text-xl font-semibold leading-snug group-hover:text-primary">
+            <Link href={href} className="after:absolute after:inset-0">
+              {article.title}
+            </Link>
+          </h3>
+          {article.excerpt && <p className="mt-2 line-clamp-2">{article.excerpt}</p>}
+        </div>
+        <div className="mt-5 flex items-center justify-between border-t border-border pt-3 text-sm">
+          <span className="inline-flex items-center gap-1.5 text-text-muted">
+            <Clock size={14} aria-hidden="true" />
+            {article.readingTimeMinutes} menit baca
+          </span>
+          <span className="font-semibold text-primary">Baca artikel →</span>
+        </div>
       </div>
-      <h3 className="mt-2 line-clamp-3 text-xl font-semibold leading-snug group-hover:text-primary">
-        <Link href={href} className="after:absolute after:inset-0">
-          {article.title}
-        </Link>
-      </h3>
-      {article.excerpt && <p className="mt-2 line-clamp-2">{article.excerpt}</p>}
-      <p className="mt-3 text-sm text-text-muted">{article.readingTimeMinutes} menit baca</p>
     </article>
   );
 }

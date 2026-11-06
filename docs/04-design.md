@@ -25,18 +25,19 @@ Kalem, bersih, kredibel. Bukan "brosur RS korporat" yang dingin, tapi juga bukan
 **Teks di atas accent** memakai `#243138` (kontras 4,96:1), bukan putih (2,69:1, tidak lolos AA). Hover accent: `#E39A5E`.
 
 ## Tipografi
-- **UI & judul**: `Plus Jakarta Sans` (variable font) di seluruh situs dan admin — modern, sedikit karakter tapi tetap profesional. Inter tidak dipakai lagi.
-- **Bacaan panjang**: `Literata` (kelas `.font-reading`) KHUSUS isi artikel (`/artikel/[slug]`) dan layanan (`/layanan/[slug]`) serta tampilan menulis di editor admin. Tidak dipakai di kartu atau elemen UI.
+- **UI & isi halaman**: `Figtree` (variable font, utility `font-sans`) di seluruh situs dan admin.
+- **Judul display (h1/h2 publik)**: `Literata` lewat utility `font-display font-semibold`; h3 ke bawah dan admin tetap sans.
+- **Bacaan panjang**: `Literata` (kelas `.font-reading`) untuk isi artikel (`/artikel/[slug]`) dan layanan (`/layanan/[slug]`), kutipan "Tentang", serta tampilan menulis di editor admin. Tidak dipakai di kartu atau elemen UI.
 - Ukuran dasar body: 17px (jangan lebih kecil, demi keterbacaan pasien lanjut usia). Judul halaman memakai skala fluid `text-display`, judul section `text-h2`.
 - Line-height lega: 1.65 untuk paragraf.
 - Hindari huruf kapital semua (all-caps) untuk paragraf panjang — oke untuk label kecil saja (mis. "SPESIALISASI").
 
 ## Prinsip Layout & Komponen
 - **Whitespace generous** — jangan padat, beri ruang antar section minimal 64–96px di desktop, 40–56px di mobile.
-- **Card & elemen**: sudut membulat halus — `rounded-full` untuk CTA/chip publik, `rounded-xl` (12px) untuk kartu/panel, `rounded-lg` untuk input dan tombol admin. Satu shadow kartu tipis (`--shadow-card`) — kesan kalem, bukan flat tajam maupun skeuomorphic berat.
+- **Card & elemen**: sudut membulat halus — `rounded-full` untuk CTA/chip publik, `rounded-xl` (12px) untuk kartu/panel, `rounded-lg` untuk input dan tombol admin. Satu shadow kartu tipis (`--shadow-card`) — kesan kalem, bukan flat tajam maupun skeuomorphic berat. Kartu HANYA untuk data padat (lokasi, baris kontak, artikel); Layanan memakai daftar terkelompok per domain klinis, bukan kartu. Tidak ada eyebrow/chip dekoratif yang mengulang judul section; chip hanya untuk informasi (filter kategori, "Hari ini", status admin).
 - **Struktur beranda** berorientasi kebutuhan pasien: Hero (+ status "Praktik hari ini") → Jadwal & Lokasi → Layanan → Tentang → Artikel → Kontak. Tanpa dekorasi latar (blob, grid, kaca) dan tanpa animasi selain satu entrance hero; `prefers-reduced-motion` dihormati.
 - **Foto dokter** jadi elemen visual utama di hero — pakai foto profesional asli (bukan stock generic), proporsi natural, hindari filter berlebihan. Kalau foto belum ada, treatment sementara: silhouette/placeholder abu netral, JANGAN pakai foto stock orang random sebagai pengganti (menyesatkan).
-- **Ikon**: line icon, stroke 1.5–2px, sudut membulat (rounded cap/join), warna mengikuti `primary` atau `neutral text` — konsisten satu set ikon (mis. Lucide/Phosphor), jangan campur beberapa gaya ikon.
+- **Ikon**: line icon, stroke 1.5–2px, sudut membulat (rounded cap/join), warna mengikuti `primary` atau `neutral text` — konsisten satu set ikon (mis. Lucide/Phosphor), jangan campur beberapa gaya ikon. **Logo**: satu-satunya mark adalah `BrandMark` (`src/components/BrandMark.tsx`: huruf "Y" = tabung stetoskop), dipakai di navbar, footer, admin, favicon (`src/app/icon.svg`) dan OG image — jaga geometrinya sinkron.
 - **CTA booking**: tombol pill/rounded-rect (`border-radius: 8–999px`, pilih salah satu konsisten), warna accent, teks kontras tinggi, ukuran cukup besar untuk mobile tap target (min 44x44px).
 - **Micro-interaction**: transisi halus 150–200ms pada hover/tap (opacity atau translate kecil), bukan animasi besar/mencolok.
 - **Trust signals** ditempatkan menonjol tapi tidak berlebihan: badge sertifikasi/afiliasi dekat nama dokter, bukan disembunyikan di footer.

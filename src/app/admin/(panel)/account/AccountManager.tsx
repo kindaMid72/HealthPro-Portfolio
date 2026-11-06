@@ -186,19 +186,30 @@ export default function AccountManager({
           title="Daftar akun admin terdaftar"
           description="Semua akun memiliki akses setara untuk menulis dan meninjau artikel."
         >
-          <ul className="divide-y divide-border text-sm">
+          <ul className="space-y-2 text-sm">
             {accounts.map((acc) => (
-              <li key={acc.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-                <div>
-                  <p className="font-semibold text-text-heading">
-                    {acc.name}{' '}
-                    {acc.id === currentUser.id && (
-                      <span className="ml-1 rounded-full bg-primary-tint px-2 py-0.5 text-xs text-primary">Anda</span>
-                    )}
-                  </p>
-                  <p className="text-text-muted">
-                    {acc.email} • Dibuat {formatDateShortId(acc.createdAt)}
-                  </p>
+              <li
+                key={acc.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-bg/60 p-3"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <span
+                    aria-hidden="true"
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-tint text-sm font-bold text-primary"
+                  >
+                    {(acc.name.trim()[0] ?? '?').toUpperCase()}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-text-heading">
+                      {acc.name}{' '}
+                      {acc.id === currentUser.id && (
+                        <span className="ml-1 rounded-full bg-primary-tint px-2 py-0.5 text-xs text-primary">Anda</span>
+                      )}
+                    </p>
+                    <p className="break-all text-text-muted">
+                      {acc.email} • Dibuat {formatDateShortId(acc.createdAt)}
+                    </p>
+                  </div>
                 </div>
 
                 {acc.isLocked ? (
@@ -206,7 +217,8 @@ export default function AccountManager({
                     Terkunci — buka kunci
                   </Button>
                 ) : (
-                  <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
+                    <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                     Aktif
                   </span>
                 )}

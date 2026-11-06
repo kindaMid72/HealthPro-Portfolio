@@ -2,22 +2,26 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
-  --color-primary: #3f6b74;
-  --color-primary-hover: #2f5560;
-  --color-primary-dark: #243138;
-  --color-primary-tint: #eaf0f1;
-  /* Aksen hanya untuk fill CTA; teks di atasnya memakai primary-dark (kontras 4.96). */
+  --color-primary: #2b5b66;
+  --color-primary-hover: #1e444d;
+  --color-primary-dark: #13252c;
+  --color-primary-tint: #e3eff2;
+  /* Aksen hanya untuk fill CTA; teks di atasnya memakai primary-dark. */
   --color-accent: #d98c4a;
-  --color-accent-hover: #e39a5e;
-  --color-bg: #f7f8f7;
+  --color-accent-hover: #c57938;
+  --color-accent-tint: #fdf3e7;
+  --color-bg: #f2f5f7;
+  --color-bg-subtle: #e6edf0;
   --color-surface: #ffffff;
-  --color-text-heading: #243138;
-  --color-text-body: #4a5257;
-  --color-text-muted: #5f686d;
-  --color-border: #e4e7e6;
+  --color-text-heading: #13252c;
+  --color-text-body: #394950;
+  --color-text-muted: #586970;
+  --color-border: #d5dfe3;
+  --color-border-strong: #b8c7ce;
 
-  --font-sans: var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-figtree), ui-sans-serif, system-ui, sans-serif;
   --font-reading: var(--font-literata), Georgia, serif;
+  --font-display: var(--font-literata), Georgia, serif;
 
   --text-display: clamp(2.25rem, 1.6rem + 2.6vw, 3.5rem);
   --text-display--line-height: 1.08;
@@ -26,7 +30,8 @@
   --text-h2--line-height: 1.15;
   --text-h2--letter-spacing: -0.015em;
 
-  --shadow-card: 0 1px 2px rgb(36 49 56 / 0.05), 0 6px 20px -10px rgb(36 49 56 / 0.18);
+  --shadow-card: 0 1px 3px rgb(19 37 44 / 0.06), 0 8px 24px -10px rgb(19 37 44 / 0.08);
+  --shadow-elevated: 0 4px 12px -2px rgb(19 37 44 / 0.08), 0 20px 36px -14px rgb(19 37 44 / 0.14);
 }
 
 /* ============================================================
@@ -131,7 +136,7 @@
   }
 
   .btn-secondary {
-    @apply border border-primary/30 bg-surface text-primary hover:border-primary hover:bg-primary-tint;
+    @apply border border-border-strong bg-surface text-primary hover:border-primary hover:bg-primary-tint;
   }
 
   .btn-sm {
@@ -144,6 +149,15 @@
 
   .link {
     @apply font-semibold text-primary underline decoration-primary/30 underline-offset-4 hover:decoration-primary;
+  }
+
+  /* Kartu klinis: permukaan putih, border tegas, bayangan halus */
+  .card-clinical {
+    @apply rounded-2xl border border-border bg-surface shadow-card transition-[border-color,box-shadow,transform] duration-200;
+  }
+
+  .card-clinical-interactive {
+    @apply hover:border-primary/40 hover:shadow-elevated;
   }
 
   /* Konten artikel/layanan (prose & tabel) */

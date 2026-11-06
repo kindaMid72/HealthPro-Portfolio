@@ -12,7 +12,6 @@ import {
 } from '@/lib/articles';
 import { getAllSiteData } from '@/lib/content';
 import { formatDateId } from '@/lib/format';
-import { ARTICLE_CATEGORIES } from '@/lib/types';
 import { requireUser } from '@/lib/session';
 
 interface PreviewPageProps {
@@ -29,7 +28,6 @@ export default async function AdminArticlePreviewPage({ params }: PreviewPagePro
   }
 
   const { html, toc } = renderArticleContentWithToc(article.content as JSONContent);
-  const categoryLabel = ARTICLE_CATEGORIES[article.category] ?? ARTICLE_CATEGORIES.umum;
   const strSip =
     profile.str_sip_display && !profile.str_sip_display.includes('[BELUM DIISI]')
       ? profile.str_sip_display
@@ -37,7 +35,7 @@ export default async function AdminArticlePreviewPage({ params }: PreviewPagePro
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-amber-300 bg-amber-50 px-5 py-3.5 text-sm text-amber-900">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-amber-300 bg-amber-50 px-5 py-3.5 text-sm text-amber-900 shadow-2xs">
         <div className="flex flex-wrap items-center gap-2">
           <strong className="font-bold">Mode pratinjau admin</strong>
           <span>— status saat ini:</span>
@@ -48,10 +46,9 @@ export default async function AdminArticlePreviewPage({ params }: PreviewPagePro
         </Link>
       </div>
 
-      <article className="rounded-xl border border-border bg-bg p-5 md:p-10">
+      <article className="card-clinical p-5 md:p-10">
         <header className="max-w-3xl">
-          <span className="chip bg-primary-tint text-primary">{categoryLabel}</span>
-          <h1 className="mt-4 text-display font-bold">{article.title || '(Belum Ada Judul)'}</h1>
+          <h1 className="font-display text-display font-semibold">{article.title || '(Belum Ada Judul)'}</h1>
           {article.excerpt && <p className="mt-4 text-xl text-text-body">{article.excerpt}</p>}
           <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-text-muted">
             <span>
@@ -67,7 +64,7 @@ export default async function AdminArticlePreviewPage({ params }: PreviewPagePro
         </header>
 
         {article.coverImageId && (
-          <figure className="mt-8 max-w-4xl overflow-hidden rounded-xl bg-primary-tint">
+          <figure className="mt-8 max-w-4xl overflow-hidden rounded-2xl border border-border bg-primary-tint">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={`/media/${article.coverImageId}`}
