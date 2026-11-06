@@ -9,8 +9,10 @@ import { findAvailableSlug } from '@/lib/articles';
 import { revalidatePublicSite } from '@/lib/revalidate';
 import { requireUser } from '@/lib/session';
 import { toSlug } from '@/lib/slug';
+import { actionErrorMessage } from '@/lib/action-error';
 import { countWords, EMPTY_TIPTAP_DOC } from '@/lib/tiptap';
 import { type ArticleCategory, isValidArticleCategory } from '@/lib/types';
+import { isUuid } from '@/lib/uuid';
 
 export interface ServiceItem {
   id: string;
@@ -50,14 +52,7 @@ async function fetchServicesOrdered(): Promise<ServiceItem[]> {
   }));
 }
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const SLUG_FALLBACK = 'layanan';
-
-/** Pesan aman untuk klien; detail galat (SQL/parameter) hanya masuk log server. */
-function failure(err: unknown, fallback: string): string {
-  console.error('[services/actions]', err);
-  return fallback;
-}
 
 /** Layanan tidak membawa gambar: buang node image dari konten yang dikirim klien. */
 function sanitizeServiceContent(node: JSONContent): JSONContent {
@@ -113,7 +108,7 @@ export async function createServiceAction(input: {
     newId = created.id;
     revalidatePublicSite();
   } catch (err) {
-    return { success: false, error: failure(err, 'Gagal membuat layanan baru.') };
+    return { success: false, error: actionErrorMessage(err, 'Gagal membuat layanan baru.', 'services/actions') };
   }
 
   redirect(`/admin/services/${newId}`);
@@ -139,7 +134,7 @@ export async function saveServiceAction(input: {
     return { success: false, error: 'Nama layanan wajib diisi.' };
   }
 
-  if (!UUID_RE.test(input.id)) {
+  if (!isUuid(input.id)) {
     return { success: false, error: 'Layanan tidak ditemukan.' };
   }
 
@@ -231,7 +226,7 @@ export async function saveServiceAction(input: {
     revalidatePublicSite();
     return { success: true, slug };
   } catch (err) {
-    return { success: false, error: failure(err, 'Gagal menyimpan layanan.') };
+    return { success: false, error: actionErrorMessage(err, 'Gagal menyimpan layanan.', 'services/actions') };
   }
 }
 
@@ -241,7 +236,7 @@ export async function deleteServiceAction(id: string): Promise<{
   items?: ServiceItem[];
 }> {
   await requireUser();
-  if (!UUID_RE.test(id)) return { success: false, error: 'Layanan tidak ditemukan.' };
+  if (!isUuid(id)) return { success: false, error: 'Layanan tidak ditemukan.' };
 
   try {
     const db = getDb();
@@ -262,7 +257,7 @@ export async function deleteServiceAction(id: string): Promise<{
     revalidatePublicSite();
     return { success: true, items: remaining };
   } catch (err) {
-    return { success: false, error: failure(err, 'Gagal menghapus layanan.') };
+    return { success: false, error: actionErrorMessage(err, 'Gagal menghapus layanan.', 'services/actions') };
   }
 }
 
@@ -275,7 +270,7 @@ export async function moveServiceAction(
   items?: ServiceItem[];
 }> {
   await requireUser();
-  if (!UUID_RE.test(id)) return { success: false, error: 'Layanan tidak ditemukan.' };
+  if (!isUuid(id)) return { success: false, error: 'Layanan tidak ditemukan.' };
 
   try {
     const list = await fetchServicesOrdered();
@@ -298,6 +293,6 @@ export async function moveServiceAction(
     const refreshed = await fetchServicesOrdered();
     return { success: true, items: refreshed };
   } catch (err) {
-    return { success: false, error: failure(err, 'Gagal mengubah urutan layanan.') };
+    return { success: false, error: actionErrorMessage(err, 'Gagal mengubah urutan layanan.', 'services/actions') };
   }
 }

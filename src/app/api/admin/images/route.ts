@@ -5,8 +5,7 @@ import {
   MAX_IMAGE_INPUT_BYTES,
   storeImage,
 } from '@/lib/images';
-
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { isUuid } from '@/lib/uuid';
 
 export async function POST(request: Request) {
   const user = await getSessionUser();
@@ -45,7 +44,7 @@ export async function POST(request: Request) {
     const rawArticleId = formData.get('articleId');
     let articleId: string | null = null;
     if (typeof rawArticleId === 'string' && rawArticleId.trim() !== '') {
-      if (!UUID_REGEX.test(rawArticleId.trim())) {
+      if (!isUuid(rawArticleId.trim())) {
         return NextResponse.json(
           { error: 'ID artikel tidak valid' },
           { status: 400 },

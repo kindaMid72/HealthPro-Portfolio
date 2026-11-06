@@ -6,6 +6,8 @@ import { getDb } from '@/db/client';
 import { locations } from '@/db/schema';
 import { revalidatePublicSite } from '@/lib/revalidate';
 import { requireUser } from '@/lib/session';
+import { actionErrorMessage } from '@/lib/action-error';
+import { isUuid } from '@/lib/uuid';
 
 export interface LocationItem {
   id: string;
@@ -48,6 +50,9 @@ export async function saveLocationAction(input: {
   items?: LocationItem[];
 }> {
   await requireUser();
+  if (input.id && !isUuid(input.id)) {
+    return { success: false, error: 'Lokasi tidak ditemukan.' };
+  }
 
   const locationName = input.locationName.trim();
   const address = input.address.trim();
@@ -112,7 +117,7 @@ export async function saveLocationAction(input: {
   } catch (err) {
     return {
       success: false,
-      error: err instanceof Error ? err.message : 'Gagal menyimpan lokasi.',
+      error: actionErrorMessage(err, 'Gagal menyimpan lokasi.', 'locations/actions'),
     };
   }
 }
@@ -123,6 +128,7 @@ export async function deleteLocationAction(id: string): Promise<{
   items?: LocationItem[];
 }> {
   await requireUser();
+  if (!isUuid(id)) return { success: false, error: 'Lokasi tidak ditemukan.' };
   try {
     await getDb().delete(locations).where(eq(locations.id, id));
     revalidatePublicSite();
@@ -131,7 +137,7 @@ export async function deleteLocationAction(id: string): Promise<{
   } catch (err) {
     return {
       success: false,
-      error: err instanceof Error ? err.message : 'Gagal menghapus lokasi.',
+      error: actionErrorMessage(err, 'Gagal menghapus lokasi.', 'locations/actions'),
     };
   }
 }
@@ -145,6 +151,10 @@ export async function moveLocationAction(
   items?: LocationItem[];
 }> {
   await requireUser();
+  if (!isUuid(id)) return { success: false, error: 'Lokasi tidak ditemukan.' };
+  if (direction !== 'up' && direction !== 'down') {
+    return { success: false, error: 'Arah tidak valid.' };
+  }
   try {
     const db = getDb();
     const current = await fetchLocationsOrdered();
@@ -175,7 +185,7 @@ export async function moveLocationAction(
   } catch (err) {
     return {
       success: false,
-      error: err instanceof Error ? err.message : 'Gagal mengubah urutan.',
+      error: actionErrorMessage(err, 'Gagal mengubah urutan.', 'locations/actions'),
     };
   }
 }

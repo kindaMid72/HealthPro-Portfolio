@@ -23,6 +23,7 @@ import {
   type SQL,
 } from 'drizzle-orm';
 import { getDb } from '@/db/client';
+import { UserFacingError } from '@/lib/action-error';
 import {
   articleTranslations,
   articles,
@@ -374,7 +375,7 @@ export async function updateArticle(id: string, params: UpdateArticleParams) {
     .limit(1);
 
   if (!current) {
-    throw new Error('Artikel tidak ditemukan.');
+    throw new UserFacingError('Artikel tidak ditemukan.');
   }
 
   if (params.expectedUpdatedAt) {
@@ -383,7 +384,7 @@ export async function updateArticle(id: string, params: UpdateArticleParams) {
       !Number.isNaN(expectedMs) &&
       Math.abs(current.updatedAt.getTime() - expectedMs) > 1000
     ) {
-      throw new Error(
+      throw new UserFacingError(
         'Artikel sudah diubah di tab/akun lain. Muat ulang halaman sebelum menyimpan.',
       );
     }
@@ -411,7 +412,7 @@ export async function updateArticle(id: string, params: UpdateArticleParams) {
       content: activeContent,
     });
     if (!check.ok) {
-      throw new Error(check.reason);
+      throw new UserFacingError(check.reason ?? 'Artikel belum memenuhi syarat terbit.');
     }
   }
 

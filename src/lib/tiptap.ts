@@ -3,7 +3,12 @@ import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import { TableKit } from '@tiptap/extension-table/kit';
 
-export type ArticleStatus = 'draft' | 'in_review' | 'published';
+export const ARTICLE_STATUSES = ['draft', 'in_review', 'published'] as const;
+export type ArticleStatus = (typeof ARTICLE_STATUSES)[number];
+
+export function isArticleStatus(val: unknown): val is ArticleStatus {
+  return typeof val === 'string' && (ARTICLE_STATUSES as readonly string[]).includes(val);
+}
 
 export const EMPTY_TIPTAP_DOC: JSONContent = {
   type: 'doc',

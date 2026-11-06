@@ -7,6 +7,7 @@ import { profile, profileTranslations } from '@/db/schema';
 import { deleteImageIfUnused } from '@/lib/images';
 import { revalidatePublicSite } from '@/lib/revalidate';
 import { requireUser } from '@/lib/session';
+import { actionErrorMessage } from '@/lib/action-error';
 
 export interface ProfileTranslationInput {
   specialty: string;
@@ -171,7 +172,7 @@ export async function saveProfileAction(
   } catch (err) {
     return {
       success: false,
-      error: err instanceof Error ? err.message : 'Gagal menyimpan profil.',
+      error: actionErrorMessage(err, 'Gagal menyimpan profil.', 'profile/actions'),
     };
   }
 }

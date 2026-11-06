@@ -8,14 +8,13 @@ import {
 } from '@/db/schema';
 import { requireUser } from '@/lib/session';
 import { EMPTY_TIPTAP_DOC } from '@/lib/tiptap';
+import { isUuid } from '@/lib/uuid';
 import ServiceEditor from './ServiceEditor';
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default async function AdminServiceEditPage({ params }: { params: Promise<{ id: string }> }) {
   await requireUser();
   const { id } = await params;
-  if (!UUID_RE.test(id)) notFound();
+  if (!isUuid(id)) notFound();
 
   const db = getDb();
   const [[row], [enRow]] = await Promise.all([

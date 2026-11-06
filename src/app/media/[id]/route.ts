@@ -1,14 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getImageById } from '@/lib/images';
-
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { isUuid } from '@/lib/uuid';
 
 export async function GET(
   _req: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
-  if (!UUID_REGEX.test(id)) {
+  if (!isUuid(id)) {
     return new NextResponse('Not found', { status: 404 });
   }
 

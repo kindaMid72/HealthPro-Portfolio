@@ -9,7 +9,10 @@ import {
   updateArticle,
 } from '@/lib/articles';
 import { requireUser } from '@/lib/session';
-import type { ArticleCategory } from '@/lib/types';
+import { actionErrorMessage } from '@/lib/action-error';
+import { isArticleStatus } from '@/lib/tiptap';
+import { type ArticleCategory, isValidArticleCategory } from '@/lib/types';
+import { isUuid } from '@/lib/uuid';
 
 export async function createArticleAction(): Promise<void> {
   const user = await requireUser();
@@ -49,6 +52,15 @@ export async function saveArticleAction(input: SaveArticleInput): Promise<{
   };
 }> {
   const user = await requireUser();
+  if (!isUuid(input.id)) {
+    return { success: false, error: 'Artikel tidak ditemukan.' };
+  }
+  if (!isValidArticleCategory(input.category)) {
+    return { success: false, error: 'Kategori tidak valid.' };
+  }
+  if (!isArticleStatus(input.status)) {
+    return { success: false, error: 'Status tidak valid.' };
+  }
 
   // Pastikan konten berupa JSON polos sebelum menyentuh DB. Kalau klien
   // mengirim objek yang tidak bisa diserialisasi (mis. temporary reference),
@@ -113,7 +125,7 @@ export async function saveArticleAction(input: SaveArticleInput): Promise<{
   } catch (err) {
     return {
       success: false,
-      error: err instanceof Error ? err.message : 'Gagal menyimpan artikel.',
+      error: actionErrorMessage(err, 'Gagal menyimpan artikel.', 'articles/actions'),
     };
   }
 }
@@ -124,6 +136,12 @@ export async function updateArticleStatusAction(
   reviewNote?: string,
 ): Promise<{ success: boolean; error?: string }> {
   const user = await requireUser();
+  if (!isUuid(id)) {
+    return { success: false, error: 'Artikel tidak ditemukan.' };
+  }
+  if (!isArticleStatus(status)) {
+    return { success: false, error: 'Status tidak valid.' };
+  }
 
   try {
     await updateArticle(id, {
@@ -135,14 +153,14 @@ export async function updateArticleStatusAction(
   } catch (err) {
     return {
       success: false,
-      error:
-        err instanceof Error ? err.message : 'Gagal memperbarui status artikel.',
+      error: actionErrorMessage(err, 'Gagal memperbarui status artikel.', 'articles/actions'),
     };
   }
 }
 
 export async function deleteArticleAction(id: string): Promise<void> {
   await requireUser();
+  if (!isUuid(id)) return;
   await deleteArticle(id);
   redirect('/admin/articles');
 }
