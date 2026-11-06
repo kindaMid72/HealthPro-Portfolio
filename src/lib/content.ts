@@ -449,7 +449,7 @@ const publishedAtExpr = sql`COALESCE(${articlesTable.publishedAt}, ${articlesTab
 
 function effectiveTitleExpr(isEn: boolean): SQL {
   return isEn
-    ? sql`COALESCE(NULLIF(${articleTranslationsTable.title}, ''), ${articlesTable.title})`
+    ? sql`CASE WHEN btrim(${articleTranslationsTable.title}) <> '' THEN ${articleTranslationsTable.title} ELSE ${articlesTable.title} END`
     : sql`${articlesTable.title}`;
 }
 
