@@ -35,7 +35,7 @@ export default function AboutSection({ profile, dict }: AboutSectionProps) {
     <section
       id="tentang"
       aria-labelledby="tentang-heading"
-      className="section-spacing border-t border-border bg-bg px-4 md:px-6"
+      className="section-spacing border-t border-border bg-surface px-4 md:px-6"
     >
       <div className="mx-auto max-w-6xl">
         <SectionHeading id="tentang-heading" title={title} />

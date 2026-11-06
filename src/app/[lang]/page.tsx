@@ -65,7 +65,12 @@ export default async function Home({ params }: HomePageProps) {
       <ServicesSection services={services} locale={locale} dict={dict} />
       <AboutSection profile={profile} dict={dict} />
       <ArticlesSection articles={articles} locale={locale} dict={dict} />
-      <ContactSection profile={profile} locations={locations} dict={dict} />
+      <ContactSection
+        profile={profile}
+        locations={locations}
+        dict={dict}
+        surface={articles.length > 0}
+      />
     </SiteShell>
   );
 }

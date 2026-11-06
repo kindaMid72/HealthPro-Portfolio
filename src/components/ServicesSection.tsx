@@ -62,7 +62,7 @@ export default function ServicesSection({
     <section
       id="layanan"
       aria-labelledby="layanan-heading"
-      className="section-spacing border-t border-border bg-surface px-4 md:px-6"
+      className="section-spacing border-t border-border bg-bg px-4 md:px-6"
     >
       <div className="mx-auto max-w-6xl">
         <SectionHeading

@@ -69,12 +69,14 @@ interface ContactSectionProps {
   profile: Profile;
   locations: Location[];
   dict: Dictionary;
+  surface?: boolean;
 }
 
 export default function ContactSection({
   profile,
   locations,
   dict,
+  surface = true,
 }: ContactSectionProps) {
   const locationsWithContact = locations.filter((l) => l.whatsapp || l.phone);
   const socials = parseSocialLinks(profile.social_links);
@@ -84,7 +86,9 @@ export default function ContactSection({
     <section
       id="kontak"
       aria-labelledby="kontak-heading"
-      className="section-spacing border-t border-border bg-bg px-4 md:px-6"
+      className={`section-spacing border-t border-border px-4 md:px-6 ${
+        surface ? 'bg-surface' : 'bg-bg'
+      }`}
     >
       <div className="mx-auto max-w-6xl">
         <SectionHeading
