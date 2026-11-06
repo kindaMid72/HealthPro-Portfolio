@@ -42,8 +42,13 @@
     "@types/react-dom": "^19",
     "drizzle-kit": "^0.31.11",
     "eslint": "^9",
-    "eslint-config-next": "^15.5.29",
+    "eslint-config-next": "^16",
     "tsx": "^4.23.15",
     "typescript": "^5"
+  },
+  "overrides": {
+    "@esbuild-kit/core-utils": {
+      "esbuild": "^0.25.0"
+    }
   }
 }
