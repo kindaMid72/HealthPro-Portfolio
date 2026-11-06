@@ -29,7 +29,7 @@ Website profil resmi dokter spesialis THT-BKL, dilengkapi **Portal Artikel Eduka
 4. **Seed data awal (dari Google Sheets CSV atau fallback JSON lokal) & buat akun admin**:
    ```bash
    npm run db:import-sheets
-   USER_PASSWORD='password-aman-123' npm run user:create -- admin@dryuliana.my.id "dr. Yuliana, Sp.THTBKL"
+   USER_PASSWORD="$(openssl rand -base64 24 | tee /dev/stderr)" npm run user:create -- admin@example.com "Nama Admin"
    ```
 5. **Jalankan server development**:
    ```bash
