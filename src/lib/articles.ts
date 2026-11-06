@@ -27,6 +27,7 @@ import { getDb } from '@/db/client';
 import { UserFacingError } from '@/lib/action-error';
 import {
   articleTranslations,
+  articleViews,
   articles,
   images,
   locations,
@@ -578,14 +579,39 @@ export async function deleteArticle(id: string): Promise<void> {
 
 export async function incrementArticleViewCount(
   slug: string,
-): Promise<number | null> {
-  const [updated] = await getDb()
-    .update(articles)
-    .set({ viewCount: sql`${articles.viewCount} + 1` })
-    .where(and(eq(articles.slug, slug), eq(articles.status, 'published')))
-    .returning({ viewCount: articles.viewCount });
+  bucket: number,
+  day: string,
+): Promise<{ counted: boolean; viewCount: number } | null> {
+  return getDb().transaction(async (tx) => {
+    const [article] = await tx
+      .select({ id: articles.id, viewCount: articles.viewCount })
+      .from(articles)
+      .where(and(eq(articles.slug, slug), eq(articles.status, 'published')))
+      .limit(1);
+    if (!article) return null;
 
-  return updated?.viewCount ?? null;
+    // Dedupe: satu bucket pengunjung per artikel per hari hanya dihitung sekali.
+    const inserted = await tx
+      .insert(articleViews)
+      .values({ day, articleId: article.id, visitorBucket: bucket })
+      .onConflictDoNothing()
+      .returning({ visitorBucket: articleViews.visitorBucket });
+
+    if (inserted.length === 0) {
+      return { counted: false, viewCount: article.viewCount };
+    }
+
+    const [updated] = await tx
+      .update(articles)
+      .set({ viewCount: sql`${articles.viewCount} + 1` })
+      .where(eq(articles.id, article.id))
+      .returning({ viewCount: articles.viewCount });
+
+    // Simpan hanya baris hari ini; baris hari sebelumnya tidak diperlukan lagi.
+    await tx.delete(articleViews).where(sql`${articleViews.day} < ${day}::date`);
+
+    return { counted: true, viewCount: updated.viewCount };
+  });
 }
 
 export async function getArticleViewCount(slug: string): Promise<number | null> {
