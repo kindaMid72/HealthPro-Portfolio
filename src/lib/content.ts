@@ -29,6 +29,14 @@ import {
 import type { Locale } from '@/i18n/config';
 import { getDictionaryFor } from '@/i18n/dictionary';
 import {
+  type ArticleListFilters,
+  type ArticleOrder,
+  type ArticleSort,
+  DEFAULT_SORT,
+  defaultOrderFor,
+  READING_TIME_RANGES,
+} from './article-filters';
+import {
   buildAutoExcerpt,
   escapeLike,
   renderArticleContentWithToc,
@@ -437,14 +445,42 @@ export interface PaginatedArticlesResult {
   currentPage: number;
 }
 
+const publishedAtExpr = sql`COALESCE(${articlesTable.publishedAt}, ${articlesTable.updatedAt})`;
+
+function effectiveTitleExpr(isEn: boolean): SQL {
+  return isEn
+    ? sql`COALESCE(NULLIF(${articleTranslationsTable.title}, ''), ${articlesTable.title})`
+    : sql`${articlesTable.title}`;
+}
+
+function effectiveReadingExpr(isEn: boolean): SQL {
+  return isEn
+    ? sql`CASE WHEN btrim(${articleTranslationsTable.title}) <> '' THEN ${articleTranslationsTable.readingTimeMinutes} ELSE ${articlesTable.readingTimeMinutes} END`
+    : sql`${articlesTable.readingTimeMinutes}`;
+}
+
+function buildArticleOrderBy(sort: ArticleSort, order: ArticleOrder, isEn: boolean): SQL[] {
+  const dir = order === 'asc' ? asc : desc;
+  switch (sort) {
+    case 'populer':
+      return [dir(articlesTable.viewCount), desc(publishedAtExpr), asc(articlesTable.id)];
+    case 'judul':
+      return [dir(sql`lower(${effectiveTitleExpr(isEn)})`), asc(articlesTable.id)];
+    case 'baca':
+      return [dir(effectiveReadingExpr(isEn)), desc(publishedAtExpr), asc(articlesTable.id)];
+    default:
+      return [dir(publishedAtExpr), asc(articlesTable.id)];
+  }
+}
+
 export const getPaginatedArticles = cache(
-  async (options?: {
-    page?: number;
-    limit?: number;
-    category?: ArticleCategory;
-    query?: string;
-    locale?: Locale;
-  }): Promise<PaginatedArticlesResult> => {
+  async (
+    options?: {
+      page?: number;
+      limit?: number;
+      locale?: Locale;
+    } & Partial<Pick<ArticleListFilters, 'category' | 'query' | 'sort' | 'order' | 'reading' | 'from' | 'to'>>,
+  ): Promise<PaginatedArticlesResult> => {
     const page = Math.max(1, options?.page ?? 1);
     const limit = Math.max(1, options?.limit ?? PAGE_SIZE);
     const offset = (page - 1) * limit;
@@ -454,6 +490,8 @@ export const getPaginatedArticles = cache(
       const db = getDb();
       const dict = await getDictionaryFor(locale);
       const isEn = locale === 'en';
+      const sort = options?.sort ?? DEFAULT_SORT;
+      const order = options?.order ?? defaultOrderFor(sort);
       const conditions: SQL[] = [eq(articlesTable.status, 'published')];
 
       if (options?.category && isValidArticleCategory(options.category)) {
@@ -464,7 +502,7 @@ export const getPaginatedArticles = cache(
       if (q) {
         const escaped = escapeLike(q);
         if (isEn) {
-          const effectiveTitle = sql`COALESCE(NULLIF(${articleTranslationsTable.title}, ''), ${articlesTable.title})`;
+          const effectiveTitle = effectiveTitleExpr(isEn);
           const effectiveExcerpt = sql`COALESCE(NULLIF(${articleTranslationsTable.excerpt}, ''), ${articlesTable.excerpt})`;
           const searchCond = or(
             ilike(effectiveTitle, `%${escaped}%`),
@@ -478,6 +516,26 @@ export const getPaginatedArticles = cache(
           );
           if (searchCond) conditions.push(searchCond);
         }
+      }
+
+      if (options?.reading) {
+        const range = READING_TIME_RANGES[options.reading];
+        const readingExpr = effectiveReadingExpr(isEn);
+        if (range.min !== undefined) conditions.push(sql<boolean>`${readingExpr} >= ${range.min}`);
+        if (range.max !== undefined) conditions.push(sql<boolean>`${readingExpr} <= ${range.max}`);
+      }
+
+      if (options?.from) {
+        conditions.push(
+          sql<boolean>`${publishedAtExpr} >= ${`${options.from}T00:00:00+08:00`}::timestamptz`,
+        );
+      }
+
+      if (options?.to) {
+        const endIso = new Date(
+          Date.parse(`${options.to}T00:00:00+08:00`) + 86_400_000,
+        ).toISOString();
+        conditions.push(sql<boolean>`${publishedAtExpr} < ${endIso}::timestamptz`);
       }
 
       const whereClause = and(...conditions);
@@ -524,7 +582,7 @@ export const getPaginatedArticles = cache(
             ),
           )
           .where(whereClause)
-          .orderBy(desc(articlesTable.publishedAt), desc(articlesTable.updatedAt))
+          .orderBy(...buildArticleOrderBy(sort, order, isEn))
           .limit(limit)
           .offset(offset),
       ]);

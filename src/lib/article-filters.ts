@@ -47,8 +47,8 @@ function first(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function isOneOf<T extends string>(values: readonly T[], value: string | undefined): value is T {
-  return value !== undefined && (values as readonly string[]).includes(value);
+function isOneOf<T extends string | number>(values: readonly T[], value: unknown): value is T {
+  return (values as readonly unknown[]).includes(value);
 }
 
 function parseDay(value: string | undefined): string | undefined {
@@ -82,9 +82,7 @@ export function parseArticleFilters(raw: RawSearchParams): ArticleListFilters {
   }
 
   const perRaw = Number(first(raw.per));
-  const perPage: PerPage = isOneOf(PER_PAGE_OPTIONS, perRaw as PerPage | undefined)
-    ? (perRaw as PerPage)
-    : DEFAULT_PER_PAGE;
+  const perPage: PerPage = isOneOf(PER_PAGE_OPTIONS, perRaw) ? perRaw : DEFAULT_PER_PAGE;
 
   return { category, query, sort, order, reading, from, to, perPage };
 }
