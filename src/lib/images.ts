@@ -2,6 +2,7 @@ import sharp from 'sharp';
 import { and, eq, isNull } from 'drizzle-orm';
 import { getDb } from '@/db/client';
 import { articles, images, profile } from '@/db/schema';
+import { UserFacingError } from '@/lib/action-error';
 
 export const MAX_IMAGE_INPUT_BYTES = 10 * 1024 * 1024; // 10 MB
 export const ALLOWED_IMAGE_MIMES = [
@@ -28,7 +29,13 @@ export async function compressImage(
   const maxHeight = options?.maxHeight ?? 1600;
   const quality = options?.quality ?? 80;
 
-  const { data, info } = await sharp(input)
+  const img = sharp(input, { limitInputPixels: 50_000_000, failOn: 'error' });
+  const { format } = await img.metadata();
+  if (!format || !['jpeg', 'png', 'webp', 'gif', 'heif'].includes(format)) {
+    throw new UserFacingError('Format gambar tidak didukung.');
+  }
+
+  const { data, info } = await img
     .rotate()
     .resize({
       width: maxWidth,

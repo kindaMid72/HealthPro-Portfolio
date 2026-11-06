@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { UserFacingError } from '@/lib/action-error';
 import { getSessionUser } from '@/lib/session';
 import {
   ALLOWED_IMAGE_MIMES,
@@ -7,12 +8,43 @@ import {
 } from '@/lib/images';
 import { isUuid } from '@/lib/uuid';
 
+// Ruang untuk envelope multipart di sekitar berkas gambar.
+const MULTIPART_OVERHEAD_BYTES = 64 * 1024;
+
 export async function POST(request: Request) {
   const user = await getSessionUser();
   if (!user) {
     return NextResponse.json(
       { error: 'Tidak terautentikasi' },
       { status: 401 },
+    );
+  }
+
+  // Tolak permintaan lintas-origin: Origin harus sama dengan Host.
+  const origin = request.headers.get('origin');
+  if (origin) {
+    let sameOrigin = false;
+    try {
+      sameOrigin = new URL(origin).host === request.headers.get('host');
+    } catch {
+      sameOrigin = false;
+    }
+    if (!sameOrigin) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    }
+  }
+
+  // Tolak body besar sebelum formData() membuffernya ke memori. Tanpa
+  // content-length yang valid permintaan ditolak, agar tidak ada jalur tanpa batas.
+  const rawLength = request.headers.get('content-length');
+  const contentLength = rawLength === null ? Number.NaN : Number(rawLength);
+  if (
+    !Number.isFinite(contentLength) ||
+    contentLength > MAX_IMAGE_INPUT_BYTES + MULTIPART_OVERHEAD_BYTES
+  ) {
+    return NextResponse.json(
+      { error: 'Ukuran gambar maksimal 10 MB' },
+      { status: 413 },
     );
   }
 
@@ -62,7 +94,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json(result, { status: 201 });
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Gagal memproses gambar';
-    return NextResponse.json({ error: message }, { status: 500 });
+    if (err instanceof UserFacingError) {
+      return NextResponse.json({ error: err.message }, { status: 400 });
+    }
+    console.error('[api/admin/images]', err);
+    return NextResponse.json({ error: 'Gagal memproses gambar' }, { status: 500 });
   }
 }

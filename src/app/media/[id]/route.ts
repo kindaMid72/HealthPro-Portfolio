@@ -22,6 +22,9 @@ export async function GET(
       'Content-Type': image.mimeType,
       'Content-Length': String(image.byteSize),
       'Cache-Control': 'public, max-age=31536000, immutable',
+      'X-Content-Type-Options': 'nosniff',
+      'Content-Security-Policy': "default-src 'none'; sandbox",
+      'Content-Disposition': 'inline',
     },
   });
 }
