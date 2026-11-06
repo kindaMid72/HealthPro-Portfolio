@@ -10,7 +10,7 @@ import { revalidatePublicSite } from '@/lib/revalidate';
 import { requireUser } from '@/lib/session';
 import { toSlug } from '@/lib/slug';
 import { actionErrorMessage } from '@/lib/action-error';
-import { countWords, EMPTY_TIPTAP_DOC } from '@/lib/tiptap';
+import { countWords, EMPTY_TIPTAP_DOC, normalizeTiptapDoc } from '@/lib/tiptap';
 import { type ArticleCategory, isValidArticleCategory } from '@/lib/types';
 import { isUuid } from '@/lib/uuid';
 
@@ -145,7 +145,7 @@ export async function saveServiceAction(input: {
   } catch {
     parsed = null;
   }
-  const content = parsed && parsed.type === 'doc' ? sanitizeServiceContent(parsed) : EMPTY_TIPTAP_DOC;
+  const content = parsed && parsed.type === 'doc' ? normalizeTiptapDoc(sanitizeServiceContent(parsed)) : EMPTY_TIPTAP_DOC;
   const category = isValidArticleCategory(input.category ?? undefined) ? input.category : null;
 
   try {
@@ -181,7 +181,7 @@ export async function saveServiceAction(input: {
       }
       const enContent =
         parsedEn && parsedEn.type === 'doc'
-          ? sanitizeServiceContent(parsedEn)
+          ? normalizeTiptapDoc(sanitizeServiceContent(parsedEn))
           : EMPTY_TIPTAP_DOC;
       const enServiceName = input.en.serviceName.trim();
       const enServiceDescription = input.en.serviceDescription.trim();

@@ -7,6 +7,7 @@ import {
   EMPTY_TIPTAP_DOC,
   extractPlainText,
   getArticleTiptapExtensions,
+  normalizeTiptapDoc,
 } from './tiptap';
 import { renderToHTMLString } from '@tiptap/static-renderer/pm/html-string';
 import {
@@ -114,7 +115,7 @@ export function renderArticleContentWithToc(
   content: JSONContent | null | undefined,
 ): { html: string; toc: TocItem[]; wordCount: number } {
   const safeContent =
-    content && content.type === 'doc' ? content : EMPTY_TIPTAP_DOC;
+    content && content.type === 'doc' ? normalizeTiptapDoc(content) : EMPTY_TIPTAP_DOC;
 
   let rawHtml = '';
   try {

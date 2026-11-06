@@ -117,7 +117,7 @@ export default function RichTextEditor({
 
   function saveLink() {
     const url = linkUrl.trim();
-    if (!/^https?:\/\//i.test(url) && !url.startsWith('/')) {
+    if (!/^https?:\/\//i.test(url) && !/^\/(?!\/)/.test(url)) {
       setLinkError('Gunakan URL yang diawali https:// atau /');
       return;
     }

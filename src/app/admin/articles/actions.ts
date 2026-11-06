@@ -10,7 +10,7 @@ import {
 } from '@/lib/articles';
 import { requireUser } from '@/lib/session';
 import { actionErrorMessage } from '@/lib/action-error';
-import { isArticleStatus } from '@/lib/tiptap';
+import { isArticleStatus, normalizeTiptapDoc } from '@/lib/tiptap';
 import { type ArticleCategory, isValidArticleCategory } from '@/lib/types';
 import { isUuid } from '@/lib/uuid';
 
@@ -71,6 +71,7 @@ export async function saveArticleAction(input: SaveArticleInput): Promise<{
     if (!content || content.type !== 'doc') {
       throw new Error('invalid doc');
     }
+    content = normalizeTiptapDoc(content);
   } catch {
     return {
       success: false,
@@ -85,6 +86,7 @@ export async function saveArticleAction(input: SaveArticleInput): Promise<{
       if (!enContent || enContent.type !== 'doc') {
         throw new Error('invalid en doc');
       }
+      enContent = normalizeTiptapDoc(enContent);
     } catch {
       enContent = { type: 'doc', content: [{ type: 'paragraph' }] };
     }
