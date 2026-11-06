@@ -93,13 +93,6 @@ export const ARTICLE_CATEGORY_VALUES: ArticleCategory[] = [
   'umum',
 ];
 
-export const ARTICLE_CATEGORIES: Record<ArticleCategory, string> = {
-  telinga: 'Telinga & Pendengaran',
-  hidung: 'Hidung & Sinus',
-  tenggorok: 'Tenggorok & Suara',
-  'kepala-leher': 'Bedah Kepala & Leher',
-  umum: 'Edukasi THT Umum',
-};
 
 export function isValidArticleCategory(val: string | undefined): val is ArticleCategory {
   return !!val && (ARTICLE_CATEGORY_VALUES as string[]).includes(val);
@@ -114,12 +107,14 @@ export interface TocItem {
 /** Layanan untuk tampilan publik (sudah difilter & dilengkapi slug/detail). */
 export interface PublicService {
   service_name: string;
+  nameId: string;
   /** Kosong bila deskripsi belum layak tampil (placeholder / terlalu pendek). */
   service_description: string;
   slug: string;
   category: ArticleCategory | null;
   /** true bila konten rich-text terisi → halaman /layanan/[slug] tersedia. */
   hasDetail: boolean;
+  translated: boolean;
 }
 
 export interface PublicServiceDetail extends PublicService {
@@ -142,6 +137,7 @@ export interface PublicArticleSummary {
   authorName: string;
   publishedAt: Date;
   updatedAt: Date;
+  translated: boolean;
 }
 
 export interface PublicArticleDetail extends PublicArticleSummary {

@@ -6,7 +6,7 @@ import Alert from '@/components/admin/Alert';
 import { Button } from '@/components/admin/Button';
 import Card from '@/components/admin/Card';
 import { TextField } from '@/components/admin/Field';
-import { formatDateShortId } from '@/lib/format';
+import { formatDateShort } from '@/lib/format';
 import type { SessionUser } from '@/lib/session';
 import {
   createAdminAccountAction,
@@ -207,7 +207,7 @@ export default function AccountManager({
                       )}
                     </p>
                     <p className="break-all text-text-muted">
-                      {acc.email} • Dibuat {formatDateShortId(acc.createdAt)}
+                      {acc.email} • Dibuat {formatDateShort(acc.createdAt, 'id')}
                     </p>
                   </div>
                 </div>

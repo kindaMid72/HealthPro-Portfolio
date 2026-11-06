@@ -1,30 +1,52 @@
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { ChevronRight, Menu, X } from "lucide-react";
-import { NAV_LINKS } from "@/lib/nav";
-import NavCta from "./NavCta";
+import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { ChevronRight, Menu, X } from 'lucide-react';
+import type { Locale } from '@/i18n/config';
+import LanguageSwitcher from './LanguageSwitcher';
+import NavCta, { type NavCtaLabels } from './NavCta';
 
 interface MobileMenuProps {
   bookingUrl: string | null;
   whatsappFallback: string | null;
+  locale: Locale;
+  links: { href: string; label: string }[];
+  menuOpenLabel: string;
+  menuCloseLabel: string;
+  ctaLabels: NavCtaLabels;
+  languageSwitcherLabels: {
+    label: string;
+    id: string;
+    en: string;
+    idAria: string;
+    enAria: string;
+  };
 }
 
-export default function MobileMenu({ bookingUrl, whatsappFallback }: MobileMenuProps) {
+export default function MobileMenu({
+  bookingUrl,
+  whatsappFallback,
+  locale,
+  links,
+  menuOpenLabel,
+  menuCloseLabel,
+  ctaLabels,
+  languageSwitcherLabels,
+}: MobileMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
+      if (e.key === 'Escape') {
         setIsOpen(false);
         toggleRef.current?.focus();
       }
     };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
   }, [isOpen]);
 
   return (
@@ -34,7 +56,7 @@ export default function MobileMenu({ bookingUrl, whatsappFallback }: MobileMenuP
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         className="flex h-11 w-11 items-center justify-center rounded-lg text-primary hover:bg-primary-tint"
-        aria-label={isOpen ? "Tutup menu" : "Buka menu"}
+        aria-label={isOpen ? menuCloseLabel : menuOpenLabel}
         aria-controls="mobile-menu"
         aria-expanded={isOpen}
       >
@@ -54,8 +76,15 @@ export default function MobileMenu({ bookingUrl, whatsappFallback }: MobileMenuP
             id="mobile-menu"
             className="absolute inset-x-0 top-full z-50 border-b border-border bg-surface px-4 pb-5 pt-3 shadow-elevated"
           >
+            <div className="mb-3 flex items-center justify-between border-b border-border pb-3">
+              <span className="text-xs font-semibold text-text-muted">
+                {languageSwitcherLabels.label}
+              </span>
+              <LanguageSwitcher locale={locale} labels={languageSwitcherLabels} />
+            </div>
+
             <ul className="flex flex-col gap-1">
-              {NAV_LINKS.map(({ href, label }) => (
+              {links.map(({ href, label }) => (
                 <li key={href}>
                   <Link
                     href={href}
@@ -68,9 +97,12 @@ export default function MobileMenu({ bookingUrl, whatsappFallback }: MobileMenuP
                 </li>
               ))}
             </ul>
+
             <NavCta
               bookingUrl={bookingUrl}
               whatsappFallback={whatsappFallback}
+              locale={locale}
+              labels={ctaLabels}
               size="md"
               className="mt-3 w-full"
             />

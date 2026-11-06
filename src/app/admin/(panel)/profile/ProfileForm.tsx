@@ -8,6 +8,7 @@ import { Button } from '@/components/admin/Button';
 import Card from '@/components/admin/Card';
 import { TextAreaField, TextField } from '@/components/admin/Field';
 import {
+  type ProfileTranslationInput,
   type SaveProfileInput,
   saveProfileAction,
 } from '../../profile/actions';
@@ -102,6 +103,25 @@ export default function ProfileForm({
     val: SaveProfileInput[K],
   ) {
     setForm((prev) => ({ ...prev, [key]: val }));
+  }
+
+  function updateEnField<K extends keyof ProfileTranslationInput>(
+    key: K,
+    val: string,
+  ) {
+    setForm((prev) => ({
+      ...prev,
+      en: {
+        specialty: prev.en?.specialty ?? '',
+        subSpecialty: prev.en?.subSpecialty ?? '',
+        education: prev.en?.education ?? '',
+        certifications: prev.en?.certifications ?? '',
+        experienceHistory: prev.en?.experienceHistory ?? '',
+        organizations: prev.en?.organizations ?? '',
+        personalStory: prev.en?.personalStory ?? '',
+        [key]: val,
+      },
+    }));
   }
 
   async function handlePhotoUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -240,7 +260,7 @@ export default function ProfileForm({
         </div>
 
         <div className="space-y-6 lg:col-span-8">
-          <Card title="Identitas">
+          <Card title="Identitas (Bahasa Indonesia)">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <TextField
                 label="Nama lengkap & gelar"
@@ -268,7 +288,7 @@ export default function ProfileForm({
             </div>
           </Card>
 
-          <Card title="Pengantar" description="Tampil di bagian Tentang pada beranda.">
+          <Card title="Pengantar (Bahasa Indonesia)" description="Tampil di bagian Tentang pada beranda.">
             <TextAreaField
               label="Biografi singkat / pengantar pelayanan"
               rows={3}
@@ -278,7 +298,7 @@ export default function ProfileForm({
             />
           </Card>
 
-          <Card title="Riwayat & kredensial" description={LIST_HINT}>
+          <Card title="Riwayat & kredensial (Bahasa Indonesia)" description={LIST_HINT}>
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
               <CredentialListField
                 label="Riwayat pendidikan"
@@ -304,6 +324,64 @@ export default function ProfileForm({
                 value={form.organizations}
                 onChange={(v) => updateField('organizations', v)}
               />
+            </div>
+          </Card>
+
+          {/* Versi Bahasa Inggris (opsional) */}
+          <Card
+            title="Versi Bahasa Inggris (opsional)"
+            description="Field yang dikosongkan akan otomatis memakai nilai Bahasa Indonesia di situs publik /en."
+          >
+            <div className="space-y-5">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <TextField
+                  label="Specialty (English)"
+                  value={form.en?.specialty ?? ''}
+                  onChange={(e) => updateEnField('specialty', e.target.value)}
+                  placeholder="e.g. Ear, Nose, Throat Specialist (ENT)"
+                />
+                <TextField
+                  label="Sub-specialty (English)"
+                  value={form.en?.subSpecialty ?? ''}
+                  onChange={(e) => updateEnField('subSpecialty', e.target.value)}
+                  placeholder="e.g. Otology & Neurotology"
+                />
+              </div>
+
+              <TextAreaField
+                label="Introduction / Bio (English)"
+                rows={3}
+                value={form.en?.personalStory ?? ''}
+                onChange={(e) => updateEnField('personalStory', e.target.value)}
+                placeholder="Brief introduction in English..."
+              />
+
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <CredentialListField
+                  label="Education (English)"
+                  rows={4}
+                  value={form.en?.education ?? ''}
+                  onChange={(v) => updateEnField('education', v)}
+                />
+                <CredentialListField
+                  label="Clinical Experience (English)"
+                  rows={4}
+                  value={form.en?.experienceHistory ?? ''}
+                  onChange={(v) => updateEnField('experienceHistory', v)}
+                />
+                <CredentialListField
+                  label="Certifications & Training (English)"
+                  rows={3}
+                  value={form.en?.certifications ?? ''}
+                  onChange={(v) => updateEnField('certifications', v)}
+                />
+                <CredentialListField
+                  label="Professional Organizations (English)"
+                  rows={3}
+                  value={form.en?.organizations ?? ''}
+                  onChange={(v) => updateEnField('organizations', v)}
+                />
+              </div>
             </div>
           </Card>
         </div>

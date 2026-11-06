@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { JSONContent } from '@tiptap/core';
 import { useEditor } from '@tiptap/react';
-import { Check, ExternalLink, ImagePlus } from 'lucide-react';
+import { ExternalLink, ImagePlus } from 'lucide-react';
 import Alert from '@/components/admin/Alert';
 import { Button, buttonClassName } from '@/components/admin/Button';
 import Card from '@/components/admin/Card';
@@ -13,18 +13,16 @@ import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import { SelectField, TextAreaField, TextField } from '@/components/admin/Field';
 import RichTextEditor, { RICH_TEXT_EDITOR_CLASS } from '@/components/admin/RichTextEditor';
 import StatusBadge, { ARTICLE_STATUS_META } from '@/components/admin/StatusBadge';
+import { id as idDictionary } from '@/i18n/dictionaries/id';
 import { toSlug } from '@/lib/slug';
 import {
   type ArticleStatus,
   calculateReadingTimeMinutes,
   countWords,
+  EMPTY_TIPTAP_DOC,
   getArticleTiptapExtensions,
 } from '@/lib/tiptap';
-import {
-  ARTICLE_CATEGORIES,
-  ARTICLE_CATEGORY_VALUES,
-  type ArticleCategory,
-} from '@/lib/types';
+import { ARTICLE_CATEGORY_VALUES, type ArticleCategory } from '@/lib/types';
 import {
   deleteArticleAction,
   saveArticleAction,
@@ -46,6 +44,12 @@ export interface EditableArticle {
   authorName: string;
   updatedAt: string;
   publishedAt: string | null;
+  en?: {
+    title: string;
+    excerpt: string;
+    coverAlt: string;
+    content: JSONContent;
+  };
 }
 
 const PUBLISH_STEPS: ArticleStatus[] = ['draft', 'in_review', 'published'];
@@ -56,6 +60,8 @@ export default function ArticleEditor({
   initialArticle: EditableArticle;
 }) {
   const router = useRouter();
+  const [editLang, setEditLang] = useState<'id' | 'en'>('id');
+
   const [title, setTitle] = useState(initialArticle.title);
   const [slug, setSlug] = useState(initialArticle.slug);
   const [excerpt, setExcerpt] = useState(initialArticle.excerpt);
@@ -70,12 +76,25 @@ export default function ArticleEditor({
   const [reviewNote, setReviewNote] = useState(initialArticle.reviewNote);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(initialArticle.updatedAt);
 
+  // Field versi bahasa Inggris (opsional)
+  const [enTitle, setEnTitle] = useState(initialArticle.en?.title ?? '');
+  const [enExcerpt, setEnExcerpt] = useState(initialArticle.en?.excerpt ?? '');
+  const [enCoverAlt, setEnCoverAlt] = useState(initialArticle.en?.coverAlt ?? '');
+
   const [wordCount, setWordCount] = useState(() =>
     countWords(initialArticle.content),
   );
   const [readingTime, setReadingTime] = useState(() =>
     calculateReadingTimeMinutes(initialArticle.content),
   );
+
+  const [enWordCount, setEnWordCount] = useState(() =>
+    countWords(initialArticle.en?.content),
+  );
+  const [enReadingTime, setEnReadingTime] = useState(() =>
+    calculateReadingTimeMinutes(initialArticle.en?.content),
+  );
+
   const [isDirty, setIsDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   const [autoSaving, setAutoSaving] = useState(false);
@@ -109,6 +128,23 @@ export default function ArticleEditor({
     },
   });
 
+  const enEditor = useEditor({
+    extensions: getArticleTiptapExtensions(),
+    content: initialArticle.en?.content ?? EMPTY_TIPTAP_DOC,
+    immediatelyRender: false,
+    editorProps: {
+      attributes: {
+        class: RICH_TEXT_EDITOR_CLASS,
+      },
+    },
+    onUpdate: ({ editor: ed }) => {
+      const json = ed.getJSON();
+      setEnWordCount(countWords(json));
+      setEnReadingTime(calculateReadingTimeMinutes(json));
+      setIsDirty(true);
+    },
+  });
+
   // Peringatan sebelum menutup tab jika ada perubahan yang belum disimpan
   useEffect(() => {
     function handleBeforeUnload(e: BeforeUnloadEvent) {
@@ -122,7 +158,7 @@ export default function ArticleEditor({
 
   const performSave = useCallback(
     async (targetStatus: ArticleStatus, isAuto = false) => {
-      if (!editor) return;
+      if (!editor || !enEditor) return;
       if (isAuto) {
         setAutoSaving(true);
       } else {
@@ -130,10 +166,9 @@ export default function ArticleEditor({
         setMessage(null);
       }
 
-      // attrs ProseMirror berprototipe null; server action akan menyandikannya
-      // sebagai temporary reference ("$T") dan menghilangkan level/href/src.
-      // Salin ke plain object sebelum dikirim.
       const content = JSON.parse(JSON.stringify(editor.getJSON()));
+      const enContent = JSON.parse(JSON.stringify(enEditor.getJSON()));
+
       const result = await saveArticleAction({
         id: initialArticle.id,
         title,
@@ -146,6 +181,12 @@ export default function ArticleEditor({
         status: targetStatus,
         reviewNote,
         expectedUpdatedAt: lastUpdatedAt,
+        en: {
+          title: enTitle,
+          excerpt: enExcerpt,
+          coverAlt: enCoverAlt,
+          content: enContent,
+        },
       });
 
       if (isAuto) {
@@ -155,8 +196,6 @@ export default function ArticleEditor({
       }
 
       if (!result.success || !result.saved) {
-        // Autosave gagal juga harus terlihat; kalau tidak, label "Tersimpan"
-        // lama terus tampil padahal tidak ada yang tersimpan.
         setMessage({
           type: 'err',
           text: isAuto
@@ -198,6 +237,10 @@ export default function ArticleEditor({
       coverAlt,
       coverImageId,
       editor,
+      enCoverAlt,
+      enEditor,
+      enExcerpt,
+      enTitle,
       excerpt,
       initialArticle.id,
       lastUpdatedAt,
@@ -232,8 +275,6 @@ export default function ArticleEditor({
         method: 'POST',
         body: formData,
       });
-      // Respons error dari platform (mis. 413 HTML) bukan JSON; jangan sampai
-      // parse gagal dan membuat indikator unggah macet.
       const data = (await res.json().catch(() => null)) as {
         id?: string;
         url?: string;
@@ -252,10 +293,7 @@ export default function ArticleEditor({
       }
       return { id: data.id, url: data.url };
     } catch {
-      setMessage({
-        type: 'err',
-        text: 'Gagal mengunggah gambar. Periksa koneksi internet lalu coba lagi.',
-      });
+      setMessage({ type: 'err', text: 'Gagal mengunggah gambar.' });
       return null;
     }
   }
@@ -287,6 +325,9 @@ export default function ArticleEditor({
   }
 
   const statusIndex = PUBLISH_STEPS.indexOf(status);
+  const activeEditor = editLang === 'id' ? editor : enEditor;
+  const currentWordCount = editLang === 'id' ? wordCount : enWordCount;
+  const currentReadingTime = editLang === 'id' ? readingTime : enReadingTime;
 
   return (
     <div className="space-y-6">
@@ -309,18 +350,39 @@ export default function ArticleEditor({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Link href={`/admin/articles/${initialArticle.id}/preview`} className={buttonClassName('secondary')}>
+            <Link
+              href={`/admin/articles/${initialArticle.id}/preview`}
+              className={buttonClassName('secondary')}
+            >
               Pratinjau
             </Link>
+            <Link
+              href={`/admin/articles/${initialArticle.id}/preview?lang=en`}
+              className={buttonClassName('secondary')}
+            >
+              Pratinjau EN
+            </Link>
             {status === 'published' && (
-              <Link
-                href={`/artikel/${slug}`}
-                target="_blank"
-                className={buttonClassName('secondary')}
-              >
-                Lihat publik
-                <ExternalLink size={14} aria-hidden="true" />
-              </Link>
+              <>
+                <Link
+                  href={`/artikel/${slug}`}
+                  target="_blank"
+                  className={buttonClassName('secondary')}
+                >
+                  Lihat publik
+                  <ExternalLink size={14} aria-hidden="true" />
+                </Link>
+                {enTitle.trim() && (
+                  <Link
+                    href={`/en/artikel/${slug}`}
+                    target="_blank"
+                    className={buttonClassName('secondary')}
+                  >
+                    Lihat EN
+                    <ExternalLink size={14} aria-hidden="true" />
+                  </Link>
+                )}
+              </>
             )}
             <Button variant="secondary" pending={saving} onClick={() => void performSave(status)}>
               {status === 'draft' ? 'Simpan draft' : 'Simpan perubahan'}
@@ -352,27 +414,22 @@ export default function ArticleEditor({
             const done = i < statusIndex;
             const current = i === statusIndex;
             return (
-              <li
-                key={step}
-                aria-current={current ? 'step' : undefined}
-                className={`flex items-center gap-2 ${
-                  current ? 'font-semibold text-text-heading' : done ? 'text-text-body' : 'text-text-muted'
-                }`}
-              >
+              <li key={step} className="flex items-center gap-2">
                 <span
-                  aria-hidden="true"
-                  className={`flex h-5 w-5 items-center justify-center rounded-full border text-xs ${
-                    current
-                      ? 'border-primary bg-primary text-white'
-                      : done
-                        ? 'border-primary text-primary'
-                        : 'border-border'
+                  className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold ${
+                    done
+                      ? 'bg-emerald-500 text-white'
+                      : current
+                        ? 'bg-primary text-white'
+                        : 'bg-bg-subtle text-text-muted'
                   }`}
                 >
-                  {done ? <Check size={12} /> : i + 1}
+                  {i + 1}
                 </span>
-                {ARTICLE_STATUS_META[step].label}
-                {i < PUBLISH_STEPS.length - 1 && <span aria-hidden="true" className="mx-1 h-px w-6 bg-border" />}
+                <span className={current ? 'font-semibold text-text-heading' : 'text-text-muted'}>
+                  {ARTICLE_STATUS_META[step].label}
+                </span>
+                {i < PUBLISH_STEPS.length - 1 && <span className="text-border">→</span>}
               </li>
             );
           })}
@@ -381,22 +438,93 @@ export default function ArticleEditor({
 
       {message && <Alert tone={message.type === 'ok' ? 'success' : 'error'}>{message.text}</Alert>}
 
+      {/* Tabs Bahasa */}
+      <div className="flex border-b border-border">
+        <button
+          type="button"
+          onClick={() => setEditLang('id')}
+          className={`border-b-2 px-5 py-2.5 text-sm font-semibold transition-colors ${
+            editLang === 'id'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-text-muted hover:text-text-heading'
+          }`}
+        >
+          Bahasa Indonesia
+        </button>
+        <button
+          type="button"
+          onClick={() => setEditLang('en')}
+          className={`flex items-center gap-2 border-b-2 px-5 py-2.5 text-sm font-semibold transition-colors ${
+            editLang === 'en'
+              ? 'border-primary text-primary'
+              : 'border-transparent text-text-muted hover:text-text-heading'
+          }`}
+        >
+          English (Versi Bahasa Inggris)
+          {enTitle.trim() ? (
+            <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
+          ) : null}
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <div className="space-y-6 lg:col-span-8">
           <Card>
             <div className="space-y-4">
-              <TextField
-                label="Judul artikel"
-                value={title}
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                  setIsDirty(true);
-                }}
-                placeholder="Contoh: Mengenal Gejala Sinusitis Kronis dan Kapan Harus ke Dokter THT"
-                className="text-lg font-bold sm:text-lg"
-              />
+              {editLang === 'id' ? (
+                <>
+                  <TextField
+                    label="Judul artikel (Bahasa Indonesia)"
+                    required
+                    value={title}
+                    onChange={(e) => {
+                      setTitle(e.target.value);
+                      setIsDirty(true);
+                    }}
+                    placeholder="Contoh: Mengenal Polip Hidung: Gejala dan Penanganannya"
+                  />
 
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <TextAreaField
+                    label="Ringkasan singkat (Bahasa Indonesia)"
+                    hint={`${excerpt.length}/160 karakter (otomatis terisi bila dikosongkan)`}
+                    rows={2}
+                    value={excerpt}
+                    onChange={(e) => {
+                      setExcerpt(e.target.value);
+                      setIsDirty(true);
+                    }}
+                    placeholder="Ringkasan 1-2 kalimat yang muncul di kartu artikel dan hasil pencarian Google..."
+                  />
+                </>
+              ) : (
+                <>
+                  <TextField
+                    label="Judul artikel (English)"
+                    value={enTitle}
+                    onChange={(e) => {
+                      setEnTitle(e.target.value);
+                      setIsDirty(true);
+                    }}
+                    placeholder="e.g. Understanding Nasal Polyps: Symptoms and Management"
+                    hint="Dikosongkan = artikel di /en menampilkan versi Bahasa Indonesia dengan badge 'Indonesian only'."
+                  />
+
+                  <TextAreaField
+                    label="Ringkasan singkat (English)"
+                    hint={`${enExcerpt.length}/160 karakter (otomatis terisi dari teks Inggris bila dikosongkan)`}
+                    rows={2}
+                    value={enExcerpt}
+                    onChange={(e) => {
+                      setEnExcerpt(e.target.value);
+                      setIsDirty(true);
+                    }}
+                    placeholder="1-2 sentence summary in English..."
+                  />
+                </>
+              )}
+
+              {/* Konfigurasi Bersama (Slug & Kategori) */}
+              <div className="grid grid-cols-1 gap-4 border-t border-border pt-4 sm:grid-cols-2">
                 <div>
                   <TextField
                     label="Slug URL (/artikel/...)"
@@ -431,39 +559,32 @@ export default function ArticleEditor({
                 >
                   {ARTICLE_CATEGORY_VALUES.map((cat) => (
                     <option key={cat} value={cat}>
-                      {ARTICLE_CATEGORIES[cat]}
+                      {idDictionary.categories[cat]}
                     </option>
                   ))}
                 </SelectField>
               </div>
-
-              <TextAreaField
-                label="Ringkasan singkat (excerpt & meta description SEO)"
-                hint={`${excerpt.length}/160 karakter (otomatis terisi bila dikosongkan)`}
-                rows={2}
-                value={excerpt}
-                onChange={(e) => {
-                  setExcerpt(e.target.value);
-                  setIsDirty(true);
-                }}
-                placeholder="Ringkasan 1-2 kalimat yang muncul di kartu artikel dan hasil pencarian Google..."
-              />
             </div>
           </Card>
 
           <RichTextEditor
-            editor={editor}
-            label="artikel"
+            editor={activeEditor}
+            label={`artikel (${editLang === 'id' ? 'Indonesia' : 'English'})`}
             allowImages
             onUploadImage={handleUploadImage}
-            fallbackAlt={title || 'Ilustrasi medis'}
+            fallbackAlt={
+              editLang === 'id'
+                ? title || 'Ilustrasi medis'
+                : enTitle || title || 'Medical illustration'
+            }
             footer={
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                   <span>
-                    <strong className="font-semibold text-text-heading">{wordCount}</strong> kata
+                    <strong className="font-semibold text-text-heading">{currentWordCount}</strong>{' '}
+                    kata
                   </span>
-                  <span>Estimasi ~{readingTime} menit baca</span>
+                  <span>Estimasi ~{currentReadingTime} menit baca</span>
                   <span>
                     Gunakan <strong>H2 / H3</strong> untuk membentuk Daftar Isi otomatis
                   </span>
@@ -529,15 +650,25 @@ export default function ArticleEditor({
               aria-hidden="true"
             />
 
-            <div className="mt-4">
+            <div className="mt-4 space-y-3">
               <TextField
-                label="Keterangan / alt text sampul"
+                label="Alt text sampul (Bahasa Indonesia)"
                 value={coverAlt}
                 onChange={(e) => {
                   setCoverAlt(e.target.value);
                   setIsDirty(true);
                 }}
                 placeholder="Deskripsi gambar sampul..."
+              />
+
+              <TextField
+                label="Alt text sampul (English)"
+                value={enCoverAlt}
+                onChange={(e) => {
+                  setEnCoverAlt(e.target.value);
+                  setIsDirty(true);
+                }}
+                placeholder="Cover image description in English..."
               />
             </div>
           </Card>

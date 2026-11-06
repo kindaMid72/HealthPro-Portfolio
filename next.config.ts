@@ -12,6 +12,13 @@ const nextConfig: NextConfig = {
           { key: "Link", value: '</llms.txt>; rel="alternate"; type="text/markdown"' },
         ],
       },
+      {
+        source: "/en",
+        headers: [
+          // Petunjuk bagi agen/LLM: ringkasan markdown EN tersedia di /en/llms.txt
+          { key: "Link", value: '</en/llms.txt>; rel="alternate"; type="text/markdown"' },
+        ],
+      },
     ];
   },
   async rewrites() {

@@ -4,7 +4,7 @@ import { and, asc, eq, ne } from 'drizzle-orm';
 import { redirect } from 'next/navigation';
 import type { JSONContent } from '@tiptap/core';
 import { getDb } from '@/db/client';
-import { services } from '@/db/schema';
+import { services, serviceTranslations } from '@/db/schema';
 import { findAvailableSlug } from '@/lib/articles';
 import { revalidatePublicSite } from '@/lib/revalidate';
 import { requireUser } from '@/lib/session';
@@ -16,9 +16,11 @@ export interface ServiceItem {
   id: string;
   sortOrder: number;
   serviceName: string;
-  serviceDescription: string;
   slug: string;
+  serviceDescription: string;
+  category: ArticleCategory | null;
   hasDetail: boolean;
+  updatedAt: Date;
 }
 
 async function fetchServicesOrdered(): Promise<ServiceItem[]> {
@@ -27,14 +29,25 @@ async function fetchServicesOrdered(): Promise<ServiceItem[]> {
       id: services.id,
       sortOrder: services.sortOrder,
       serviceName: services.serviceName,
-      serviceDescription: services.serviceDescription,
       slug: services.slug,
+      serviceDescription: services.serviceDescription,
+      category: services.category,
       content: services.content,
+      updatedAt: services.updatedAt,
     })
     .from(services)
     .orderBy(asc(services.sortOrder));
 
-  return rows.map(({ content, ...rest }) => ({ ...rest, hasDetail: countWords(content) > 0 }));
+  return rows.map((r) => ({
+    id: r.id,
+    sortOrder: r.sortOrder,
+    serviceName: r.serviceName,
+    slug: r.slug,
+    serviceDescription: r.serviceDescription,
+    category: r.category,
+    hasDetail: countWords(r.content as JSONContent) > 0,
+    updatedAt: r.updatedAt,
+  }));
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -42,16 +55,16 @@ const SLUG_FALLBACK = 'layanan';
 
 /** Pesan aman untuk klien; detail galat (SQL/parameter) hanya masuk log server. */
 function failure(err: unknown, fallback: string): string {
-  console.error('[admin/services]', err);
-  const code = (err as { cause?: { code?: string }; code?: string } | null);
-  if ((code?.cause?.code ?? code?.code) === '23505') return 'Slug sudah dipakai layanan lain, coba lagi.';
+  console.error('[services/actions]', err);
   return fallback;
 }
 
 /** Layanan tidak membawa gambar: buang node image dari konten yang dikirim klien. */
 function sanitizeServiceContent(node: JSONContent): JSONContent {
-  const content = node.content?.filter((c) => c.type !== 'image').map(sanitizeServiceContent);
-  return content ? { ...node, content } : node;
+  const content = (node.content ?? [])
+    .filter((child) => child.type !== 'image')
+    .map(sanitizeServiceContent);
+  return { ...node, content };
 }
 
 async function isServiceSlugTaken(candidate: string, excludeId?: string): Promise<boolean> {
@@ -73,27 +86,37 @@ export async function createServiceAction(input: {
 }): Promise<{ success: false; error: string }> {
   await requireUser();
 
-  const serviceName = input.serviceName.trim();
-  if (!serviceName) {
+  const name = input.serviceName.trim();
+  if (!name) {
     return { success: false, error: 'Nama layanan wajib diisi.' };
   }
 
-  let id: string;
+  let newId: string | null = null;
   try {
-    const current = await fetchServicesOrdered();
-    const nextSort = current.length > 0 ? Math.max(...current.map((c) => c.sortOrder)) + 1 : 0;
-    const slug = await findAvailableSlug(toSlug(serviceName) || SLUG_FALLBACK, (c) => isServiceSlugTaken(c));
-    const [row] = await getDb()
+    const db = getDb();
+    const existing = await fetchServicesOrdered();
+    const nextOrder = existing.length > 0 ? Math.max(...existing.map((s) => s.sortOrder)) + 1 : 1;
+    const slug = await findAvailableSlug(toSlug(name) || SLUG_FALLBACK, (c) => isServiceSlugTaken(c));
+
+    const [created] = await db
       .insert(services)
-      .values({ sortOrder: nextSort, serviceName, slug })
+      .values({
+        serviceName: name,
+        slug,
+        serviceDescription: '',
+        sortOrder: nextOrder,
+        content: EMPTY_TIPTAP_DOC,
+        category: null,
+      })
       .returning({ id: services.id });
-    id = row.id;
+
+    newId = created.id;
     revalidatePublicSite();
   } catch (err) {
-    return { success: false, error: failure(err, 'Gagal membuat layanan.') };
+    return { success: false, error: failure(err, 'Gagal membuat layanan baru.') };
   }
 
-  redirect(`/admin/services/${id}`);
+  redirect(`/admin/services/${newId}`);
 }
 
 export async function saveServiceAction(input: {
@@ -103,6 +126,11 @@ export async function saveServiceAction(input: {
   serviceDescription: string;
   category: ArticleCategory | null;
   content: JSONContent;
+  en?: {
+    serviceName: string;
+    serviceDescription: string;
+    content: JSONContent;
+  };
 }): Promise<{ success: boolean; error?: string; slug?: string }> {
   await requireUser();
 
@@ -126,11 +154,12 @@ export async function saveServiceAction(input: {
   const category = isValidArticleCategory(input.category ?? undefined) ? input.category : null;
 
   try {
+    const db = getDb();
     const slug = await findAvailableSlug(
       toSlug(input.slug.trim()) || toSlug(serviceName) || SLUG_FALLBACK,
       (c) => isServiceSlugTaken(c, input.id),
     );
-    const updated = await getDb()
+    const updated = await db
       .update(services)
       .set({
         serviceName,
@@ -147,6 +176,58 @@ export async function saveServiceAction(input: {
       return { success: false, error: 'Layanan tidak ditemukan (mungkin sudah dihapus).' };
     }
 
+    // Row lifecycle rule untuk terjemahan EN
+    if (input.en) {
+      let parsedEn: JSONContent | null = null;
+      try {
+        parsedEn = JSON.parse(JSON.stringify(input.en.content)) as JSONContent;
+      } catch {
+        parsedEn = null;
+      }
+      const enContent =
+        parsedEn && parsedEn.type === 'doc'
+          ? sanitizeServiceContent(parsedEn)
+          : EMPTY_TIPTAP_DOC;
+      const enServiceName = input.en.serviceName.trim();
+      const enServiceDescription = input.en.serviceDescription.trim();
+      const hasEn = Boolean(
+        enServiceName ||
+        enServiceDescription ||
+        countWords(enContent) > 0,
+      );
+
+      if (hasEn) {
+        await db
+          .insert(serviceTranslations)
+          .values({
+            serviceId: input.id,
+            locale: 'en',
+            serviceName: enServiceName,
+            serviceDescription: enServiceDescription,
+            content: enContent,
+            updatedAt: new Date(),
+          })
+          .onConflictDoUpdate({
+            target: [serviceTranslations.serviceId, serviceTranslations.locale],
+            set: {
+              serviceName: enServiceName,
+              serviceDescription: enServiceDescription,
+              content: enContent,
+              updatedAt: new Date(),
+            },
+          });
+      } else {
+        await db
+          .delete(serviceTranslations)
+          .where(
+            and(
+              eq(serviceTranslations.serviceId, input.id),
+              eq(serviceTranslations.locale, 'en'),
+            ),
+          );
+      }
+    }
+
     revalidatePublicSite();
     return { success: true, slug };
   } catch (err) {
@@ -161,11 +242,25 @@ export async function deleteServiceAction(id: string): Promise<{
 }> {
   await requireUser();
   if (!UUID_RE.test(id)) return { success: false, error: 'Layanan tidak ditemukan.' };
+
   try {
-    await getDb().delete(services).where(eq(services.id, id));
+    const db = getDb();
+    const deleted = await db.delete(services).where(eq(services.id, id)).returning({ id: services.id });
+    if (deleted.length === 0) {
+      return { success: false, error: 'Layanan tidak ditemukan (mungkin sudah dihapus).' };
+    }
+
+    const remaining = await fetchServicesOrdered();
+    for (let i = 0; i < remaining.length; i++) {
+      const targetOrder = i + 1;
+      if (remaining[i].sortOrder !== targetOrder) {
+        await db.update(services).set({ sortOrder: targetOrder }).where(eq(services.id, remaining[i].id));
+        remaining[i].sortOrder = targetOrder;
+      }
+    }
+
     revalidatePublicSite();
-    const items = await fetchServicesOrdered();
-    return { success: true, items };
+    return { success: true, items: remaining };
   } catch (err) {
     return { success: false, error: failure(err, 'Gagal menghapus layanan.') };
   }
@@ -180,34 +275,29 @@ export async function moveServiceAction(
   items?: ServiceItem[];
 }> {
   await requireUser();
-  try {
-    const db = getDb();
-    const current = await fetchServicesOrdered();
-    const idx = current.findIndex((item) => item.id === id);
-    if (idx === -1) return { success: false, error: 'Layanan tidak ditemukan.' };
+  if (!UUID_RE.test(id)) return { success: false, error: 'Layanan tidak ditemukan.' };
 
-    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
-    if (swapIdx < 0 || swapIdx >= current.length) {
-      return { success: true, items: current };
+  try {
+    const list = await fetchServicesOrdered();
+    const index = list.findIndex((s) => s.id === id);
+    if (index === -1) return { success: false, error: 'Layanan tidak ditemukan.' };
+
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= list.length) {
+      return { success: true, items: list };
     }
 
-    const reordered = [...current];
-    const [moved] = reordered.splice(idx, 1);
-    reordered.splice(swapIdx, 0, moved);
+    const current = list[index];
+    const target = list[targetIndex];
 
-    await db.transaction(async (tx) => {
-      for (let i = 0; i < reordered.length; i++) {
-        await tx
-          .update(services)
-          .set({ sortOrder: i, updatedAt: new Date() })
-          .where(eq(services.id, reordered[i].id));
-      }
-    });
+    const db = getDb();
+    await db.update(services).set({ sortOrder: target.sortOrder }).where(eq(services.id, current.id));
+    await db.update(services).set({ sortOrder: current.sortOrder }).where(eq(services.id, target.id));
 
     revalidatePublicSite();
-    const items = await fetchServicesOrdered();
-    return { success: true, items };
+    const refreshed = await fetchServicesOrdered();
+    return { success: true, items: refreshed };
   } catch (err) {
-    return { success: false, error: failure(err, 'Gagal mengubah urutan.') };
+    return { success: false, error: failure(err, 'Gagal mengubah urutan layanan.') };
   }
 }

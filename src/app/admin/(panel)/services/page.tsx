@@ -16,6 +16,8 @@ export default async function AdminServicesPage() {
       serviceDescription: servicesTable.serviceDescription,
       slug: servicesTable.slug,
       content: servicesTable.content,
+      category: servicesTable.category,
+      updatedAt: servicesTable.updatedAt,
     })
     .from(servicesTable)
     .orderBy(asc(servicesTable.sortOrder));

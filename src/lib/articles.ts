@@ -24,6 +24,7 @@ import {
 } from 'drizzle-orm';
 import { getDb } from '@/db/client';
 import {
+  articleTranslations,
   articles,
   images,
   locations,
@@ -182,7 +183,7 @@ export function validatePublishable(article: {
   return { ok: true };
 }
 
-function buildAutoExcerpt(text: string, maxLen = 155): string {
+export function buildAutoExcerpt(text: string, maxLen = 155): string {
   const cleaned = text.replace(/\s+/g, ' ').trim();
   if (cleaned.length <= maxLen) return cleaned;
   const sliced = cleaned.slice(0, maxLen);
@@ -285,13 +286,35 @@ export async function getArticleAdminById(id: string) {
       createdAt: articles.createdAt,
       updatedAt: articles.updatedAt,
       publishedAt: articles.publishedAt,
+      enTitle: articleTranslations.title,
+      enExcerpt: articleTranslations.excerpt,
+      enCoverAlt: articleTranslations.coverAlt,
+      enContent: articleTranslations.content,
     })
     .from(articles)
     .leftJoin(users, eq(articles.authorId, users.id))
+    .leftJoin(
+      articleTranslations,
+      and(
+        eq(articleTranslations.articleId, articles.id),
+        eq(articleTranslations.locale, 'en'),
+      ),
+    )
     .where(eq(articles.id, id))
     .limit(1);
 
-  return rows[0] ?? null;
+  const r = rows[0];
+  if (!r) return null;
+
+  return {
+    ...r,
+    en: {
+      title: r.enTitle ?? '',
+      excerpt: r.enExcerpt ?? '',
+      coverAlt: r.enCoverAlt ?? '',
+      content: (r.enContent as JSONContent) ?? EMPTY_TIPTAP_DOC,
+    },
+  };
 }
 
 export async function createArticle(params: {
@@ -334,6 +357,12 @@ export interface UpdateArticleParams {
   reviewNote?: string;
   updatedBy: string;
   expectedUpdatedAt?: string | Date;
+  en?: {
+    title: string;
+    excerpt: string;
+    coverAlt: string;
+    content: JSONContent;
+  };
 }
 
 export async function updateArticle(id: string, params: UpdateArticleParams) {
@@ -399,12 +428,28 @@ export async function updateArticle(id: string, params: UpdateArticleParams) {
     params.coverImageId !== undefined
       ? params.coverImageId
       : current.coverImageId;
+  const [existingEn] = await db
+    .select({ content: articleTranslations.content })
+    .from(articleTranslations)
+    .where(
+      and(
+        eq(articleTranslations.articleId, id),
+        eq(articleTranslations.locale, 'en'),
+      ),
+    )
+    .limit(1);
 
-  // Hitung gambar yang dipakai SEBELUM menulis, supaya konten yang tidak valid
-  // gagal sebelum ada perubahan tersimpan.
+  const enContentForGc = params.en
+    ? params.en.content
+    : (existingEn?.content as JSONContent | undefined);
+
+  // Hitung gambar yang dipakai SEBELUM menulis, mencakup konten ID dan EN (GC fix)
   const retainedImageIds = new Set<string>(collectImageIds(activeContent));
   if (activeCover) {
     retainedImageIds.add(activeCover);
+  }
+  for (const enImgId of collectImageIds(enContentForGc)) {
+    retainedImageIds.add(enImgId);
   }
   const retainedArray = Array.from(retainedImageIds);
 
@@ -438,6 +483,52 @@ export async function updateArticle(id: string, params: UpdateArticleParams) {
     })
     .where(eq(articles.id, id))
     .returning();
+
+  if (params.en !== undefined) {
+    const enTitle = params.en.title.trim();
+    const enExcerpt = params.en.excerpt.trim();
+    const enCoverAlt = params.en.coverAlt.trim();
+    const enContent = params.en.content;
+    const hasEn = Boolean(
+      enTitle || enExcerpt || enCoverAlt || countWords(enContent) > 0,
+    );
+
+    if (hasEn) {
+      const enReadingTime = calculateReadingTimeMinutes(enContent);
+      await db
+        .insert(articleTranslations)
+        .values({
+          articleId: id,
+          locale: 'en',
+          title: enTitle,
+          excerpt: enExcerpt,
+          coverAlt: enCoverAlt,
+          content: enContent,
+          readingTimeMinutes: enReadingTime,
+          updatedAt: now,
+        })
+        .onConflictDoUpdate({
+          target: [articleTranslations.articleId, articleTranslations.locale],
+          set: {
+            title: enTitle,
+            excerpt: enExcerpt,
+            coverAlt: enCoverAlt,
+            content: enContent,
+            readingTimeMinutes: enReadingTime,
+            updatedAt: now,
+          },
+        });
+    } else {
+      await db
+        .delete(articleTranslations)
+        .where(
+          and(
+            eq(articleTranslations.articleId, id),
+            eq(articleTranslations.locale, 'en'),
+          ),
+        );
+    }
+  }
 
   // Revalidasi dulu: tulisan sudah commit, cache publik tidak boleh basi
   // hanya karena langkah pembersihan di bawah gagal.

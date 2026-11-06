@@ -1,14 +1,16 @@
-export function formatDateId(date: Date | string | number): string {
+import { INTL_LOCALE, type Locale } from '@/i18n/config';
+
+export function formatDate(date: Date | string | number, locale: Locale = 'id'): string {
   const d = date instanceof Date ? date : new Date(date);
-  return new Intl.DateTimeFormat('id-ID', {
+  return new Intl.DateTimeFormat(INTL_LOCALE[locale], {
     dateStyle: 'long',
     timeZone: 'Asia/Makassar',
   }).format(d);
 }
 
-export function formatDateShortId(date: Date | string | number): string {
+export function formatDateShort(date: Date | string | number, locale: Locale = 'id'): string {
   const d = date instanceof Date ? date : new Date(date);
-  return new Intl.DateTimeFormat('id-ID', {
+  return new Intl.DateTimeFormat(INTL_LOCALE[locale], {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

@@ -8,9 +8,9 @@ import {
   type ArticleStatus,
   listArticlesAdmin,
 } from '@/lib/articles';
-import { formatDateShortId } from '@/lib/format';
+import { formatDateShort } from '@/lib/format';
+import { id as idDictionary } from '@/i18n/dictionaries/id';
 import {
-  ARTICLE_CATEGORIES,
   ARTICLE_CATEGORY_VALUES,
   type ArticleCategory,
   isValidArticleCategory,
@@ -160,7 +160,7 @@ export default async function AdminArticlesPage({
                   isActive ? 'bg-primary-dark text-white' : 'bg-bg-subtle text-text-body hover:bg-primary-tint hover:text-primary'
                 }`}
               >
-                {ARTICLE_CATEGORIES[cat]}
+                {idDictionary.categories[cat]}
               </Link>
             );
           })}
@@ -207,7 +207,7 @@ export default async function AdminArticlesPage({
                     </td>
                     <td className="px-4 py-3.5">
                       <span className="rounded-full bg-primary-tint px-2.5 py-0.5 text-xs font-semibold text-primary">
-                        {ARTICLE_CATEGORIES[art.category]}
+                        {idDictionary.categories[art.category]}
                       </span>
                     </td>
                     <td className="px-4 py-3.5">
@@ -217,7 +217,7 @@ export default async function AdminArticlesPage({
                       {art.readingTimeMinutes} mnt • {art.viewCount.toLocaleString('id-ID')} dibaca
                     </td>
                     <td className="px-4 py-3.5">{art.authorName}</td>
-                    <td className="px-4 py-3.5 text-text-muted">{formatDateShortId(art.updatedAt)}</td>
+                    <td className="px-4 py-3.5 text-text-muted">{formatDateShort(art.updatedAt, 'id')}</td>
                     <td className="px-4 py-3.5 text-right">
                       <div className="inline-flex items-center gap-2">
                         <Link href={`/admin/articles/${art.id}/preview`} className={buttonClassName('ghost', 'sm')}>
@@ -242,8 +242,8 @@ export default async function AdminArticlesPage({
                 </Link>
                 <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-text-muted">
                   <StatusBadge status={art.status} />
-                  <span>{ARTICLE_CATEGORIES[art.category]}</span>
-                  <span>{formatDateShortId(art.updatedAt)}</span>
+                  <span>{idDictionary.categories[art.category]}</span>
+                  <span>{formatDateShort(art.updatedAt, 'id')}</span>
                 </div>
                 {art.reviewNote && (
                   <div className="mt-2 inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs text-amber-800">

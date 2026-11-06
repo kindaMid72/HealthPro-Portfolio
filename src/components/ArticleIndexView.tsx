@@ -2,46 +2,69 @@ import Link from 'next/link';
 import { Search } from 'lucide-react';
 import ArticleCard from '@/components/ArticleCard';
 import Pagination from '@/components/Pagination';
+import type { Locale } from '@/i18n/config';
+import type { Dictionary } from '@/i18n/dictionaries/id';
+import { format, plural } from '@/i18n/dictionary';
+import { localePath } from '@/i18n/path';
 import type { PaginatedArticlesResult } from '@/lib/content';
-import { ARTICLE_CATEGORIES, ARTICLE_CATEGORY_VALUES, type ArticleCategory } from '@/lib/types';
+import { ARTICLE_CATEGORY_VALUES, type ArticleCategory } from '@/lib/types';
 
 interface ArticleIndexViewProps {
   doctorName: string;
   paginated: PaginatedArticlesResult;
   activeCategory?: ArticleCategory;
   searchQuery?: string;
+  locale: Locale;
+  dict: Dictionary;
 }
 
 const CHIP_ACTIVE = 'bg-primary text-white';
-const CHIP_IDLE = 'border border-border bg-surface text-text-body hover:border-primary hover:text-primary';
+const CHIP_IDLE =
+  'border border-border bg-surface text-text-body hover:border-primary hover:text-primary';
 
 export default function ArticleIndexView({
   doctorName,
   paginated,
   activeCategory,
   searchQuery,
+  locale,
+  dict,
 }: ArticleIndexViewProps) {
-  const allHref = searchQuery ? `/artikel?q=${encodeURIComponent(searchQuery)}` : '/artikel';
+  const basePath = localePath(locale, '/artikel');
+  const allHref = searchQuery ? `${basePath}?q=${encodeURIComponent(searchQuery)}` : basePath;
+
+  const introText = format(dict.articleIndex.intro, { doctor: `__DOC__` });
+  const [introPrefix, introSuffix] = introText.split('__DOC__');
 
   return (
     <section className="bg-bg px-4 py-12 md:px-6 md:py-16">
       <div className="mx-auto max-w-6xl">
         <header className="card-clinical mb-10 p-6 md:p-8">
-          <h1 className="max-w-3xl font-display text-h2 font-semibold">Artikel kesehatan THT-BKL</h1>
+          <h1 className="max-w-3xl font-display text-h2 font-semibold">
+            {dict.articleIndex.title}
+          </h1>
           {paginated.currentPage > 1 && (
             <p className="mt-2 text-text-muted">
-              Halaman {paginated.currentPage} dari {paginated.totalPages}
+              {format(dict.articleIndex.pageSubtitle, {
+                current: paginated.currentPage,
+                total: paginated.totalPages,
+              })}
             </p>
           )}
           <p className="mt-3 max-w-3xl text-lg">
-            Artikel informasi medis seputar kesehatan telinga, hidung, tenggorok, serta kepala dan leher
-            yang ditulis dan ditinjau oleh <strong className="font-semibold text-text-heading">{doctorName}</strong>.
+            {introPrefix}
+            <strong className="font-semibold text-text-heading">{doctorName}</strong>
+            {introSuffix}
           </p>
 
-          <form method="GET" action="/artikel" className="mt-6 flex w-full items-center gap-2 md:max-w-xl">
+          <form
+            method="GET"
+            action={basePath}
+            className="mt-6 flex w-full items-center gap-2 md:max-w-xl"
+          >
             {activeCategory && <input type="hidden" name="kategori" value={activeCategory} />}
             <label htmlFor="artikel-q" className="sr-only">
-              Cari artikel
+              {dict.articleIndex.searchLabel}
             </label>
             <div className="relative flex-1">
               <Search
@@ -54,12 +77,12 @@ export default function ArticleIndexView({
                 type="search"
                 name="q"
                 defaultValue={searchQuery ?? ''}
-                placeholder="Cari topik THT..."
+                placeholder={dict.articleIndex.searchPlaceholder}
                 className="min-h-12 w-full rounded-full border border-border bg-bg pl-10 pr-4 text-base text-text-heading placeholder:text-text-muted focus:border-primary focus:bg-surface focus:outline-none"
               />
             </div>
             <button type="submit" className="btn btn-primary">
-              Cari
+              {dict.articleIndex.searchButton}
             </button>
           </form>
 
@@ -69,7 +92,7 @@ export default function ArticleIndexView({
               aria-current={!activeCategory ? 'page' : undefined}
               className={`chip shrink-0 ${!activeCategory ? CHIP_ACTIVE : CHIP_IDLE}`}
             >
-              Semua topik
+              {dict.articleIndex.allTopics}
             </Link>
             {ARTICLE_CATEGORY_VALUES.map((cat) => {
               const params = new URLSearchParams();
@@ -79,11 +102,11 @@ export default function ArticleIndexView({
               return (
                 <Link
                   key={cat}
-                  href={`/artikel?${params.toString()}`}
+                  href={`${basePath}?${params.toString()}`}
                   aria-current={isActive ? 'page' : undefined}
                   className={`chip shrink-0 ${isActive ? CHIP_ACTIVE : CHIP_IDLE}`}
                 >
-                  {ARTICLE_CATEGORIES[cat]}
+                  {dict.categories[cat]}
                 </Link>
               );
             })}
@@ -93,23 +116,27 @@ export default function ArticleIndexView({
         {(activeCategory || searchQuery) && (
           <div className="mb-6 flex flex-wrap items-center justify-between gap-2 text-sm text-text-muted">
             <span>
-              Menampilkan {paginated.total} artikel
-              {activeCategory ? ` dalam topik "${ARTICLE_CATEGORIES[activeCategory]}"` : ''}
-              {searchQuery ? ` untuk pencarian "${searchQuery}"` : ''}.
+              {plural(dict.articleIndex.showingArticles, paginated.total, { count: paginated.total }, locale)}
+              {activeCategory
+                ? format(dict.articleIndex.inTopic, { topic: dict.categories[activeCategory] })
+                : ''}
+              {searchQuery ? format(dict.articleIndex.forSearch, { query: searchQuery }) : ''}.
             </span>
-            <Link href="/artikel" className="link">
-              Hapus filter
+            <Link href={basePath} className="link">
+              {dict.articleIndex.clearFilter}
             </Link>
           </div>
         )}
 
         {paginated.items.length === 0 ? (
           <div className="card-clinical py-16 text-center">
-            <p className="text-lg font-semibold text-text-heading">Belum ada artikel yang sesuai</p>
-            <p className="mt-1 text-text-muted">Silakan pilih kategori lain atau hapus kata kunci pencarian.</p>
+            <p className="text-lg font-semibold text-text-heading">
+              {dict.articleIndex.emptyTitle}
+            </p>
+            <p className="mt-1 text-text-muted">{dict.articleIndex.emptyDesc}</p>
             {(activeCategory || searchQuery) && (
-              <Link href="/artikel" className="btn btn-primary mt-6">
-                Lihat semua artikel
+              <Link href={basePath} className="btn btn-primary mt-6">
+                {dict.articleIndex.seeAll}
               </Link>
             )}
           </div>
@@ -117,14 +144,23 @@ export default function ArticleIndexView({
           <>
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {paginated.items.map((article) => (
-                <ArticleCard key={article.id} article={article} />
+                <ArticleCard
+                  key={article.id}
+                  article={article}
+                  locale={locale}
+                  dict={dict}
+                />
               ))}
             </div>
             <Pagination
               currentPage={paginated.currentPage}
               totalPages={paginated.totalPages}
-              basePath="/artikel"
-              queryParams={{ kategori: activeCategory, q: searchQuery }}
+              basePath={basePath}
+              queryParams={{
+                ...(activeCategory ? { kategori: activeCategory } : {}),
+                ...(searchQuery ? { q: searchQuery } : {}),
+              }}
+              dict={dict.pagination}
             />
           </>
         )}

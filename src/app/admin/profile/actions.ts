@@ -3,10 +3,20 @@
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { getDb } from '@/db/client';
-import { profile } from '@/db/schema';
+import { profile, profileTranslations } from '@/db/schema';
 import { deleteImageIfUnused } from '@/lib/images';
 import { revalidatePublicSite } from '@/lib/revalidate';
 import { requireUser } from '@/lib/session';
+
+export interface ProfileTranslationInput {
+  specialty: string;
+  subSpecialty: string;
+  education: string;
+  certifications: string;
+  experienceHistory: string;
+  organizations: string;
+  personalStory: string;
+}
 
 export interface SaveProfileInput {
   fullName: string;
@@ -22,6 +32,7 @@ export interface SaveProfileInput {
   socialLinks: string;
   personalStory: string;
   photoImageId: string | null;
+  en?: ProfileTranslationInput;
 }
 
 export async function saveProfileAction(
@@ -35,24 +46,21 @@ export async function saveProfileAction(
   if (!fullName || !specialty) {
     return {
       success: false,
-      error: 'Nama lengkap dan spesialisasi wajib diisi.',
+      error: 'Nama dokter dan spesialisasi utama wajib diisi.',
     };
   }
 
-  // Aturan yang sama dengan ProfileSchema (src/lib/types.ts): nilai yang lolos
-  // di sini harus lolos parse di getProfile, kalau tidak situs publik jatuh
-  // ke data fallback.
   const bookingUrl = input.bookingUrl.trim();
   if (bookingUrl && !z.string().url().safeParse(bookingUrl).success) {
     return {
       success: false,
-      error: 'URL Booking tidak valid. Contoh: https://contoh.com/booking',
+      error: 'Format URL booking tidak valid (harus dimulai dengan https:// atau http://).',
     };
   }
   if (bookingUrl && !/^https?:\/\//i.test(bookingUrl)) {
     return {
       success: false,
-      error: 'URL Booking harus diawali dengan http:// atau https://',
+      error: 'URL booking harus menggunakan protokol http:// atau https://.',
     };
   }
 
@@ -60,7 +68,7 @@ export async function saveProfileAction(
   if (email && !z.string().email().safeParse(email).success) {
     return {
       success: false,
-      error: 'Format email tidak valid. Contoh: nama@contoh.com',
+      error: 'Format alamat email tidak valid.',
     };
   }
 
@@ -99,6 +107,60 @@ export async function saveProfileAction(
         target: profile.id,
         set: values,
       });
+
+    // Row lifecycle rule untuk terjemahan EN
+    if (input.en) {
+      const enSpecialty = input.en.specialty.trim();
+      const enSubSpecialty = input.en.subSpecialty.trim();
+      const enEducation = input.en.education.trim();
+      const enCertifications = input.en.certifications.trim();
+      const enExperienceHistory = input.en.experienceHistory.trim();
+      const enOrganizations = input.en.organizations.trim();
+      const enPersonalStory = input.en.personalStory.trim();
+
+      const hasAnyEn = Boolean(
+        enSpecialty ||
+        enSubSpecialty ||
+        enEducation ||
+        enCertifications ||
+        enExperienceHistory ||
+        enOrganizations ||
+        enPersonalStory,
+      );
+
+      if (hasAnyEn) {
+        await db
+          .insert(profileTranslations)
+          .values({
+            locale: 'en',
+            specialty: enSpecialty,
+            subSpecialty: enSubSpecialty,
+            education: enEducation,
+            certifications: enCertifications,
+            experienceHistory: enExperienceHistory,
+            organizations: enOrganizations,
+            personalStory: enPersonalStory,
+            updatedAt: new Date(),
+          })
+          .onConflictDoUpdate({
+            target: profileTranslations.locale,
+            set: {
+              specialty: enSpecialty,
+              subSpecialty: enSubSpecialty,
+              education: enEducation,
+              certifications: enCertifications,
+              experienceHistory: enExperienceHistory,
+              organizations: enOrganizations,
+              personalStory: enPersonalStory,
+              updatedAt: new Date(),
+            },
+          });
+      } else {
+        await db
+          .delete(profileTranslations)
+          .where(eq(profileTranslations.locale, 'en'));
+      }
+    }
 
     if (oldPhotoId && oldPhotoId !== newPhotoId) {
       await deleteImageIfUnused(oldPhotoId);

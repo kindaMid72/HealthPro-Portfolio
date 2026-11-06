@@ -1,9 +1,22 @@
-import Link from "next/link";
-import ArticleCard from "./ArticleCard";
-import SectionHeading from "./SectionHeading";
-import type { PublicArticleSummary } from "@/lib/types";
+import Link from 'next/link';
+import type { Locale } from '@/i18n/config';
+import type { Dictionary } from '@/i18n/dictionaries/id';
+import { localePath } from '@/i18n/path';
+import type { PublicArticleSummary } from '@/lib/types';
+import ArticleCard from './ArticleCard';
+import SectionHeading from './SectionHeading';
 
-export default function ArticlesSection({ articles }: { articles: PublicArticleSummary[] }) {
+interface ArticlesSectionProps {
+  articles: PublicArticleSummary[];
+  locale: Locale;
+  dict: Dictionary;
+}
+
+export default function ArticlesSection({
+  articles,
+  locale,
+  dict,
+}: ArticlesSectionProps) {
   if (articles.length === 0) return null;
 
   const [lead, ...rest] = articles.slice(0, 3);
@@ -17,20 +30,29 @@ export default function ArticlesSection({ articles }: { articles: PublicArticleS
       <div className="mx-auto max-w-6xl">
         <SectionHeading
           id="artikel-heading"
-          title="Artikel edukasi"
-          intro="Informasi medis seputar kesehatan telinga, hidung, tenggorok, dan bedah kepala-leher yang ditinjau langsung oleh dokter spesialis."
+          title={dict.articlesSection.sectionTitle}
+          intro={dict.articlesSection.sectionIntro}
           action={
-            <Link href="/artikel" className="btn btn-sm btn-secondary">
-              Semua artikel
+            <Link
+              href={localePath(locale, '/artikel')}
+              className="btn btn-sm btn-secondary"
+            >
+              {dict.articlesSection.allArticles}
             </Link>
           }
         />
         <div className="grid gap-8 lg:grid-cols-2">
-          <ArticleCard article={lead} />
+          <ArticleCard article={lead} locale={locale} dict={dict} />
           {rest.length > 0 && (
             <div className="grid content-start gap-4">
               {rest.map((article) => (
-                <ArticleCard key={article.id} article={article} variant="compact" />
+                <ArticleCard
+                  key={article.id}
+                  article={article}
+                  variant="compact"
+                  locale={locale}
+                  dict={dict}
+                />
               ))}
             </div>
           )}

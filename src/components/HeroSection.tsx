@@ -1,20 +1,16 @@
-/**
- * components/HeroSection.tsx
- * Section pertama, harus above the fold di mobile 375×667 (FR-1):
- * nama, foto, spesialisasi, dan CTA terlihat tanpa scroll.
- *
- * Logika CTA booking (FR-4):
- *  1. booking_url ada → "Booking sekarang" (+ WhatsApp sekunder bila ada)
- *  2. booking_url kosong & WhatsApp ada → "Hubungi via WhatsApp"
- *  3. Keduanya kosong → tanpa tombol (tidak ada link rusak)
- */
-
-import Image from "next/image";
-import { CalendarCheck, MapPin, MessageCircle, ShieldCheck } from "lucide-react";
-import type { Profile } from "@/lib/types";
-import type { PracticeSlot } from "@/lib/schedule";
-import TodayStatus from "./TodayStatus";
-import { getCredentials, getDisplayName } from "@/lib/seo";
+import Image from 'next/image';
+import {
+  CalendarCheck,
+  MapPin,
+  MessageCircle,
+  ShieldCheck,
+} from 'lucide-react';
+import type { Locale } from '@/i18n/config';
+import type { Dictionary } from '@/i18n/dictionaries/id';
+import { getCredentials, getDisplayName } from '@/lib/seo';
+import type { PracticeSlot } from '@/lib/schedule';
+import type { Profile } from '@/lib/types';
+import TodayStatus from './TodayStatus';
 
 interface HeroSectionProps {
   profile: Profile;
@@ -22,6 +18,8 @@ interface HeroSectionProps {
   whatsappFallback: string | null;
   slots: PracticeSlot[];
   serviceArea: string | null;
+  locale: Locale;
+  dict: Dictionary;
 }
 
 export default function HeroSection({
@@ -30,42 +28,48 @@ export default function HeroSection({
   whatsappFallback,
   slots,
   serviceArea,
+  locale,
+  dict,
 }: HeroSectionProps) {
-  const initials = profile.full_name
-    .split(" ")
-    .filter((w) => /^[A-Za-z]/.test(w))
-    .slice(0, 2)
-    .map((w) => w[0].toUpperCase())
-    .join("");
+  const initials =
+    profile.full_name
+      .split(' ')
+      .filter((w) => /^[A-Za-z]/.test(w))
+      .slice(0, 2)
+      .map((w) => w[0].toUpperCase())
+      .join('') || dict.hero.avatarInitials;
 
   const strSip =
-    profile.str_sip_display && !profile.str_sip_display.includes("[BELUM DIISI]")
+    profile.str_sip_display && !profile.str_sip_display.includes('[BELUM DIISI]')
       ? profile.str_sip_display
       : null;
 
-  const credentials = getCredentials(profile.full_name).join(", ");
+  const credentials = getCredentials(profile.full_name).join(', ');
 
   const portrait = profile.photo_url ? (
     <Image
       src={profile.photo_url}
-      alt={`Foto ${profile.full_name}, ${profile.specialty}`}
+      alt={profile.full_name}
       fill
-      unoptimized={profile.photo_url.startsWith("/media/")}
       priority
-      sizes="(max-width: 767px) 112px, 40vw"
-      className="object-contain object-bottom"
+      sizes="(max-width: 768px) 112px, 480px"
+      className="object-cover object-top"
     />
   ) : (
     <span
       aria-hidden="true"
-      className="flex h-full w-full items-center justify-center text-2xl font-bold text-primary md:text-6xl"
+      className="flex h-full w-full items-center justify-center font-display text-4xl font-bold text-primary"
     >
-      {initials || "Dr"}
+      {initials}
     </span>
   );
 
   return (
-    <section id="hero" aria-label="Profil Dokter" className="bg-bg px-4 pb-10 pt-6 md:px-6 md:pb-16 md:pt-12">
+    <section
+      id="hero"
+      aria-label={dict.hero.doctorProfileAria}
+      className="bg-bg px-4 pb-10 pt-6 md:px-6 md:pb-16 md:pt-12"
+    >
       <div className="mx-auto max-w-6xl md:grid md:grid-cols-12 md:items-center md:gap-10">
         <div className="md:col-span-7">
           <div className="flex items-start gap-4 md:block">
@@ -91,7 +95,7 @@ export default function HeroSection({
               <p
                 id="doctor-specialty"
                 className="animate-fade-in-up mt-1 text-sm font-semibold text-primary sm:text-base md:mt-2 md:text-xl"
-                style={{ animationDelay: "80ms" }}
+                style={{ animationDelay: '80ms' }}
               >
                 {profile.specialty}
               </p>
@@ -117,7 +121,7 @@ export default function HeroSection({
           {strSip && (
             <p id="hero-str-sip" className="mt-3 flex items-center gap-2 text-sm text-text-muted">
               <ShieldCheck size={16} aria-hidden="true" className="text-primary" />
-              STR/SIP {strSip}
+              {dict.hero.strSipPrefix} {strSip}
             </p>
           )}
 
@@ -125,7 +129,7 @@ export default function HeroSection({
             <div
               id="hero-cta-group"
               className="animate-fade-in-up mt-5 flex flex-col gap-3 sm:flex-row md:mt-7"
-              style={{ animationDelay: "160ms" }}
+              style={{ animationDelay: '160ms' }}
             >
               {bookingUrl ? (
                 <a
@@ -136,18 +140,18 @@ export default function HeroSection({
                   className="btn btn-accent"
                 >
                   <CalendarCheck size={18} aria-hidden="true" />
-                  Booking sekarang
+                  {dict.common.bookingNow}
                 </a>
               ) : (
                 <a
                   id="cta-whatsapp-hero"
-                  href={whatsappFallback ?? "#"}
+                  href={whatsappFallback ?? '#'}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="btn btn-accent"
                 >
                   <MessageCircle size={18} aria-hidden="true" />
-                  Hubungi via WhatsApp
+                  {dict.common.contactWhatsApp}
                 </a>
               )}
               {bookingUrl && whatsappFallback && (
@@ -159,14 +163,14 @@ export default function HeroSection({
                   className="btn btn-secondary"
                 >
                   <MessageCircle size={18} aria-hidden="true" />
-                  WhatsApp
+                  {dict.common.whatsapp}
                 </a>
               )}
             </div>
           )}
 
           <div className="mt-5 md:mt-7 md:max-w-xl">
-            <TodayStatus slots={slots} />
+            <TodayStatus slots={slots} locale={locale} labels={dict.schedule} />
           </div>
         </div>
 

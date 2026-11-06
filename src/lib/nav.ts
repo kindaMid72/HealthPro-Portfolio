@@ -1,9 +1,16 @@
-export const NAV_LINKS = [
-  { href: '/#lokasi', label: 'Jadwal & Lokasi' },
-  { href: '/#layanan', label: 'Layanan' },
-  { href: '/#tentang', label: 'Tentang' },
-  { href: '/artikel', label: 'Artikel' },
-  { href: '/#kontak', label: 'Kontak' },
+export type NavLinkKey = 'schedule' | 'services' | 'about' | 'articles' | 'contact';
+
+export interface NavLinkItem {
+  key: NavLinkKey;
+  href: string;
+}
+
+export const NAV_LINKS: readonly NavLinkItem[] = [
+  { key: 'schedule', href: '/#lokasi' },
+  { key: 'services', href: '/#layanan' },
+  { key: 'about', href: '/#tentang' },
+  { key: 'articles', href: '/artikel' },
+  { key: 'contact', href: '/#kontak' },
 ] as const;
 
 /** Prefiks rute yang menandai item nav aktif di halaman non-beranda. */

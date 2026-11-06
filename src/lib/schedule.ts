@@ -5,6 +5,7 @@
  */
 
 import type { Location } from "./types";
+import type { Locale } from "@/i18n/config";
 
 /** Index 0 = Senin */
 export const DAY_LABELS = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"] as const;
@@ -127,7 +128,10 @@ export function getTodayStatus(
   return null;
 }
 
-/** "17:00" → "17.00" (format penulisan Indonesia) */
-export function formatClock(hhmm: string): string {
-  return hhmm.replace(":", ".");
+/** "17:00" → "17.00" (id) atau "17:00" (en) */
+export function formatClock(hhmm: string, locale: Locale = 'id'): string {
+  if (locale === 'en') {
+    return hhmm.replace('.', ':');
+  }
+  return hhmm.replace(':', '.');
 }

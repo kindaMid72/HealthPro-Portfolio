@@ -1,17 +1,24 @@
 import { eq } from 'drizzle-orm';
-import { getDb } from '@/db/client';
-import { profile as profileTable } from '@/db/schema';
 import PageHeader from '@/components/admin/PageHeader';
-import ProfileForm from './ProfileForm';
+import { getDb } from '@/db/client';
+import {
+  profile as profileTable,
+  profileTranslations as profileTranslationsTable,
+} from '@/db/schema';
 import { requireUser } from '@/lib/session';
+import ProfileForm from './ProfileForm';
 
 export default async function AdminProfilePage() {
   await requireUser();
-  const [row] = await getDb()
-    .select()
-    .from(profileTable)
-    .where(eq(profileTable.id, 1))
-    .limit(1);
+  const db = getDb();
+  const [[row], [enRow]] = await Promise.all([
+    db.select().from(profileTable).where(eq(profileTable.id, 1)).limit(1),
+    db
+      .select()
+      .from(profileTranslationsTable)
+      .where(eq(profileTranslationsTable.locale, 'en'))
+      .limit(1),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -35,6 +42,15 @@ export default async function AdminProfilePage() {
           socialLinks: row?.socialLinks ?? '',
           personalStory: row?.personalStory ?? '',
           photoImageId: row?.photoImageId ?? null,
+          en: {
+            specialty: enRow?.specialty ?? '',
+            subSpecialty: enRow?.subSpecialty ?? '',
+            education: enRow?.education ?? '',
+            certifications: enRow?.certifications ?? '',
+            experienceHistory: enRow?.experienceHistory ?? '',
+            organizations: enRow?.organizations ?? '',
+            personalStory: enRow?.personalStory ?? '',
+          },
         }}
       />
     </div>

@@ -7,6 +7,7 @@ import {
   jsonb,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uuid,
@@ -26,6 +27,8 @@ export const articleCategory = pgEnum('article_category', [
   'kepala-leher',
   'umum',
 ]);
+export const contentLocale = pgEnum('content_locale', ['en']);
+
 
 const tsz = (name: string) => timestamp(name, { withTimezone: true });
 
@@ -81,6 +84,18 @@ export const profile = pgTable(
   },
   (t) => [check('profile_singleton', sql`${t.id} = 1`)],
 );
+export const profileTranslations = pgTable('profile_translations', {
+  locale: contentLocale('locale').primaryKey(),
+  specialty: text('specialty').notNull().default(''),
+  subSpecialty: text('sub_specialty').notNull().default(''),
+  education: text('education').notNull().default(''),
+  certifications: text('certifications').notNull().default(''),
+  experienceHistory: text('experience_history').notNull().default(''),
+  organizations: text('organizations').notNull().default(''),
+  personalStory: text('personal_story').notNull().default(''),
+  updatedAt: tsz('updated_at').notNull().defaultNow(),
+});
+
 
 export const locations = pgTable('locations', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -108,6 +123,24 @@ export const services = pgTable('services', {
   category: articleCategory('category'),
   updatedAt: tsz('updated_at').notNull().defaultNow(),
 });
+export const serviceTranslations = pgTable(
+  'service_translations',
+  {
+    serviceId: uuid('service_id')
+      .notNull()
+      .references(() => services.id, { onDelete: 'cascade' }),
+    locale: contentLocale('locale').notNull(),
+    serviceName: text('service_name').notNull().default(''),
+    serviceDescription: text('service_description').notNull().default(''),
+    content: jsonb('content')
+      .$type<JSONContent>()
+      .notNull()
+      .default(sql`'{"type":"doc","content":[{"type":"paragraph"}]}'::jsonb`),
+    updatedAt: tsz('updated_at').notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.serviceId, t.locale] })],
+);
+
 
 export const articles = pgTable(
   'articles',
@@ -135,6 +168,29 @@ export const articles = pgTable(
     index('articles_category_status_idx').on(t.category, t.status),
   ],
 );
+export const articleTranslations = pgTable(
+  'article_translations',
+  {
+    articleId: uuid('article_id')
+      .notNull()
+      .references(() => articles.id, { onDelete: 'cascade' }),
+    locale: contentLocale('locale').notNull(),
+    title: text('title').notNull().default(''),
+    excerpt: text('excerpt').notNull().default(''),
+    coverAlt: text('cover_alt').notNull().default(''),
+    content: jsonb('content')
+      .$type<JSONContent>()
+      .notNull()
+      .default(sql`'{"type":"doc","content":[{"type":"paragraph"}]}'::jsonb`),
+    readingTimeMinutes: integer('reading_time_minutes').notNull().default(1),
+    updatedAt: tsz('updated_at').notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.articleId, t.locale] })],
+);
+
 
 export type ArticleRow = typeof articles.$inferSelect;
 export type UserRow = typeof users.$inferSelect;
+export type ProfileTranslationRow = typeof profileTranslations.$inferSelect;
+export type ServiceTranslationRow = typeof serviceTranslations.$inferSelect;
+export type ArticleTranslationRow = typeof articleTranslations.$inferSelect;

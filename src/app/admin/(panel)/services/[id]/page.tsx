@@ -1,10 +1,14 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { notFound } from 'next/navigation';
 import type { JSONContent } from '@tiptap/core';
 import { getDb } from '@/db/client';
-import { services as servicesTable } from '@/db/schema';
-import ServiceEditor from './ServiceEditor';
+import {
+  services as servicesTable,
+  serviceTranslations as serviceTranslationsTable,
+} from '@/db/schema';
 import { requireUser } from '@/lib/session';
+import { EMPTY_TIPTAP_DOC } from '@/lib/tiptap';
+import ServiceEditor from './ServiceEditor';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -13,7 +17,21 @@ export default async function AdminServiceEditPage({ params }: { params: Promise
   const { id } = await params;
   if (!UUID_RE.test(id)) notFound();
 
-  const [row] = await getDb().select().from(servicesTable).where(eq(servicesTable.id, id)).limit(1);
+  const db = getDb();
+  const [[row], [enRow]] = await Promise.all([
+    db.select().from(servicesTable).where(eq(servicesTable.id, id)).limit(1),
+    db
+      .select()
+      .from(serviceTranslationsTable)
+      .where(
+        and(
+          eq(serviceTranslationsTable.serviceId, id),
+          eq(serviceTranslationsTable.locale, 'en'),
+        ),
+      )
+      .limit(1),
+  ]);
+
   if (!row) notFound();
 
   return (
@@ -25,6 +43,11 @@ export default async function AdminServiceEditPage({ params }: { params: Promise
         serviceDescription: row.serviceDescription,
         category: row.category ?? null,
         content: row.content as JSONContent,
+        en: {
+          serviceName: enRow?.serviceName ?? '',
+          serviceDescription: enRow?.serviceDescription ?? '',
+          content: (enRow?.content as JSONContent) ?? EMPTY_TIPTAP_DOC,
+        },
       }}
     />
   );

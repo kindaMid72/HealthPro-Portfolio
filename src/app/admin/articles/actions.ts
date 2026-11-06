@@ -29,6 +29,12 @@ export interface SaveArticleInput {
   status: ArticleStatus;
   reviewNote: string;
   expectedUpdatedAt?: string;
+  en?: {
+    title: string;
+    excerpt: string;
+    coverAlt: string;
+    content: JSONContent;
+  };
 }
 
 export async function saveArticleAction(input: SaveArticleInput): Promise<{
@@ -59,6 +65,24 @@ export async function saveArticleAction(input: SaveArticleInput): Promise<{
       error: 'Isi artikel tidak valid. Muat ulang halaman lalu coba simpan lagi.',
     };
   }
+  let en: { title: string; excerpt: string; coverAlt: string; content: JSONContent } | undefined;
+  if (input.en) {
+    let enContent: JSONContent;
+    try {
+      enContent = JSON.parse(JSON.stringify(input.en.content));
+      if (!enContent || enContent.type !== 'doc') {
+        throw new Error('invalid en doc');
+      }
+    } catch {
+      enContent = { type: 'doc', content: [{ type: 'paragraph' }] };
+    }
+    en = {
+      title: input.en.title,
+      excerpt: input.en.excerpt,
+      coverAlt: input.en.coverAlt,
+      content: enContent,
+    };
+  }
 
   try {
     const updated = await updateArticle(input.id, {
@@ -73,6 +97,7 @@ export async function saveArticleAction(input: SaveArticleInput): Promise<{
       reviewNote: input.reviewNote,
       updatedBy: user.id,
       expectedUpdatedAt: input.expectedUpdatedAt,
+      en,
     });
 
     return {

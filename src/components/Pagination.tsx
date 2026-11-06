@@ -1,5 +1,8 @@
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import type { Dictionary } from '@/i18n/dictionaries/id';
+import { id as idDictionary } from '@/i18n/dictionaries/id';
+import { format } from '@/i18n/dictionary';
 
 interface PaginationProps {
   currentPage: number;
@@ -9,6 +12,7 @@ interface PaginationProps {
     kategori?: string;
     q?: string;
   };
+  dict?: Dictionary['pagination'];
 }
 
 function buildHref(
@@ -30,7 +34,9 @@ function pageWindow(current: number, total: number): (number | 'gap')[] {
   const pages = [...set].filter((p) => p >= 1 && p <= total).sort((a, b) => a - b);
   const out: (number | 'gap')[] = [];
   pages.forEach((p, i) => {
-    if (i > 0 && p - pages[i - 1] > 1) out.push('gap');
+    if (i > 0 && p - pages[i - 1] > 1) {
+      out.push('gap');
+    }
     out.push(p);
   });
   return out;
@@ -44,19 +50,20 @@ export default function Pagination({
   totalPages,
   basePath = '/artikel',
   queryParams,
+  dict = idDictionary.pagination,
 }: PaginationProps) {
   if (totalPages <= 1) return null;
 
   return (
-    <nav aria-label="Navigasi halaman artikel" className="mt-14 flex flex-wrap items-center justify-center gap-2">
+    <nav aria-label={dict.navAria} className="mt-14 flex flex-wrap items-center justify-center gap-2">
       {currentPage > 1 && (
         <Link
           href={buildHref(currentPage - 1, basePath, queryParams)}
-          aria-label="Halaman sebelumnya"
+          aria-label={dict.prev}
           className={NAV_CLASS}
         >
           <ChevronLeft size={16} aria-hidden="true" />
-          Sebelumnya
+          {dict.prev}
         </Link>
       )}
 
@@ -74,6 +81,7 @@ export default function Pagination({
             key={item}
             href={buildHref(item, basePath, queryParams)}
             aria-current={active ? 'page' : undefined}
+            aria-label={format(dict.page, { page: item })}
             className={`flex min-h-11 min-w-11 items-center justify-center rounded-full border text-sm font-semibold transition-colors ${
               active
                 ? 'border-primary bg-primary text-white'
@@ -88,10 +96,10 @@ export default function Pagination({
       {currentPage < totalPages && (
         <Link
           href={buildHref(currentPage + 1, basePath, queryParams)}
-          aria-label="Halaman berikutnya"
+          aria-label={dict.next}
           className={NAV_CLASS}
         >
-          Berikutnya
+          {dict.next}
           <ChevronRight size={16} aria-hidden="true" />
         </Link>
       )}

@@ -1,15 +1,21 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { INTL_LOCALE, type Locale } from '@/i18n/config';
+import { format } from '@/i18n/format';
 
 interface ArticleViewTrackerProps {
   slug: string;
   initialViews: number;
+  locale?: Locale;
+  template?: string;
 }
 
 export default function ArticleViewTracker({
   slug,
   initialViews,
+  locale = 'id',
+  template = '{count} kali dibaca',
 }: ArticleViewTrackerProps) {
   const [views, setViews] = useState(initialViews);
 
@@ -33,7 +39,7 @@ export default function ArticleViewTracker({
     };
   }, [slug]);
 
-  return (
-    <span>{views.toLocaleString('id-ID')} kali dibaca</span>
-  );
+  const countFormatted = views.toLocaleString(INTL_LOCALE[locale]);
+
+  return <span>{format(template, { count: countFormatted })}</span>;
 }

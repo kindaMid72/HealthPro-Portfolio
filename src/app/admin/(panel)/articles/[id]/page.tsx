@@ -38,6 +38,7 @@ export default async function AdminEditArticlePage({
         publishedAt: article.publishedAt
           ? article.publishedAt.toISOString()
           : null,
+        en: article.en,
       }}
     />
   );

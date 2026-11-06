@@ -6,6 +6,10 @@
  * Tidak ada fakta medis/personal yang ditulis di sini. Field kosong = dihilangkan.
  */
 
+import type { Locale } from "@/i18n/config";
+import { id as idDictionary } from "@/i18n/dictionaries/id";
+import { en as enDictionary } from "@/i18n/dictionaries/en";
+import { format } from "@/i18n/format";
 import { parsePracticeHours } from "./schedule";
 import type { Location, Profile } from "./types";
 
@@ -127,14 +131,14 @@ export function getServiceAreas(locations: Location[]): string[] {
 }
 
 /** ["A","B","C"] → "A, B, dan C"; ["A","B"] → "A dan B" */
-function joinId(items: string[]): string {
+export function joinList(items: string[], andWord = "dan"): string {
   if (items.length <= 1) return items.join("");
-  if (items.length === 2) return `${items[0]} dan ${items[1]}`;
-  return `${items.slice(0, -1).join(", ")}, dan ${items[items.length - 1]}`;
+  if (items.length === 2) return `${items[0]} ${andWord} ${items[1]}`;
+  return `${items.slice(0, -1).join(", ")}, ${andWord} ${items[items.length - 1]}`;
 }
 
 /** Kalimat wilayah layanan dari data lokasi (bukan teks hardcoded); null bila tak ada lokasi. */
-export function describeServiceArea(locations: Location[]): string | null {
+export function describeServiceArea(locations: Location[], locale: Locale = 'id'): string | null {
   if (locations.length === 0) return null;
   const localities: string[] = [];
   const regions: string[] = [];
@@ -144,19 +148,30 @@ export function describeServiceArea(locations: Location[]): string | null {
     if (region && !regions.includes(region)) regions.push(region);
   }
   if (localities.length === 0) return null;
-  return `Melayani pasien di ${joinId(localities)}, ${regions.join(" & ")}.`;
+  const dict = locale === 'en' ? enDictionary : idDictionary;
+  const localitiesFormatted = joinList(localities, dict.seo.and);
+  return format(dict.seo.servingPatientsIn, {
+    localities: localitiesFormatted,
+    regions: regions.join(" & "),
+  });
 }
 
 /** Ringkasan teks dokter untuk meta description — hanya dari data yang ada */
-export function buildDescription(profile: Profile, locations: Location[], services: { service_name: string }[]): string {
+export function buildDescription(
+  profile: Profile,
+  locations: Location[],
+  services: { service_name: string }[],
+  locale: Locale = 'id',
+): string {
+  const dict = locale === 'en' ? enDictionary : idDictionary;
   const areas = getServiceAreas(locations);
   const names = locations.map((l) => l.location_name);
   const svc = services.map((s) => s.service_name);
   const parts = [`${profile.full_name} — ${profile.specialty}.`];
-  if (names.length) parts.push(`Praktik di ${names.join(", ")}.`);
-  else if (areas.length) parts.push(`Melayani pasien di ${areas.join(", ")}.`);
-  if (svc.length) parts.push(`Layanan: ${svc.join(", ")}.`);
-  parts.push("Lihat jadwal, alamat, dan cara booking.");
+  if (names.length) parts.push(format(dict.seo.practiceAt, { names: names.join(", ") }));
+  else if (areas.length) parts.push(format(dict.seo.servingPatientsIn, { localities: areas.join(", "), regions: '' }).replace(/,\s*\./, '.'));
+  if (svc.length) parts.push(format(dict.seo.services, { services: svc.join(", ") }));
+  parts.push(dict.seo.seeScheduleCta);
   return parts.join(" ");
 }
 

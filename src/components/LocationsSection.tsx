@@ -1,26 +1,28 @@
-/**
- * components/LocationsSection.tsx
- * Papan jadwal mingguan + kartu lokasi praktik. Semua lokasi setara (03-sitemap.md).
- *
- * Aksi tiap kartu (FR-4): WhatsApp / Telepon / Booking hanya bila datanya ada;
- * kontak kosong → kartu tetap tampil tanpa baris aksi.
- */
-
-import { MessageCircle, Phone, CalendarCheck, ExternalLink } from "lucide-react";
-import type { Location } from "@/lib/types";
-import { mapsSearchUrl } from "@/lib/seo";
-import { toWaLink } from "@/lib/cta";
-import { parsePracticeHours, type PracticeSlot } from "@/lib/schedule";
-import SectionHeading from "./SectionHeading";
-import ScheduleBoard from "./ScheduleBoard";
+import { CalendarCheck, ExternalLink, MessageCircle, Phone } from 'lucide-react';
+import type { Locale } from '@/i18n/config';
+import type { Dictionary } from '@/i18n/dictionaries/id';
+import { toWaLink } from '@/lib/cta';
+import { parsePracticeHours, type PracticeSlot } from '@/lib/schedule';
+import { mapsSearchUrl } from '@/lib/seo';
+import type { Location } from '@/lib/types';
+import ScheduleBoard from './ScheduleBoard';
+import SectionHeading from './SectionHeading';
 
 interface LocationsSectionProps {
   locations: Location[];
   slots: PracticeSlot[];
   globalBookingUrl: string | null;
+  locale: Locale;
+  dict: Dictionary;
 }
 
-export default function LocationsSection({ locations, slots, globalBookingUrl }: LocationsSectionProps) {
+export default function LocationsSection({
+  locations,
+  slots,
+  globalBookingUrl,
+  locale,
+  dict,
+}: LocationsSectionProps) {
   const unparsed = locations
     .filter((l) => !parsePracticeHours(l.practice_hours))
     .map((l) => ({ name: l.location_name, hours: l.practice_hours }));
@@ -34,17 +36,22 @@ export default function LocationsSection({ locations, slots, globalBookingUrl }:
       <div className="mx-auto max-w-6xl">
         <SectionHeading
           id="lokasi-heading"
-          title="Jadwal & lokasi praktik"
-          intro="Pilih lokasi dan jadwal yang paling dekat dengan Anda."
+          title={dict.locations.sectionTitle}
+          intro={dict.locations.sectionIntro}
         />
 
         {locations.length === 0 ? (
           <p id="lokasi-empty" className="py-8 text-text-body">
-            Informasi lokasi praktik segera hadir.
+            {dict.locations.empty}
           </p>
         ) : (
           <>
-            <ScheduleBoard slots={slots} unparsed={unparsed} />
+            <ScheduleBoard
+              slots={slots}
+              unparsed={unparsed}
+              locale={locale}
+              labels={dict.schedule}
+            />
             <ul id="locations-list" className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
               {locations.map((loc, i) => {
                 const effectiveBookingUrl = loc.booking_url_override ?? globalBookingUrl;
@@ -64,7 +71,7 @@ export default function LocationsSection({ locations, slots, globalBookingUrl }:
 
                       <dl className="mt-4 space-y-4 text-sm">
                         <div>
-                          <dt className="text-xs font-medium text-text-muted">Alamat</dt>
+                          <dt className="text-xs font-medium text-text-muted">{dict.locations.addressLabel}</dt>
                           <dd id={`location-address-${i}`} className="mt-1 text-text-body">
                             <address className="not-italic">{loc.address}</address>
                             <a
@@ -74,13 +81,13 @@ export default function LocationsSection({ locations, slots, globalBookingUrl }:
                               rel="noopener noreferrer"
                               className="mt-1.5 inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
                             >
-                              Buka di Google Maps
+                              {dict.common.openInGoogleMaps}
                               <ExternalLink size={12} aria-hidden="true" />
                             </a>
                           </dd>
                         </div>
                         <div>
-                          <dt className="text-xs font-medium text-text-muted">Jam praktik (WITA)</dt>
+                          <dt className="text-xs font-medium text-text-muted">{dict.locations.hoursLabel}</dt>
                           <dd id={`location-hours-${i}`} className="mt-1 font-semibold tabular-nums text-text-heading">
                             {loc.practice_hours}
                           </dd>
@@ -99,13 +106,13 @@ export default function LocationsSection({ locations, slots, globalBookingUrl }:
                             className="btn btn-sm btn-secondary"
                           >
                             <MessageCircle size={16} aria-hidden="true" />
-                            WhatsApp
+                            {dict.common.whatsapp}
                           </a>
                         )}
                         {loc.phone && (
                           <a id={`location-phone-${i}`} href={`tel:${loc.phone}`} className="btn btn-sm btn-secondary">
                             <Phone size={16} aria-hidden="true" />
-                            Telepon
+                            {dict.common.phone}
                           </a>
                         )}
                         {effectiveBookingUrl && (
@@ -117,7 +124,7 @@ export default function LocationsSection({ locations, slots, globalBookingUrl }:
                             className="btn btn-sm btn-accent"
                           >
                             <CalendarCheck size={16} aria-hidden="true" />
-                            Booking
+                            {dict.common.booking}
                           </a>
                         )}
                       </div>

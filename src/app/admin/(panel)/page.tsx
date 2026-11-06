@@ -15,8 +15,8 @@ import PageHeader from '@/components/admin/PageHeader';
 import StatusBadge from '@/components/admin/StatusBadge';
 import { Button } from '@/components/admin/Button';
 import { getAdminDashboardStats } from '@/lib/articles';
-import { formatDateShortId } from '@/lib/format';
-import { ARTICLE_CATEGORIES } from '@/lib/types';
+import { formatDateShort } from '@/lib/format';
+import { id as idDictionary } from '@/i18n/dictionaries/id';
 import { createArticleAction } from '../articles/actions';
 import { requireUser } from '@/lib/session';
 
@@ -200,7 +200,7 @@ export default async function AdminDashboardPage() {
                             {art.title || '(Tanpa Judul)'}
                           </Link>
                           <div className="mt-0.5 text-xs text-text-muted">
-                            {ARTICLE_CATEGORIES[art.category]} • Diperbarui {formatDateShortId(art.updatedAt)}
+                            {idDictionary.categories[art.category]} • Diperbarui {formatDateShort(art.updatedAt, 'id')}
                           </div>
                         </td>
                         <td className="px-4 py-3">
@@ -231,7 +231,7 @@ export default async function AdminDashboardPage() {
                     </Link>
                     <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-text-muted">
                       <StatusBadge status={art.status} />
-                      <span>{formatDateShortId(art.updatedAt)}</span>
+                      <span>{formatDateShort(art.updatedAt, 'id')}</span>
                     </div>
                   </li>
                 ))}

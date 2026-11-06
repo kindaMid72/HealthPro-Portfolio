@@ -1,17 +1,22 @@
-/**
- * components/Footer.tsx
- * Footer 12 kolom: identitas, navigasi, disclaimer + catatan darurat.
- */
+import Link from 'next/link';
+import { ArrowUp, TriangleAlert } from 'lucide-react';
+import type { Locale } from '@/i18n/config';
+import type { Dictionary } from '@/i18n/dictionaries/id';
+import { format } from '@/i18n/dictionary';
+import { localePath } from '@/i18n/path';
+import { NAV_LINKS } from '@/lib/nav';
+import type { Profile } from '@/lib/types';
+import BrandMark from './BrandMark';
 
-import Link from "next/link";
-import { ArrowUp, TriangleAlert } from "lucide-react";
-import BrandMark from "./BrandMark";
-import { NAV_LINKS } from "@/lib/nav";
-import { EMERGENCY_NOTE } from "@/lib/cta";
-import type { Profile } from "@/lib/types";
+interface FooterProps {
+  profile: Profile;
+  locale: Locale;
+  dict: Dictionary;
+}
 
-export default function Footer({ profile }: { profile: Profile }) {
+export default function Footer({ profile, locale, dict }: FooterProps) {
   const year = new Date().getFullYear();
+
   return (
     <footer id="footer" className="bg-primary-dark px-4 py-12 text-white/80 md:px-6">
       <div className="mx-auto max-w-6xl">
@@ -29,15 +34,18 @@ export default function Footer({ profile }: { profile: Profile }) {
             )}
           </div>
 
-          <nav aria-label="Navigasi footer" className="md:col-span-3">
+          <nav aria-label={dict.footer.navigationAria} className="md:col-span-3">
             <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-white/60">
-              Navigasi
+              {dict.footer.navigationHeading}
             </p>
             <ul className="space-y-2">
-              {NAV_LINKS.map(({ href, label }) => (
-                <li key={href}>
-                  <Link href={href} className="transition-colors hover:text-white hover:underline">
-                    {label}
+              {NAV_LINKS.map(({ key, href }) => (
+                <li key={key}>
+                  <Link
+                    href={localePath(locale, href)}
+                    className="transition-colors hover:text-white hover:underline"
+                  >
+                    {dict.nav[key]}
                   </Link>
                 </li>
               ))}
@@ -45,24 +53,19 @@ export default function Footer({ profile }: { profile: Profile }) {
           </nav>
 
           <div className="space-y-3 rounded-2xl border border-white/15 bg-white/5 p-4 leading-relaxed md:col-span-4">
-            <p>
-              Informasi yang tersaji di website ini bersifat umum dan tidak menggantikan konsultasi
-              medis langsung. Untuk keperluan medis, silakan hubungi dokter secara langsung.
-            </p>
+            <p>{dict.footer.disclaimer}</p>
             <p className="flex items-start gap-2 border-t border-white/15 pt-3 text-white">
               <TriangleAlert size={16} aria-hidden="true" className="mt-0.5 shrink-0 text-accent" />
-              <span>{EMERGENCY_NOTE}</span>
+              <span>{dict.common.emergencyNote}</span>
             </p>
           </div>
         </div>
 
         <div className="mt-10 flex flex-col gap-3 border-t border-white/15 pt-6 text-xs sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            © {year} {profile.full_name}
-          </p>
+          <p>{format(dict.footer.copyright, { year, name: profile.full_name })}</p>
           <a href="#top" className="inline-flex items-center gap-1.5 hover:text-white">
             <ArrowUp size={14} aria-hidden="true" />
-            Kembali ke atas
+            {dict.footer.backToTop}
           </a>
         </div>
       </div>
