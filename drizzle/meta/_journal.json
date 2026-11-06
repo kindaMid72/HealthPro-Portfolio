@@ -22,6 +22,13 @@
       "when": 1793976197088,
       "tag": "0002_volatile_mantis",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793994828186,
+      "tag": "0003_complete_lake",
+      "breakpoints": true
     }
   ]
 }

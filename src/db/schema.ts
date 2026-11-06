@@ -2,6 +2,7 @@ import {
   type AnyPgColumn,
   check,
   customType,
+  date,
   index,
   integer,
   jsonb,
@@ -37,8 +38,6 @@ export const users = pgTable('users', {
   email: text('email').notNull().unique(),
   name: text('name').notNull(),
   passwordHash: text('password_hash').notNull(),
-  failedLoginCount: integer('failed_login_count').notNull().default(0),
-  lockedUntil: tsz('locked_until'),
   createdAt: tsz('created_at').notNull().defaultNow(),
 });
 
@@ -50,6 +49,21 @@ export const sessions = pgTable('sessions', {
   expiresAt: tsz('expires_at').notNull(),
   createdAt: tsz('created_at').notNull().defaultNow(),
 });
+
+export const loginAttempts = pgTable(
+  'login_attempts',
+  {
+    // 'a0'..'a1023' = sha256(email) mod 1024. Email tidak disimpan; jumlah kunci akun dibatasi 1024.
+    accountKey: text('account_key').notNull(),
+    ip: text('ip').notNull(), // alamat IP valid, atau '*' = bucket gabungan per kunci akun
+    attempts: integer('attempts').notNull().default(0),
+    windowStart: tsz('window_start').notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.accountKey, t.ip] }),
+    index('login_attempts_window_idx').on(t.windowStart), // purge baris kedaluwarsa tanpa seq scan
+  ],
+);
 
 export const images = pgTable('images', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -186,6 +200,18 @@ export const articleTranslations = pgTable(
     updatedAt: tsz('updated_at').notNull().defaultNow(),
   },
   (t) => [primaryKey({ columns: [t.articleId, t.locale] })],
+);
+
+export const articleViews = pgTable(
+  'article_views',
+  {
+    day: date('day', { mode: 'string' }).notNull(), // UTC, 'YYYY-MM-DD'
+    articleId: uuid('article_id')
+      .notNull()
+      .references(() => articles.id, { onDelete: 'cascade' }),
+    visitorBucket: integer('visitor_bucket').notNull(), // 0..4095 = HMAC(ip, day) mod 4096; bukan hash IP penuh
+  },
+  (t) => [primaryKey({ columns: [t.day, t.articleId, t.visitorBucket] })], // day pertama: purge `day < x` memakai index
 );
 
 
