@@ -22,7 +22,8 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        source: "/:path*",
+        // Exclude /media: Next applies these after the route handler, which would override media's sandbox CSP.
+        source: "/:path((?!media/).*)*",
         headers: [
           { key: "Content-Security-Policy", value: csp },
           { key: "X-Frame-Options", value: "DENY" },
