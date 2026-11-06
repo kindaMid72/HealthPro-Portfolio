@@ -1,22 +1,29 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import ArticleIndexView from '@/components/ArticleIndexView';
 import SiteShell from '@/components/SiteShell';
 import { hasLocale, OG_LOCALE, type Locale } from '@/i18n/config';
 import { format, getDictionaryFor } from '@/i18n/dictionary';
-import { buildAlternates } from '@/i18n/path';
+import { buildAlternates, localePath } from '@/i18n/path';
+import {
+  buildArticleListHref,
+  hasActiveFilters,
+  needsCanonicalRedirect,
+  parseArticleFilters,
+  type RawSearchParams,
+} from '@/lib/article-filters';
 import { getAllSiteData, getPaginatedArticles } from '@/lib/content';
-import { type ArticleCategory, isValidArticleCategory } from '@/lib/types';
 
 export const revalidate = 3600;
 
 interface ArtikelIndexProps {
   params: Promise<{ lang: string }>;
-  searchParams: Promise<{ kategori?: string; q?: string }>;
+  searchParams: Promise<RawSearchParams>;
 }
 
 export async function generateMetadata({
   params,
+  searchParams,
 }: ArtikelIndexProps): Promise<Metadata> {
   const { lang: rawLang } = await params;
   if (!hasLocale(rawLang)) {
@@ -39,6 +46,9 @@ export async function generateMetadata({
   return {
     title,
     description,
+    robots: hasActiveFilters(parseArticleFilters(await searchParams))
+      ? { index: false, follow: true }
+      : undefined,
     alternates: {
       canonical: alternates.canonical,
       languages: alternates.languages,
@@ -63,18 +73,25 @@ export default async function ArtikelIndexPage({
   const locale: Locale = rawLang;
   const dict = await getDictionaryFor(locale);
 
-  const { kategori, q } = await searchParams;
-  const activeCategory: ArticleCategory | undefined = isValidArticleCategory(kategori)
-    ? kategori
-    : undefined;
-  const searchQuery = q?.trim() || undefined;
+  const rawSearch = await searchParams;
+  const filters = parseArticleFilters(rawSearch);
+  const basePath = localePath(locale, '/artikel');
+  if (needsCanonicalRedirect(rawSearch, filters)) {
+    redirect(buildArticleListHref(basePath, filters, 1));
+  }
 
   const [{ profile, locations }, paginated] = await Promise.all([
     getAllSiteData(locale),
     getPaginatedArticles({
       page: 1,
-      category: activeCategory,
-      query: searchQuery,
+      category: filters.category,
+      query: filters.query,
+      sort: filters.sort,
+      order: filters.order,
+      reading: filters.reading,
+      from: filters.from,
+      to: filters.to,
+      limit: filters.perPage,
       locale,
     }),
   ]);
@@ -84,8 +101,7 @@ export default async function ArtikelIndexPage({
       <ArticleIndexView
         doctorName={profile.full_name}
         paginated={paginated}
-        activeCategory={activeCategory}
-        searchQuery={searchQuery}
+        filters={filters}
         locale={locale}
         dict={dict}
       />

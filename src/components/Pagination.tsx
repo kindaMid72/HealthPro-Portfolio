@@ -7,25 +7,8 @@ import { format } from '@/i18n/dictionary';
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
-  basePath?: string;
-  queryParams?: {
-    kategori?: string;
-    q?: string;
-  };
+  hrefFor: (page: number) => string;
   dict?: Dictionary['pagination'];
-}
-
-function buildHref(
-  page: number,
-  basePath: string,
-  queryParams?: { kategori?: string; q?: string },
-): string {
-  const path = page <= 1 ? basePath : `${basePath}/halaman/${page}`;
-  const params = new URLSearchParams();
-  if (queryParams?.kategori) params.set('kategori', queryParams.kategori);
-  if (queryParams?.q) params.set('q', queryParams.q);
-  const qs = params.toString();
-  return qs ? `${path}?${qs}` : path;
 }
 
 /** Jendela halaman: pertama, terakhir, dan tetangga halaman aktif; celah ditandai "…". */
@@ -48,8 +31,7 @@ const NAV_CLASS =
 export default function Pagination({
   currentPage,
   totalPages,
-  basePath = '/artikel',
-  queryParams,
+  hrefFor,
   dict = idDictionary.pagination,
 }: PaginationProps) {
   if (totalPages <= 1) return null;
@@ -58,7 +40,7 @@ export default function Pagination({
     <nav aria-label={dict.navAria} className="mt-14 flex flex-wrap items-center justify-center gap-2">
       {currentPage > 1 && (
         <Link
-          href={buildHref(currentPage - 1, basePath, queryParams)}
+          href={hrefFor(currentPage - 1)}
           aria-label={dict.prev}
           className={NAV_CLASS}
         >
@@ -79,7 +61,7 @@ export default function Pagination({
         return (
           <Link
             key={item}
-            href={buildHref(item, basePath, queryParams)}
+            href={hrefFor(item)}
             aria-current={active ? 'page' : undefined}
             aria-label={format(dict.page, { page: item })}
             className={`flex min-h-11 min-w-11 items-center justify-center rounded-full border text-sm font-semibold transition-colors ${
@@ -95,7 +77,7 @@ export default function Pagination({
 
       {currentPage < totalPages && (
         <Link
-          href={buildHref(currentPage + 1, basePath, queryParams)}
+          href={hrefFor(currentPage + 1)}
           aria-label={dict.next}
           className={NAV_CLASS}
         >
