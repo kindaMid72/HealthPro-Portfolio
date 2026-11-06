@@ -1,12 +1,14 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { and, eq, gt, ne } from 'drizzle-orm';
+import { and, eq, gt, lt, ne } from 'drizzle-orm';
 import { getDb } from '@/db/client';
 import { sessions, users } from '@/db/schema';
 
-export const SESSION_COOKIE = 'mami_session';
-const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 hari
+// __Host- mewajibkan Secure, jadi hanya aktif di produksi (dev: HTTP).
+export const SESSION_COOKIE =
+  process.env.NODE_ENV === 'production' ? '__Host-mami_session' : 'mami_session';
+const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 hari
 
 export interface SessionUser {
   id: string;
@@ -22,6 +24,7 @@ export async function createSession(userId: string): Promise<void> {
   const token = randomBytes(32).toString('base64url');
   const sessionId = hashToken(token);
   const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
+  await getDb().delete(sessions).where(lt(sessions.expiresAt, new Date()));
 
   await getDb().insert(sessions).values({
     id: sessionId,
