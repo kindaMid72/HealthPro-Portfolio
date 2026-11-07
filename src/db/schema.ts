@@ -1,5 +1,6 @@
 import {
   type AnyPgColumn,
+  boolean,
   check,
   customType,
   date,
@@ -9,8 +10,10 @@ import {
   pgEnum,
   pgTable,
   primaryKey,
+  smallint,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
@@ -116,12 +119,76 @@ export const locations = pgTable('locations', {
   sortOrder: integer('sort_order').notNull(),
   locationName: text('location_name').notNull(),
   address: text('address').notNull(),
-  practiceHours: text('practice_hours').notNull(),
+  /** Indonesian schedule note shown under the weekly hours. */
+  scheduleNote: text('schedule_note').notNull().default(''),
+  practiceHours: text('practice_hours').notNull().default('-'), // legacy; dropped in migration 0005
   whatsapp: text('whatsapp').notNull().default(''),
   phone: text('phone').notNull().default(''),
   bookingUrlOverride: text('booking_url_override').notNull().default(''),
   updatedAt: tsz('updated_at').notNull().defaultNow(),
 });
+export const locationTranslations = pgTable(
+  'location_translations',
+  {
+    locationId: uuid('location_id')
+      .notNull()
+      .references(() => locations.id, { onDelete: 'cascade' }),
+    locale: contentLocale('locale').notNull(),
+    locationName: text('location_name').notNull().default(''),
+    address: text('address').notNull().default(''),
+    scheduleNote: text('schedule_note').notNull().default(''),
+    updatedAt: tsz('updated_at').notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.locationId, t.locale] })],
+);
+/** Weekly practice hours: one row per day × time range. */
+export const locationSlots = pgTable(
+  'location_slots',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    locationId: uuid('location_id')
+      .notNull()
+      .references(() => locations.id, { onDelete: 'cascade' }),
+    /** 0 = Monday … 6 = Sunday (same index as DAY_LABELS). */
+    dayOfWeek: smallint('day_of_week').notNull(),
+    opensMinute: smallint('opens_minute').notNull(),
+    closesMinute: smallint('closes_minute').notNull(),
+  },
+  (t) => [
+    check('location_slots_day_check', sql`${t.dayOfWeek} between 0 and 6`),
+    check('location_slots_opens_check', sql`${t.opensMinute} >= 0`),
+    check('location_slots_closes_check', sql`${t.closesMinute} <= 1439`),
+    check('location_slots_order_check', sql`${t.closesMinute} > ${t.opensMinute}`),
+    uniqueIndex('location_slots_location_day_opens_key').on(t.locationId, t.dayOfWeek, t.opensMinute),
+  ],
+);
+/** Date exceptions (WITA calendar dates, inclusive). locationId NULL = all locations (closures only). */
+export const locationExceptions = pgTable(
+  'location_exceptions',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    locationId: uuid('location_id').references(() => locations.id, { onDelete: 'cascade' }),
+    startDate: date('start_date', { mode: 'string' }).notNull(),
+    endDate: date('end_date', { mode: 'string' }).notNull(),
+    closed: boolean('closed').notNull(),
+    hours: jsonb('hours')
+      .$type<{ opens: string; closes: string }[]>()
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    reason: text('reason').notNull().default(''),
+    reasonEn: text('reason_en').notNull().default(''),
+    createdAt: tsz('created_at').notNull().defaultNow(),
+    updatedAt: tsz('updated_at').notNull().defaultNow(),
+  },
+  (t) => [
+    check('location_exceptions_dates_check', sql`${t.endDate} >= ${t.startDate}`),
+    check(
+      'location_exceptions_hours_check',
+      sql`(${t.closed} AND jsonb_array_length(${t.hours}) = 0) OR (NOT ${t.closed} AND jsonb_array_length(${t.hours}) > 0)`,
+    ),
+    check('location_exceptions_scope_check', sql`${t.locationId} IS NOT NULL OR ${t.closed}`),
+  ],
+);
 
 export const services = pgTable('services', {
   id: uuid('id').primaryKey().defaultRandom(),

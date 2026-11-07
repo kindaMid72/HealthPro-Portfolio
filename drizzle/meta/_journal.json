@@ -29,6 +29,13 @@
       "when": 1793994828186,
       "tag": "0003_complete_lake",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794015099158,
+      "tag": "0004_narrow_alice",
+      "breakpoints": true
     }
   ]
 }
