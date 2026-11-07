@@ -1,58 +1,58 @@
 # AGENTS.md
 
-Instruksi ini WAJIB dibaca dan diikuti oleh AI coding agent sebelum mengerjakan task apa pun di repo ini. File ini sengaja pendek — detail lengkap ada di `docs/`, rujuk ke sana kalau butuh konteks lebih.
+These instructions MUST be read and followed by any AI coding agent before working on any task in this repository. This file is intentionally concise — full details reside in `docs/`; refer there for deeper context.
 
-## Ringkasan Proyek
-Website profil dokter spesialis THT-BKL + Portal Artikel Edukasi Kesehatan (`/artikel`) + Admin Dashboard (`/admin`). Menggunakan **Next.js 16 App Router**, **PostgreSQL**, dan **Drizzle ORM**. Tombol booking tetap **redirect ke link eksternal** atau WhatsApp lokasi praktik (bukan aplikasi antrean/rekam medis pasien).
+## Project Summary
+Doctor profile website for an ENT specialist (Otolaryngologist - Head & Neck Surgeon) + Health Education Article Portal (`/artikel`) + Admin Dashboard (`/admin`). Built using **Next.js 16 App Router**, **PostgreSQL**, and **Drizzle ORM**. Booking buttons **always redirect to external links** or the practice location's WhatsApp (not an internal patient queue/medical records app).
 
-Baca dulu sebelum mulai kerja:
-1. `docs/00-constitution.md` — aturan main yang tidak boleh dilanggar
-2. `docs/01-spec.md` — requirement & scope
-3. `docs/05-tech-plan.md` — arsitektur & stack
-4. `docs/07-data-architecture.md` — skema database PostgreSQL & alur data
+Read these before starting work:
+1. `docs/00-constitution.md` — non-negotiable core rules
+2. `docs/01-spec.md` — requirements & scope
+3. `docs/05-tech-plan.md` — architecture & stack
+4. `docs/07-data-architecture.md` — PostgreSQL database schema & data flow
 
 ## Setup, Database, & Build Commands
 
 ```bash
-docker compose up -d db       # jalankan PostgreSQL 17 lokal
+docker compose up -d db       # run local PostgreSQL 17
 npm install                   # install dependencies
-npm run db:generate           # generate SQL migration dari src/db/schema.ts
-npm run db:migrate            # jalankan migrasi database
-npm run db:import-sheets      # seed data awal dari Google Sheets / fallback JSON
-USER_PASSWORD='...' npm run user:create -- <email> "<Nama>" # buat akun admin
+npm run db:generate           # generate SQL migration from src/db/schema.ts
+npm run db:migrate            # run database migrations
+npm run db:import-sheets      # seed initial data from Google Sheets / JSON fallback
+USER_PASSWORD='...' npm run user:create -- <email> "<Name>" # create admin account
 npm run dev                   # local dev server
 npm run build                 # build production output
-npm run lint                  # jalankan linter — WAJIB pass sebelum melaporkan task selesai
+npm run lint                  # run linter — MUST pass before reporting task complete
 ```
 
 ## Code Style
 - TypeScript, strict mode.
-- Komponen React fungsional, tanpa class component.
-- Styling pakai Tailwind CSS v4 utility classes + `@tailwindcss/typography` untuk konten artikel.
-- Tidak ada state management library eksternal (Redux, dsb).
+- Functional React components, no class components.
+- Styling with Tailwind CSS v4 utility classes + `@tailwindcss/typography` for article content.
+- No external state management libraries (Redux, etc.).
 
-## Data & Content — ATURAN KRITIS
-- **Semua konten faktual dokter** (nama, gelar, riwayat, jam praktik, dsb) HANYA boleh diambil dari database PostgreSQL (yang di-seed dari `docs/02-content-data.md` / `data/fallback-*.json`) atau diinput dokter melalui `/admin`.
-- **Agent DILARANG mengarang/mengisi data medis atau data personal apa pun** — bio, sertifikasi, riwayat pendidikan, dll. Kalau data belum tersedia, gunakan placeholder yang jelas ditandai `[BELUM DIISI]`.
-- Jangan hardcode data konten di dalam komponen — semua data publik wajib ditarik melalui `src/lib/content.ts`.
+## Data & Content — CRITICAL RULES
+- **All factual doctor content** (name, credentials, background, practice hours, etc.) MUST ONLY be pulled from the PostgreSQL database (seeded from `docs/02-content-data.md` / `data/fallback-*.json`) or entered by the doctor via `/admin`.
+- **Agents are STRICTLY FORBIDDEN from inventing or fabricating any medical or personal data** — bio, certifications, educational background, etc. If data is not yet available, use a placeholder clearly marked `[BELUM DIISI]`.
+- Do not hardcode content data inside components — all public data must be retrieved through `src/lib/content.ts`.
 
-## Batasan / Jangan Disentuh
-- Jangan implementasi sistem booking/rekam medis pasien internal — tombol booking SELALU redirect ke URL eksternal atau WhatsApp dari data source.
-- Jangan menambah halaman di luar yang terdaftar di `docs/03-sitemap.md` tanpa approval.
+## Boundaries / Do Not Touch
+- Do not implement an internal patient booking/medical records system — booking buttons ALWAYS redirect to an external URL or WhatsApp from the data source.
+- Do not add pages outside of those listed in `docs/03-sitemap.md` without approval.
 
 ## Privileged Execution (Root/Sudo)
-Jika sebuah task mutlak membutuhkan hak akses root (misal instalasi dependensi sistem atau manajemen service):
-- Gunakan binary wrapper: `agent-sudo <command>` (sudah ada di `$PATH`).
-- **Graceful Fallback**: Jika vault dicabut/tidak aktif atau sudo meminta password interaktif, **JANGAN CRASH atau HANG**. Tampilkan perintah yang dibutuhkan kepada user dan minta user menjalankannya secara manual di terminal.
-- **Mindful Guardrails**: Dilarang menggunakan `sudo` untuk operasi ruang user biasa (seperti `npm install` di direktori proyek) dan dilarang menjalankan perintah destruktif terhadap sistem/partisi.
+If a task strictly requires root privileges (e.g. system dependency installation or service management):
+- Use the binary wrapper: `agent-sudo <command>` (already in `$PATH`).
+- **Graceful Fallback**: If the vault is revoked/inactive or sudo prompts for an interactive password, **DO NOT CRASH OR HANG**. Display the required command to the user and ask them to run it manually in their terminal.
+- **Mindful Guardrails**: Using `sudo` is forbidden for normal user-space operations (such as `npm install` in the project directory) and destructive commands against the system/partitions are prohibited.
 
-## Testing & Verifikasi
-- Sebelum melaporkan task selesai: jalankan `npm run lint` dan `npm run build`, pastikan tidak ada error.
-- Cek tampilan responsif minimal di breakpoint mobile (375px) dan desktop (1280px).
+## Testing & Verification
+- Before reporting a task complete: run `npm run lint` and `npm run build`, ensuring zero errors.
+- Check responsive layouts at minimum on mobile (375px) and desktop (1280px) breakpoints.
 
 ## Commit Convention
-- Commit kecil, per task/fase, pesan jelas: `feat: tambah halaman artikel`, `fix: perbaiki responsif navbar`, dst.
-- Jangan commit file `.env*`, API key, atau credential apa pun.
+- Small commits per task/phase with clear messages: `feat: add article page`, `fix: improve navbar responsiveness`, etc.
+- Never commit `.env*` files, API keys, or any credentials.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
