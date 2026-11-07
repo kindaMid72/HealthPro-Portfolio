@@ -6,7 +6,7 @@
   --color-primary-hover: #1e444d;
   --color-primary-dark: #13252c;
   --color-primary-tint: #e3eff2;
-  /* Aksen hanya untuk fill CTA; teks di atasnya memakai primary-dark. */
+  /* Accent used exclusively for CTA fill; foreground text uses primary-dark. */
   --color-accent: #d98c4a;
   --color-accent-hover: #c57938;
   --color-accent-tint: #fdf3e7;
@@ -48,10 +48,10 @@
 
   html {
     height: 100%;
-    /* Anchor link tidak tertutup fixed navbar */
+    /* Anchor links not obscured by fixed navbar */
     scroll-padding-top: 80px;
     scroll-behavior: smooth;
-    /* clip (bukan hidden) agar sticky/fixed tidak rusak */
+    /* clip (not hidden) to preserve sticky/fixed behavior */
     overflow-x: clip;
   }
 
@@ -151,7 +151,7 @@
     @apply font-semibold text-primary underline decoration-primary/30 underline-offset-4 hover:decoration-primary;
   }
 
-  /* Kartu klinis: permukaan putih, border tegas, bayangan halus */
+  /* Clinical card: white surface, defined border, subtle shadow */
   .card-clinical {
     @apply rounded-2xl border border-border bg-surface shadow-card transition-[border-color,box-shadow,transform] duration-200;
   }
@@ -160,7 +160,7 @@
     @apply hover:border-primary/40 hover:shadow-elevated;
   }
 
-  /* Konten artikel/layanan (prose & tabel) */
+  /* Article/service content (prose & table) */
   .article-prose h2,
   .article-prose h3 {
     scroll-margin-top: 6rem;
@@ -184,7 +184,7 @@
     @apply py-14 md:py-24;
   }
 
-  /* Safe area untuk indikator home iPhone */
+  /* Safe area for iPhone home indicator */
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
@@ -200,7 +200,7 @@
     }
   }
 
-  /* Satu entrance terorkestrasi — hanya dipakai hero */
+  /* Single orchestrated entrance — used exclusively for hero */
   .animate-fade-in-up {
     animation: fadeInUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
   }

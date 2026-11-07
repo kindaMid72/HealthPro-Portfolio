@@ -1,11 +1,11 @@
 /**
- * app/robots.ts — robots.txt otomatis (Fase 4: SEO + GEO)
+ * app/robots.ts — automated robots.txt (Phase 4: SEO + GEO)
  *
- * Dirender oleh Next.js di path /robots.txt.
- * Crawler search biasa DAN crawler AI/LLM diizinkan eksplisit supaya situs
- * bisa dikutip/direkomendasikan oleh ChatGPT, Claude, Perplexity, Gemini, dsb.
- * Mau menutup akses training saja? Pindahkan bot training (GPTBot, ClaudeBot,
- * Google-Extended, Applebot-Extended, CCBot) ke aturan `disallow: "/"`.
+ * Rendered by Next.js at path /robots.txt.
+ * Standard search crawlers AND AI/LLM crawlers are explicitly allowed so the site
+ * can be cited/recommended by ChatGPT, Claude, Perplexity, Gemini, etc.
+ * To restrict training access only: move training bots (GPTBot, ClaudeBot,
+ * Google-Extended, Applebot-Extended, CCBot) to `disallow: "/"` rule.
  */
 
 import type { MetadataRoute } from "next";
@@ -26,7 +26,7 @@ const AI_CRAWLERS = [
   // Google (Gemini / AI Overviews) & Apple
   "Google-Extended",
   "Applebot-Extended",
-  // Lainnya
+  // Others
   "Bingbot",
   "DuckAssistBot",
   "MistralAI-User",
@@ -42,8 +42,8 @@ export default function robots(): MetadataRoute.Robots {
       { userAgent: AI_CRAWLERS, allow: "/", disallow: ["/admin", "/api/admin"] },
     ],
     sitemap: `${siteUrl}/sitemap.xml`,
-    // Host: hanya nama domain tanpa protokol (standar Yandex, diabaikan Google).
-    // Format yang benar: "dryuliana.my.id" bukan "https://dryuliana.my.id".
+    // Host: domain name only without protocol (Yandex standard, ignored by Google).
+    // Proper format: "dryuliana.my.id", not "https://dryuliana.my.id".
     host: siteUrl.replace(/^https?:\/\//i, ""),
   };
 }

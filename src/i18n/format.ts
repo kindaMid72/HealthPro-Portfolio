@@ -1,7 +1,7 @@
 import { INTL_LOCALE, type Locale } from './config';
 
 /**
- * Format string dengan placeholder `{key}`.
+ * Format string with `{key}` placeholders.
  */
 export function format(template: string, vars: Record<string, string | number>): string {
   return template.replace(/\{(\w+)\}/g, (match, key) => {
@@ -10,7 +10,7 @@ export function format(template: string, vars: Record<string, string | number>):
 }
 
 /**
- * Pluralisasi berbasis Intl.PluralRules.
+ * Pluralization based on Intl.PluralRules.
  */
 export function plural(
   entry: { one: string; other: string },

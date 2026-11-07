@@ -2,9 +2,9 @@ import { getSiteUrl } from '@/lib/seo';
 import type { Locale } from './config';
 
 /**
- * Konversi path internal ke path ter-lokalisasi:
- * - 'id': path tidak berubah (unprefixed URL)
- * - 'en': '/en' + path (kecuali '/' -> '/en', '/#x' -> '/en#x', '/?x' -> '/en?x')
+ * Convert internal path to localized path:
+ * - 'id': path unchanged (unprefixed URL)
+ * - 'en': '/en' + path (except '/' -> '/en', '/#x' -> '/en#x', '/?x' -> '/en?x')
  */
 export function localePath(locale: Locale, path: string): string {
   if (locale === 'id') {
@@ -28,7 +28,7 @@ export function localePath(locale: Locale, path: string): string {
 }
 
 /**
- * URL absolut ter-lokalisasi memakai getSiteUrl() dari lib/seo.
+ * Localized absolute URL using getSiteUrl() from lib/seo.
  */
 export function absoluteUrl(locale: Locale, path: string): string {
   const base = getSiteUrl();
@@ -40,7 +40,7 @@ export function absoluteUrl(locale: Locale, path: string): string {
 }
 
 /**
- * Hapus prefiks /en atau /id dari pathname (mis. /en/artikel -> /artikel, /en -> /).
+ * Strip /en or /id prefix from pathname (e.g. /en/artikel -> /artikel, /en -> /).
  */
 export function stripLocalePrefix(pathname: string): string {
   if (pathname === '/en' || pathname === '/id') {
@@ -65,7 +65,7 @@ export interface BuildAlternatesParams {
  * Alternates metadata (canonical & hreflang):
  * - enAvailable true: languages { id, en, 'x-default' }
  * - enAvailable false: languages { id, 'x-default' }
- * - locale === 'en' && !enAvailable: canonical menunjuk ke URL versi Indonesia
+ * - locale === 'en' && !enAvailable: canonical points to Indonesian version URL
  */
 export function buildAlternates({
   locale,
