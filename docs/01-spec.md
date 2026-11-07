@@ -1,38 +1,38 @@
 # 01 — Spec (Requirements)
 
-## Tujuan
-Website profil dokter spesialis THT-BKL sebagai **CV digital / personal branding** sekaligus **Portal Edukasi Kesehatan Pasien (`/artikel`)**, dilengkapi **Admin Dashboard (`/admin`)** untuk pengelolaan mandiri serta CTA yang mengarahkan pengunjung untuk booking lewat **link eksternal** atau WhatsApp lokasi praktik.
+## Objective
+Doctor profile website for an ENT specialist (Otolaryngologist - Head & Neck Surgeon) serving as a **digital CV / personal branding platform** and a **Patient Health Education Portal (`/artikel`)**, equipped with an **Admin Dashboard (`/admin`)** for autonomous management, along with CTAs directing visitors to book appointments via **external links** or practice location WhatsApp.
 
-## Target Pengguna
-- Calon pasien baru yang mencari info dokter atau membaca artikel edukasi gejala THT sebelum memutuskan konsultasi.
-- Pasien lama yang butuh info kontak/lokasi/jam praktik dengan cepat.
-- Dokter & rekan/asisten admin yang menulis, meninjau (`in_review`), dan menerbitkan artikel edukasi serta memperbarui jadwal praktik melalui `/admin`.
+## Target Audience
+- Prospective patients looking for doctor credentials or reading educational articles on ENT symptoms before deciding on a consultation.
+- Returning patients who need quick access to contact information, practice locations, and clinic hours.
+- The doctor and partner/assistant admins who write, review (`in_review`), and publish educational articles, as well as update practice schedules via `/admin`.
 
 ## Scope — In
-- Halaman profil dokter (bio/personal story, pendidikan, sertifikasi, pengalaman, organisasi).
-- Section layanan & spesialisasi medis.
-- Info lokasi & jadwal praktik multi-lokasi.
-- CTA "Booking Sekarang" → redirect ke URL eksternal atau fallback ke WhatsApp.
-- Portal Artikel Edukasi Kesehatan THT (`/artikel`, `/artikel/halaman/[page]`, `/artikel/[slug]`):
-  - Filter berdasarkan 5 kategori THT (`telinga`, `hidung`, `tenggorok`, `kepala-leher`, `umum`) dan pencarian kata kunci.
-  - Estimasi waktu baca otomatis, Daftar Isi (TOC) otomatis dari subjudul `H2`/`H3`, penghitung pembaca unik (`viewCount`), tombol bagikan ke WhatsApp, badge *"Ditinjau secara medis oleh dr. Yuliana"*, artikel terkait, dan JSON-LD `MedicalWebPage` + `BlogPosting`.
+- Doctor profile page (bio/personal story, education, certifications, experience, professional organizations).
+- Clinical medical services & specialties section.
+- Multi-location practice info & schedule.
+- "Book Now" CTA → redirect to external URL or fallback to WhatsApp.
+- ENT Health Education Article Portal (`/artikel`, `/artikel/halaman/[page]`, `/artikel/[slug]`):
+  - Filter by 5 ENT categories (`telinga`, `hidung`, `tenggorok`, `kepala-leher`, `umum`) and keyword search.
+  - Automatic reading time estimation, automatic Table of Contents (TOC) from `H2`/`H3` subheadings, unique reader counter (`viewCount`), WhatsApp share button, *"Medically reviewed by dr. Yuliana"* badge, related articles, and `MedicalWebPage` + `BlogPosting` JSON-LD.
 - Admin Dashboard (`/admin`):
-  - Login sesi cookie (`httpOnly`) dengan proteksi brute-force lockout (5x gagal → kunci 15 menit).
-  - Beranda statistik artikel, pembaca, & indikator kelengkapan data website.
-  - Editor artikel kaya Tiptap v3 (Heading, List, Kutipan, Tabel, Gambar + Caption, Autosave draft, alur `draft` → `in_review` → `published`, catatan review).
-  - CRUD Profil Dokter (+ unggah foto profil WebP), Lokasi Praktik, Layanan Medis, dan Manajemen Akun/Password.
+  - Cookie session login (`httpOnly`) with brute-force lockout protection (5 failed attempts → 15-minute lockout).
+  - Dashboard analytics overview of articles, readership, & website data completeness indicators.
+  - Tiptap v3 rich text article editor (Headings, Lists, Blockquotes, Tables, Images + Captions, draft autosave, `draft` → `in_review` → `published` workflow, review notes).
+  - CRUD for Doctor Profile (+ WebP profile photo upload), Practice Locations, Medical Services, and Account/Password Management.
 
-## Scope — Out (eksplisit tidak dikerjakan)
-- Sistem booking/appointment internal dengan database pasien.
-- Portal pasien (login pasien, rekam medis).
-- E-commerce / pembayaran online.
-- Fitur real-time live chat.
+## Scope — Out (explicitly excluded)
+- Internal booking/appointment system with patient database.
+- Patient portal (patient login, electronic medical records).
+- E-commerce / online payment.
+- Real-time live chat feature.
 
 ## Functional Requirements
-- **FR-1**: WHEN pengunjung membuka halaman utama, sistem SHALL menampilkan nama, foto, spesialisasi, dan CTA booking di atas fold (above the fold) pada layar mobile.
-- **FR-2**: WHEN pengunjung klik tombol "Booking Sekarang", sistem SHALL membuka tab baru menuju URL eksternal yang didefinisikan di data source, TANPA memproses booking apa pun secara internal.
-- **FR-3**: WHEN admin menyimpan perubahan profil, lokasi, layanan, atau menerbitkan artikel di `/admin`, sistem SHALL memperbarui database PostgreSQL dan memicu `revalidatePublicSite` agar perubahan langsung tercermin di halaman publik.
-- **FR-4**: WHEN data suatu field kosong/belum diisi atau database belum tersedia, sistem SHALL menampilkan fallback yang aman (`data/fallback-*.json`).
-- **FR-5**: WHEN halaman diakses dari perangkat mobile (viewport < 768px), sistem SHALL menampilkan layout yang tetap terbaca dan CTA tetap mudah dijangkau (thumb-friendly).
-- **FR-6**: WHEN pengunjung membuka halaman artikel `/artikel/[slug]`, sistem SHALL menampilkan informasi medis yang telah berstatus `published`, lengkap dengan badge tinjauan medis, Daftar Isi (bila ≥ 2 subjudul), waktu baca, dan CTA konsultasi.
-- **FR-7**: WHEN sebuah layanan memiliki konten detail (kolom `content` tidak kosong), sistem SHALL menyajikan halaman `/layanan/[slug]` dan menautkannya dari kartu layanan di beranda; WHEN konten kosong, sistem SHALL TIDAK menyajikan halaman maupun tautan tersebut.
+- **FR-1**: WHEN a visitor opens the home page, the system SHALL display the doctor's name, photo, specialty, and booking CTA above the fold on mobile screens.
+- **FR-2**: WHEN a visitor clicks the "Book Now" button, the system SHALL open a new tab pointing to the external URL defined in the data source, WITHOUT processing any booking internally.
+- **FR-3**: WHEN an admin saves changes to the profile, locations, services, or publishes an article in `/admin`, the system SHALL update the PostgreSQL database and trigger `revalidatePublicSite` so changes are immediately reflected on public pages.
+- **FR-4**: WHEN a field is empty/unfilled or the database is unavailable, the system SHALL display safe fallbacks (`data/fallback-*.json`).
+- **FR-5**: WHEN the site is accessed from a mobile device (viewport < 768px), the system SHALL present a legible layout with thumb-friendly CTAs.
+- **FR-6**: WHEN a visitor opens an article page `/artikel/[slug]`, the system SHALL display medical content in `published` status, complete with medical review badge, Table of Contents (if ≥ 2 subheadings), reading time, and consultation CTA.
+- **FR-7**: WHEN a service has detail content (non-empty `content` column), the system SHALL serve the `/layanan/[slug]` page and link to it from the service card on the homepage; WHEN content is empty, the system SHALL NOT serve the page or the link.

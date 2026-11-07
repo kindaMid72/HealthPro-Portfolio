@@ -1,54 +1,54 @@
 # 04 — Design & Brand Direction
 
-> Status: ✅ **Final** — dikonfirmasi user 28 Agustus 2026. Arketipe: **Modern-calm**. Konteks: spesialisasi serius/klinis. Tanpa identitas visual existing (bebas menentukan baru).
+> Status: ✅ **Final** — confirmed by user on August 28, 2026. Archetype: **Modern-calm**. Context: serious/clinical specialty. No existing visual identity (free to define new).
 
 ## Mood
-Kalem, bersih, kredibel. Bukan "brosur RS korporat" yang dingin, tapi juga bukan "warm & playful" — karena konteksnya spesialisasi serius (bedah/penyakit dalam/kardiologi dst), kesan yang dituju adalah **tenang tapi kompeten**: pasien yang datang biasanya butuh keyakinan, bukan hiburan visual.
+Calm, clean, credible. Neither a cold "corporate hospital brochure" nor overly "warm & playful" — because the context is a serious specialty (surgery, internal medicine, cardiology, etc.), the intended impression is **calm yet competent**: patients seeking care usually need assurance, not visual entertainment.
 
-## Palet Warna
+## Color Palette
 
-| Peran | Warna | Hex | Catatan |
+| Role | Color | Hex | Notes |
 |---|---|---|---|
-| Primary (calming) | Teal-blue-gray muted | `#3F6B74` | Warna utama brand — header, ikon, elemen identitas. Bukan biru medis generik, lebih "tenang & modern" sesuai tren 2026. |
-| Primary Dark | Slate deep | `#243138` | Teks heading, elemen kontras tinggi (bukan hitam pekat). |
-| Neutral Background | Off-white | `#F7F8F7` | Background utama, lebih lembut dari putih pekat. |
-| Neutral Surface | Putih | `#FFFFFF` | Card, section alternatif. |
-| Neutral Text | Abu gelap hangat | `#4A5257` | Body text — kontras cukup tapi tidak setajam hitam. |
-| Muted Text | Abu sedang | `#5F686D` | Teks sekunder (tanggal, keterangan). Kontras 5,35:1 di atas background (nilai lama `#6E777D` hanya 4,29:1 sehingga tidak lolos AA). |
-| Primary Hover | Teal gelap | `#2F5560` | Hover tombol primary. |
-| Primary Tint | Teal sangat muda | `#EAF0F1` | Panel lembut: foto hero, kartu status praktik, chip aktif, catatan tinjauan medis. |
-| Accent (CTA/action) | Amber muted | `#D98C4A` | **Khusus untuk CTA booking & elemen aksi** — kontras hangat terhadap primary yang dingin, menarik perhatian tanpa kesan alarm/urgent seperti merah. |
-| Border/Divider | Abu sangat muda | `#E4E7E6` | Garis pemisah halus, jangan pakai border tebal/gelap. |
+| Primary (calming) | Muted teal-blue-gray | `#3F6B74` | Main brand color — headers, icons, identity elements. Not a generic medical blue; more "calm & modern" aligned with 2026 trends. |
+| Primary Dark | Deep slate | `#243138` | Heading text, high-contrast elements (not pure black). |
+| Neutral Background | Off-white | `#F7F8F7` | Main page background, softer than harsh pure white. |
+| Neutral Surface | White | `#FFFFFF` | Cards, alternate sections. |
+| Neutral Text | Warm dark gray | `#4A5257` | Body text — sufficient contrast without the harshness of pure black. |
+| Muted Text | Medium gray | `#5F686D` | Secondary text (dates, metadata). Contrast 5.35:1 against background (former `#6E777D` was only 4.29:1, failing AA). |
+| Primary Hover | Dark teal | `#2F5560` | Primary button hover state. |
+| Primary Tint | Very light teal | `#EAF0F1` | Soft panel background: hero photo frame, practice status card, active chips, medical review notes. |
+| Accent (CTA/action) | Muted amber | `#D98C4A` | **Exclusively for booking CTAs & action elements** — warm contrast against cool primary, drawing attention without the alarmist feel of red. |
+| Border/Divider | Very light gray | `#E4E7E6` | Subtle dividers; avoid heavy/dark borders. |
 
-**Aturan penting**: warna accent (`#D98C4A`) HANYA dipakai untuk CTA dan elemen yang butuh perhatian (tombol booking, link penting). Jangan dipakai dekoratif berlebihan — kalau semua berwarna aksen, tidak ada yang menonjol.
+**Important Rule**: the accent color (`#D98C4A`) is ONLY used for CTAs and elements requiring immediate attention (booking buttons, important links). Do not use it for excessive decoration — if everything is accented, nothing stands out.
 
-**Teks di atas accent** memakai `#243138` (kontras 4,96:1), bukan putih (2,69:1, tidak lolos AA). Hover accent: `#E39A5E`.
+**Text on accent** uses `#243138` (contrast 4.96:1), not white (2.69:1, fails AA). Accent hover: `#E39A5E`.
 
-## Tipografi
-- **UI & isi halaman**: `Figtree` (variable font, utility `font-sans`) di seluruh situs dan admin.
-- **Judul display (h1/h2 publik)**: `Literata` lewat utility `font-display font-semibold`; h3 ke bawah dan admin tetap sans.
-- **Bacaan panjang**: `Literata` (kelas `.font-reading`) untuk isi artikel (`/artikel/[slug]`) dan layanan (`/layanan/[slug]`), kutipan "Tentang", serta tampilan menulis di editor admin. Tidak dipakai di kartu atau elemen UI.
-- Ukuran dasar body: 17px (jangan lebih kecil, demi keterbacaan pasien lanjut usia). Judul halaman memakai skala fluid `text-display`, judul section `text-h2`.
-- Line-height lega: 1.65 untuk paragraf.
-- Hindari huruf kapital semua (all-caps) untuk paragraf panjang — oke untuk label kecil saja (mis. "SPESIALISASI").
+## Typography
+- **UI & page body**: `Figtree` (variable font, utility `font-sans`) across the public site and admin.
+- **Display headings (public h1/h2)**: `Literata` via utility `font-display font-semibold`; h3 downwards and admin remain sans.
+- **Long-form reading**: `Literata` (class `.font-reading`) for article body (`/artikel/[slug]`) and services (`/layanan/[slug]`), "About" quotes, and writing view in admin editor. Not used in cards or UI elements.
+- Base body size: 17px (no smaller, for elderly patient legibility). Page headings use fluid `text-display`, section headings `text-h2`.
+- Generous line-height: 1.65 for paragraphs.
+- Avoid all-caps for long paragraphs — acceptable only for small uppercase labels (e.g. "SPECIALTY").
 
-## Prinsip Layout & Komponen
-- **Whitespace generous** — jangan padat, beri ruang antar section minimal 64–96px di desktop, 40–56px di mobile.
-- **Card & elemen**: sudut membulat halus — `rounded-full` untuk CTA/chip publik, `rounded-xl` (12px) untuk kartu/panel, `rounded-lg` untuk input dan tombol admin. Satu shadow kartu tipis (`--shadow-card`) — kesan kalem, bukan flat tajam maupun skeuomorphic berat. Kartu HANYA untuk data padat (lokasi, baris kontak, artikel); Layanan memakai daftar terkelompok per domain klinis, bukan kartu. Tidak ada eyebrow/chip dekoratif yang mengulang judul section; chip hanya untuk informasi (filter kategori, "Hari ini", status admin).
-- **Struktur beranda** berorientasi kebutuhan pasien: Hero (+ status "Praktik hari ini") → Jadwal & Lokasi → Layanan → Tentang → Artikel → Kontak. Tanpa dekorasi latar (blob, grid, kaca) dan tanpa animasi selain satu entrance hero; `prefers-reduced-motion` dihormati.
-- **Foto dokter** jadi elemen visual utama di hero — pakai foto profesional asli (bukan stock generic), proporsi natural, hindari filter berlebihan. Kalau foto belum ada, treatment sementara: silhouette/placeholder abu netral, JANGAN pakai foto stock orang random sebagai pengganti (menyesatkan).
-- **Ikon**: line icon, stroke 1.5–2px, sudut membulat (rounded cap/join), warna mengikuti `primary` atau `neutral text` — konsisten satu set ikon (mis. Lucide/Phosphor), jangan campur beberapa gaya ikon. **Logo**: satu-satunya mark adalah `BrandMark` (`src/components/BrandMark.tsx`: huruf "Y" = tabung stetoskop), dipakai di navbar, footer, admin, favicon (`src/app/icon.svg`) dan OG image — jaga geometrinya sinkron.
-- **CTA booking**: tombol pill/rounded-rect (`border-radius: 8–999px`, pilih salah satu konsisten), warna accent, teks kontras tinggi, ukuran cukup besar untuk mobile tap target (min 44x44px).
-- **Micro-interaction**: transisi halus 150–200ms pada hover/tap (opacity atau translate kecil), bukan animasi besar/mencolok.
-- **Trust signals** ditempatkan menonjol tapi tidak berlebihan: badge sertifikasi/afiliasi dekat nama dokter, bukan disembunyikan di footer.
+## Layout Principles & Components
+- **Generous whitespace** — not cramped; allow at least 64–96px between sections on desktop, 40–56px on mobile.
+- **Cards & elements**: softly rounded corners — `rounded-full` for public CTAs/chips, `rounded-xl` (12px) for cards/panels, `rounded-lg` for admin inputs and buttons. Single subtle card shadow (`--shadow-card`) — calm look, neither razor-sharp flat nor heavy skeuomorphic. Cards are ONLY for dense data (locations, contact rows, articles); Services use a clinical domain grouped list, not cards. No decorative eyebrows/chips repeating section titles; chips only carry functional info (category filters, "Today", admin status).
+- **Homepage structure** oriented to patient needs: Hero (+ "Practice today" status) → Schedule & Locations → Services → About → Articles → Contact. No background clutter (blobs, grids, glassmorphism) and no animations beyond a single hero entrance; `prefers-reduced-motion` is honored.
+- **Doctor's portrait** is the primary visual element in the hero — use an authentic professional photo (not stock generic), natural proportions, avoid excessive filters. If a photo is not yet available, temporary treatment: neutral gray silhouette/placeholder; NEVER substitute a random stock model (misleading).
+- **Icons**: line icons, 1.5–2px stroke, rounded caps/joins, color matching `primary` or `neutral text` — consistent icon set (e.g. Lucide/Phosphor), do not mix icon styles. **Logo**: the only mark is `BrandMark` (`src/components/BrandMark.tsx`: letter "Y" = stethoscope tubing), used in navbar, footer, admin, favicon (`src/app/icon.svg`) and OG image — keep geometry synchronized.
+- **Booking CTA**: pill/rounded-rect button (`border-radius: 8–999px`, choose one consistently), accent color, high-contrast text, sufficiently sized for mobile tap target (min 44x44px).
+- **Micro-interactions**: subtle 150–200ms transitions on hover/tap (slight opacity or small translate), no large/distracting animations.
+- **Trust signals** placed prominently but tastefully: certification/affiliation badges near the doctor's name, not buried in the footer.
 
-## Nada Bahasa (Tone of Voice)
-Formal namun tidak kaku — bahasa Indonesia baku tapi tidak birokratis. Hindari jargon medis berlebihan di copy utama; kalau perlu istilah teknis, beri penjelasan singkat. Konsisten dengan mood "tenang tapi kompeten": kalimat pendek, jelas, tidak bertele-tele.
+## Tone of Voice
+Formal yet accessible — standard Indonesian, never bureaucratic. Avoid unnecessary medical jargon in primary copy; if technical terms are necessary, provide a brief plain-language explanation. Consistent with the "calm yet competent" mood: concise, clear sentences.
 
-## Referensi Arah (bukan ditiru persis)
-Pola dari riset: restraint ala Doctolib (fokus penuh ke aksi booking, tanpa dekorasi berlebih) digabung dengan kehangatan sentuhan warna aksen ala platform modern lain — hasilnya kalem tapi tidak dingin.
+## Reference Direction (not exact replication)
+Research pattern: the restraint of Doctolib (uncompromising focus on booking actions, zero unnecessary decoration) paired with warm accent highlights of modern clinical platforms — resulting in a calm, non-sterile presence.
 
-## Aksesibilitas
-- Kontras warna teks-background minimal WCAG AA (4.5:1 untuk body text).
-- Semua CTA harus punya focus state yang jelas (keyboard navigation).
-- Alt text wajib untuk semua gambar (terutama foto dokter & ikon layanan).
+## Accessibility
+- Text-to-background color contrast meets at least WCAG AA (4.5:1 for body text).
+- All CTAs must have clear focus states (keyboard navigation).
+- Alt text is mandatory for all images (especially doctor portrait & service icons).

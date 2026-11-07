@@ -1,28 +1,28 @@
 # 00 — Constitution
 
-Dokumen ini berisi keputusan mendasar yang **tidak boleh dilanggar** oleh siapa pun yang mengerjakan proyek ini, termasuk AI agent. Kalau ada dokumen lain yang bertentangan dengan ini, dokumen ini yang menang. Perubahan di sini harus lewat persetujuan eksplisit orchestrator (user).
+This document contains fundamental decisions that **must not be violated** by anyone working on this project, including AI agents. If any other document conflicts with this one, this document takes precedence. Any change here requires explicit orchestrator (user) approval.
 
-## Prinsip Inti
+## Core Principles
 
-1. **PostgreSQL + Drizzle ORM sebagai sumber kebenaran tunggal.** Seluruh data dinamis (`profile`, `locations`, `services`, `articles`, `images`, `users`, `sessions`) disimpan di PostgreSQL (lokal via Docker Compose `postgres:17`, produksi via Neon Serverless Postgres free tier). Snapshot JSON (`data/fallback-*.json`) tetap dipertahankan sebagai fallback darurat bila database belum di-seed atau gangguan jaringan.
-2. **Hybrid Static/ISR + On-Demand Revalidation.** Halaman publik (`/`, `/artikel`, `/artikel/[slug]`) disajikan cepat melalui ISR Next.js (`revalidate = 3600`) dan di-revalidate secara instan (`revalidatePublicSite`) setiap kali admin menyimpan perubahan di `/admin`.
-3. **Content diedit non-developer lewat Admin Dashboard (`/admin`).** Dokter dan rekan/asisten klinik mengelola artikel edukasi (editor Tiptap v3 dengan alur `draft` → `in_review` → `published`), profil, lokasi, layanan, dan unggahan gambar WebP langsung dari UI berbahasa Indonesia tanpa menyentuh kode.
-4. **Booking = redirect, bukan sistem.** Tidak ada logika booking/appointment pasien atau rekam medis yang dibangun sendiri. Tombol "Booking" selalu mengarah ke link eksternal (platform/klinik pihak ketiga) atau WhatsApp pendaftaran.
-5. **Tidak ada data medis/personal yang dikarang.** Semua data faktual tentang dokter (pendidikan, sertifikasi, pengalaman, dll) harus berasal dari sumber yang diverifikasi user. Placeholder eksplisit lebih baik daripada konten fiktif.
-6. **Mobile-first.** Mayoritas pengunjung diasumsikan dari HP — semua keputusan desain & teknis memprioritaskan pengalaman mobile dulu.
-7. **Biaya operasional minim.** Hosting & database menggunakan layanan free tier (Vercel + Neon Postgres), dan gambar dikompresi ke WebP (`sharp`) lalu disimpan langsung di tabel `images` tanpa layanan object storage berbayar.
+1. **PostgreSQL + Drizzle ORM as the single source of truth.** All dynamic data (`profile`, `locations`, `services`, `articles`, `images`, `users`, `sessions`) is stored in PostgreSQL (locally via Docker Compose `postgres:17`, production via Neon Serverless Postgres free tier). JSON snapshots (`data/fallback-*.json`) are retained as emergency fallbacks if the database is not yet seeded or during network disruptions.
+2. **Hybrid Static/ISR + On-Demand Revalidation.** Public pages (`/`, `/artikel`, `/artikel/[slug]`) are served quickly via Next.js ISR (`revalidate = 3600`) and instantly revalidated (`revalidatePublicSite`) whenever an admin saves changes in `/admin`.
+3. **Content edited by non-developers via Admin Dashboard (`/admin`).** The doctor and clinic partners/assistants manage educational articles (Tiptap v3 editor with `draft` → `in_review` → `published` workflow), profile, locations, services, and WebP image uploads directly through an Indonesian-language UI without touching code.
+4. **Booking = redirect, not a system.** No custom patient booking/appointment logic or electronic medical records are built. The "Booking" button always directs to an external link (third-party clinic platform) or registration WhatsApp.
+5. **No fabricated medical/personal data.** All factual data about the doctor (education, certifications, experience, etc.) must originate from user-verified sources. Explicit placeholders are strictly preferred over fictitious content.
+6. **Mobile-first.** The vast majority of visitors are assumed to be on mobile phones — all design and technical decisions prioritize the mobile experience first.
+7. **Minimal operating cost.** Hosting and database utilize free-tier services (Vercel + Neon Postgres), and images are compressed to WebP (`sharp`) and stored directly in the `images` table without paid object storage services.
 
-## Stack Boundaries (detail teknis di `05-tech-plan.md`)
-- Bahasa: TypeScript (strict mode).
+## Stack Boundaries (technical details in `05-tech-plan.md`)
+- Language: TypeScript (strict mode).
 - Framework: Next.js 16 App Router (`16.3.3`), React 19, Tailwind CSS v4 + `@tailwindcss/typography`.
 - Database & ORM: PostgreSQL + `drizzle-orm` / `drizzle-kit` + `postgres.js`.
 - Rich Text Editor: Tiptap v3 (`@tiptap/react`, `@tiptap/starter-kit`, `@tiptap/extension-image`, `@tiptap/extension-table`, `@tiptap/static-renderer`).
-- Tidak ada state management library eksternal (Redux, Zustand, dsb).
+- No external state management library (Redux, Zustand, etc.).
 
-## Proses Persetujuan
-- Setiap fase kerja di `06-tasks.md` butuh approval user sebelum lanjut ke fase berikutnya.
-- Perubahan terhadap dokumen manapun di `docs/` yang sifatnya struktural harus dikonfirmasi ke user dulu oleh agent.
+## Approval Process
+- Each work phase in `06-tasks.md` requires user approval before moving to the next phase.
+- Any structural changes to any document in `docs/` must first be confirmed with the user by the agent.
 
-## Versi
-- v1.0 — 28 Agustus 2026 — draft awal (no-database, Google Sheets CSV).
-- v2.0 — 22 April 2026 — migrasi ke PostgreSQL + Drizzle ORM, Admin Dashboard (`/admin`), dan Portal Artikel Edukasi Kesehatan THT (`/artikel`).
+## Versions
+- v1.0 — August 28, 2026 — initial draft (no-database, Google Sheets CSV).
+- v2.0 — April 22, 2026 — migration to PostgreSQL + Drizzle ORM, Admin Dashboard (`/admin`), and ENT Health Education Article Portal (`/artikel`).

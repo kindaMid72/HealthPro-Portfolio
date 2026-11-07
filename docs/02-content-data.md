@@ -1,65 +1,65 @@
 # 02 — Content Data
 
-> **Untuk agent**: file ini kontrak data, sinkron dengan skema di `07-data-architecture.md`. Field bertanda `[BELUM DIISI]` WAJIB tetap kosong/placeholder eksplisit — JANGAN dikarang.
+> **For agents**: this file is a data contract, in sync with the schema in `07-data-architecture.md`. Fields marked `[BELUM DIISI]` MUST remain empty or explicit placeholders — DO NOT fabricate.
 
 ## Status
-🟡 **Sebagian terisi** — data awal masuk 28 Agustus 2026 dari kuisioner. Beberapa field krusial masih kosong (lihat bagian "Belum Lengkap" di bawah). Development boleh mulai jalan, tapi field kosong di bawah **memblokir** beberapa fitur — lihat catatan di tiap field.
+🟡 **Partially filled** — initial data received August 28, 2026 from questionnaire. Several crucial fields remain empty (see "Incomplete Data" section below). Development may proceed, but empty fields below **block** certain features — see notes on each field.
 
-## ⚠️ Perubahan Struktural
-Data asli ternyata punya **3 lokasi praktik berbeda** dengan jadwal & kontak masing-masing — bukan 1 lokasi seperti asumsi awal. Skema di bawah sudah disesuaikan: `locations` sekarang jadi **array/list** (tab Sheet terpisah, sama pola dengan `services`), bukan field flat di tab Profile. Keputusan tampilan: **semua lokasi ditampilkan setara** (list/kartu sejajar, bukan 1 utama + sisanya sekunder) — dikonfirmasi user 28 Agustus 2026.
+## ⚠️ Structural Changes
+The original data turned out to contain **3 distinct practice locations** with their own respective schedules & contacts — not 1 location as initially assumed. The schema below has been adjusted accordingly: `locations` is now an **array/list** (separate Sheet tab, following the same pattern as `services`), rather than a flat field in the Profile tab. Display decision: **all locations are presented equally** (parallel list/cards, not 1 primary + secondary) — confirmed by user on August 28, 2026.
 
 ---
 
-## Tab "Profile" (1 baris data)
+## "Profile" Tab (1 row of data)
 
-| Field key | Isi saat ini | Status |
+| Field key | Current Content | Status |
 |---|---|---|
 | `full_name` | dr. Yuliana, Sp.THTBKL, M.Kes | ✅ |
 | `specialty` | Spesialis Telinga Hidung Tenggorok (THT-BKL) | ✅ |
-| `sub_specialty` | — | Tidak diisi, dianggap tidak ada |
-| `str_sip_display` | *(mau ditampilkan: "Ya")* | 🔴 **BELUM DIISI** — nomor STR/SIP aktual belum dikasih, padahal sudah dikonfirmasi mau tampil. Perlu di-follow-up. |
-| `photo_url` | — | 🔴 **BELUM DIISI** — belum ada foto, perlu dijadwalkan pemotretan. **Blocking Fase 2** (styling hero, `06-tasks.md`). |
-| `education` | S1: Universitas Hasanuddin | 🟡 Sebagian — spesialisasi (Sp. THT-BKL) dari kampus mana & tahun lulus belum ada |
-| `certifications` | — | 🔴 BELUM DIISI (opsional, tapi menambah kredibilitas) |
-| `experience_history` | RSUD Dr. H. Andi Abdurrahman Noor, 2016–2024 (riwayat, sudah selesai — dikonfirmasi 28 Agt 2026) | ✅ |
+| `sub_specialty` | — | Not filled, assumed none |
+| `str_sip_display` | *(wants displayed: "Yes")* | 🔴 **NOT YET PROVIDED (`[BELUM DIISI]`)** — actual STR/SIP numbers not yet given, though confirmed to be displayed. Needs follow-up. |
+| `photo_url` | — | 🔴 **NOT YET PROVIDED (`[BELUM DIISI]`)** — no photo yet, photo session needs scheduling. **Blocks Phase 2** (hero styling, `06-tasks.md`). |
+| `education` | S1: Universitas Hasanuddin | 🟡 Partial — specialization (Sp. THT-BKL) institution & graduation year not yet provided |
+| `certifications` | — | 🔴 NOT YET PROVIDED (`[BELUM DIISI]`) (optional, but enhances credibility) |
+| `experience_history` | RSUD Dr. H. Andi Abdurrahman Noor, 2016–2024 (history, completed — confirmed Aug 28, 2026) | ✅ |
 | `organizations` | Anggota PERHATI Kalimantan Selatan | ✅ |
-| `booking_url` | — | 🔴 **BELUM DIISI — BLOCKING FR-2.** Tanpa ini tombol "Booking Sekarang" tidak punya tujuan. Prioritas paling tinggi untuk di-follow-up. |
-| `email` | — | Tidak diisi (opsional) |
-| `social_links` | — | Tidak diisi (opsional) |
-| `personal_story` | *(isi form: "Menegakkan diagnosa dengan pemeriksaan fisis.")* | ⚠️ **Perlu klarifikasi** — jawaban ini terdengar seperti deskripsi pendekatan klinis/layanan, bukan cerita personal alasan memilih spesialisasi. Kemungkinan salah kolom saat mengisi form. Jangan dipakai di section "Tentang" sebelum dikonfirmasi ulang ke dr. Yuliana. |
+| `booking_url` | — | 🔴 **NOT YET PROVIDED (`[BELUM DIISI]`) — BLOCKS FR-2.** Without this, the "Book Now" button has no destination. Highest priority for follow-up. |
+| `email` | — | Not filled (optional) |
+| `social_links` | — | Not filled (optional) |
+| `personal_story` | *(form input: "Menegakkan diagnosa dengan pemeriksaan fisis.")* | ⚠️ **Needs clarification** — this response sounds like a description of clinical approach/services, not a personal story about choosing the specialty. Likely entered into the wrong column during form submission. Do not use in "About" section before re-confirming with dr. Yuliana. |
 
-## Tab "Locations" (array — 1 baris per lokasi, BARU)
+## "Locations" Tab (array — 1 row per location, NEW)
 
 | # | `location_name` | `address` | `practice_hours` | `whatsapp` | `phone` | `booking_url_override` |
 |---|---|---|---|---|---|---|
 | 1 | Klinik Simpang / Klinik Hamdi | Jl. Gawe Sabumi No. 33 RT 07 RW 02, Desa Bersujud, Kec. Simpang Empat, Kab. Tanah Bumbu | Senin–Sabtu, 17.00–21.00 | 08115553556 | — | — |
-| 2 | Praktek Dokter THT Angsana | Jl. Sebamban 2 Blok F RT 011 RW 03, Angsana, Kab. Tanah Bumbu | Senin, Rabu, Sabtu, 13.00–15.00 | 🔴 BELUM DIISI | — | — |
-| 3 | Apotik Kimia Farma Batulicin | Jl. Raya Batulicin RT 05 RW 02, Kampung Baru, Simpang Empat, Kab. Tanah Bumbu | Selasa, Kamis, Jumat, 13.00–16.00 | 🔴 BELUM DIISI | — | — |
+| 2 | Praktek Dokter THT Angsana | Jl. Sebamban 2 Blok F RT 011 RW 03, Angsana, Kab. Tanah Bumbu | Senin, Rabu, Sabtu, 13.00–15.00 | 🔴 NOT YET PROVIDED (`[BELUM DIISI]`) | — | — |
+| 3 | Apotik Kimia Farma Batulicin | Jl. Raya Batulicin RT 05 RW 02, Kampung Baru, Simpang Empat, Kab. Tanah Bumbu | Selasa, Kamis, Jumat, 13.00–16.00 | 🔴 NOT YET PROVIDED (`[BELUM DIISI]`) | — | — |
 
-**Catatan**: 2 dari 3 lokasi belum punya kontak (WA/telepon) sama sekali. Kalau sampai Fase 3 masih kosong, tampilkan alamat & jam saja tanpa tombol kontak langsung untuk lokasi tsb (fallback per FR-4), TAPI ini idealnya dilengkapi dulu karena mengurangi kegunaan halaman kontak.
+**Notes**: 2 of 3 locations do not have contacts (WA/phone) at all yet. If still empty by Phase 3, display address & hours only without direct contact buttons for those locations (fallback per FR-4), BUT this should ideally be completed first as it reduces the utility of the contact section.
 
-## Tab "Services" (array)
+## "Services" Tab (array)
 
 | `service_name` | `service_description` |
 |---|---|
-| Otoskopi | 🔴 Deskripsi belum ada — data asli cuma daftar nama tindakan tanpa penjelasan |
-| Nasoendoskopi | 🔴 Deskripsi belum ada |
-| Laringoskopi | 🔴 Deskripsi belum ada |
+| Otoskopi | 🔴 Description not yet provided — original data only lists procedure names without explanation |
+| Nasoendoskopi | 🔴 Description not yet provided |
+| Laringoskopi | 🔴 Description not yet provided |
 
-**Catatan**: field "Daftar layanan lengkap" di kuisioner asli kosong; yang terisi cuma "layanan unggulan" (3 nama tindakan tanpa deskripsi). Deskripsi singkat tiap layanan perlu diminta terpisah — teks medis, sebaiknya dari dr. Yuliana langsung, agent tidak boleh menulis deskripsi tindakan medis sendiri.
+**Notes**: the "Full service list" field in the original questionnaire was empty; only "featured services" was filled (3 procedure names without description). Short descriptions for each service need to be requested separately — medical text should come directly from dr. Yuliana; agents must not write medical procedure descriptions themselves.
 
-## Data Operasional Lain (BPJS/asuransi)
-`insurance_info`: "Campuran" (BPJS & umum) — ✅ terisi, tapi perlu diperjelas: campuran per-lokasi atau semua lokasi sama? *(pertanyaan follow-up)*
+## Other Operational Data (BPJS / Insurance)
+`insurance_info`: "Campuran" (BPJS & general private) — ✅ filled, but needs clarification: mixed per-location or identical across all locations? *(follow-up question)*
 
-## Belum Lengkap Sama Sekali (Section H & I kuisioner terlewat)
-Form yang diisi berhenti di pertanyaan No. 27 — berikut yang perlu ditanyakan ulang, lihat `kuisioner-followup.md`:
-- Bahasa situs (ID saja / + EN)
-- Target usia pasien
-- Kata yang wajib/dihindari
-- Admin pengubah konten sehari-hari
-- Email Google untuk akses Sheets (dibutuhkan sebelum Fase 0 selesai, lihat `06-tasks.md`)
-- Status domain
+## Incomplete Data (Questionnaire Sections H & I skipped)
+The completed form stopped at Question No. 27 — the following items need to be re-asked, see `kuisioner-followup.md`:
+- Site language (ID only / + EN)
+- Target patient demographics
+- Mandatory/forbidden wording
+- Day-to-day admin editor
+- Google email for Sheets access (needed before Phase 0 completion, see `06-tasks.md`)
+- Domain status
 
 ## Fallback Rule (FR-4)
-- Field kosong → sembunyikan elemen terkait atau tampilkan "Segera hadir", bukan teks kosong/error.
-- **Kasus khusus**: `booking_url` kosong → tombol "Booking Sekarang" TIDAK BOLEH tampil aktif/broken-link. Sembunyikan tombol, ganti CTA sekunder (mis. "Hubungi via WhatsApp") sampai `booking_url` terisi.
+- Empty field → hide related element or display "Coming soon", never empty text or an error.
+- **Special case**: empty `booking_url` → "Book Now" button MUST NOT be displayed active/broken-link. Hide the button or swap for a secondary CTA (e.g. "Contact via WhatsApp") until `booking_url` is provided.

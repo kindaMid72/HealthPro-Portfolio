@@ -1,45 +1,45 @@
-# 06 — Tasks (Build Plan per Fase)
+# 06 — Tasks (Phase-by-Phase Build Plan)
 
-> Aturan: agent HANYA mengerjakan task di fase yang berstatus 🟢 Aktif. Setelah fase selesai, agent laporkan ke user, tunggu approval sebelum mengubah status fase berikutnya jadi 🟢.
+> Rule: agents ONLY work on tasks in phases marked 🟢 Active. After a phase is complete, the agent reports to the user and awaits approval before changing the next phase status to 🟢.
 
-## Fase 0 — Setup Proyek
-Status: ✅ Selesai (31 Agustus 2026)
+## Phase 0 — Project Setup
+Status: ✅ Complete (August 31, 2026)
 - [x] Init repo, scaffold Next.js + TypeScript + Tailwind.
-- [x] Tambahkan `AGENTS.md` dan folder `docs/` ke root repo.
+- [x] Add `AGENTS.md` and `docs/` folder to repo root.
 
-## Fase 1 — Struktur Halaman
-Status: ✅ Selesai (31 Agustus 2026)
-- [x] Bangun semua section di `03-sitemap.md` sebagai komponen React.
-- [x] Implementasi CTA booking & sticky bottom CTA di mobile.
+## Phase 1 — Page Structure
+Status: ✅ Complete (August 31, 2026)
+- [x] Build all sections in `03-sitemap.md` as React components.
+- [x] Implement booking CTA & mobile sticky bottom CTA.
 
-## Fase 2 — Styling & Responsif
-Status: ✅ Selesai (31 Agustus 2026)
-- [x] Terapkan arahan desain dari `04-design.md`.
-- [x] Pastikan responsif mobile (375px) & desktop (1280px) sesuai FR-5.
+## Phase 2 — Styling & Responsiveness
+Status: ✅ Complete (August 31, 2026)
+- [x] Apply design direction from `04-design.md`.
+- [x] Ensure responsive design on mobile (375px) & desktop (1280px) per FR-5.
 
-## Fase 3 — Integrasi Data Real + ISR
-Status: ✅ Selesai (2 September 2026)
-- [x] Integrasi data asli dr. Yuliana dan fallback JSON.
+## Phase 3 — Real Data Integration & ISR
+Status: ✅ Complete (September 2, 2026)
+- [x] Integrate authentic data for dr. Yuliana and fallback JSON.
 
-## Fase 4 — SEO, Performance, Deploy
-Status: ✅ Selesai (5 September 2026)
-- [x] Meta tags dinamis, OG image, sitemap, robots.txt, JSON-LD Physician, dan `/llms.txt`.
+## Phase 4 — SEO, Performance, Deploy
+Status: ✅ Complete (September 5, 2026)
+- [x] Dynamic meta tags, OG image, sitemap, robots.txt, Physician JSON-LD, and `/llms.txt`.
 
-## Fase 5 — Migrasi PostgreSQL, Admin Dashboard, & Portal Artikel Edukasi THT
-Status: ✅ Selesai (22 April 2026)
-- [x] Setup `compose.yaml` (`postgres:17`), `drizzle.config.ts`, `src/db/schema.ts` (7 tabel & 2 enum), `src/db/client.ts`, dan migrasi SQL (`drizzle/`).
-- [x] Implementasi keamanan password (`scrypt`), sesi cookie `httpOnly`, kompresi gambar WebP via `sharp`, serta route `/media/[id]` dan `/api/admin/images`.
-- [x] Buat skrip CLI `scripts/import-from-sheets.ts` dan `scripts/create-user.ts`.
-- [x] Bangun data layer `src/lib/content.ts` & `src/lib/articles.ts` (ekstensi Tiptap, injeksi ID heading & Daftar Isi otomatis, kalkulasi waktu baca, view counter, garbage collection gambar).
-- [x] Bangun portal publik `/artikel`, `/artikel/halaman/[page]`, dan `/artikel/[slug]` lengkap dengan filter kategori THT, pencarian, TOC, Medical Review Badge, share WhatsApp, artikel terkait, dan JSON-LD `MedicalWebPage` + `BlogPosting`.
-- [x] Bangun Admin Dashboard (`/admin`) berbahasa Indonesia: Statistik & Indikator Kelengkapan Data, Editor Artikel Tiptap v3 (tabel, gambar + caption, autosave draft, alur `draft` → `in_review` → `published`), Profil Dokter, Lokasi Praktik, Layanan Medis, dan Manajemen Akun/Password.
+## Phase 5 — PostgreSQL Migration, Admin Dashboard, & ENT Educational Article Portal
+Status: ✅ Complete (April 22, 2026)
+- [x] Set up `compose.yaml` (`postgres:17`), `drizzle.config.ts`, `src/db/schema.ts` (7 tables & 2 enums), `src/db/client.ts`, and SQL migrations (`drizzle/`).
+- [x] Implement password security (`scrypt`), `httpOnly` cookie sessions, WebP image compression via `sharp`, and `/media/[id]` & `/api/admin/images` routes.
+- [x] Build CLI scripts `scripts/import-from-sheets.ts` and `scripts/create-user.ts`.
+- [x] Build data layer `src/lib/content.ts` & `src/lib/articles.ts` (Tiptap extensions, automatic heading ID injection & Table of Contents, reading time calculation, view counter, image garbage collection).
+- [x] Build public portal `/artikel`, `/artikel/halaman/[page]`, and `/artikel/[slug]` complete with ENT category filters, search, TOC, Medical Review Badge, WhatsApp share, related articles, and `MedicalWebPage` + `BlogPosting` JSON-LD.
+- [x] Build Indonesian-language Admin Dashboard (`/admin`): Statistics & Data Completeness Indicator, Tiptap v3 Article Editor (tables, images + captions, draft autosave, `draft` → `in_review` → `published` workflow), Doctor Profile, Practice Locations, Medical Services, and Account/Password Management.
 
-## Fase 6 — Redesign UI/UX menyeluruh
-Status: ✅ Selesai (4 November 2026)
-- [x] Fondasi desain: token warna/font (Plus Jakarta Sans + Literata untuk bacaan panjang), komponen dasar.
-- [x] Logika jadwal praktik (`src/lib/schedule.ts`) + status "Praktik hari ini".
-- [x] Navbar, menu mobile, sticky CTA, dan footer baru.
-- [x] Beranda berorientasi kebutuhan pasien (Hero → Jadwal & Lokasi → Layanan → Tentang → Artikel → Kontak).
-- [x] Portal artikel: indeks, paginasi, halaman baca dengan TOC sticky.
-- [x] Halaman detail layanan `/layanan/[slug]` + skema konten layanan + editor admin.
-- [x] Primitif UI admin + shell sidebar, lalu seluruh halaman admin dipindah ke primitif baru.
+## Phase 6 — Comprehensive UI/UX Redesign
+Status: ✅ Complete (November 4, 2026)
+- [x] Design foundation: color/font tokens (Plus Jakarta Sans + Literata for long-form reading), core components.
+- [x] Practice schedule logic (`src/lib/schedule.ts`) + "Practice today" status.
+- [x] New navbar, mobile menu, sticky CTA, and footer.
+- [x] Patient-oriented homepage (Hero → Schedule & Locations → Services → About → Articles → Contact).
+- [x] Article portal: index, pagination, reading page with sticky TOC.
+- [x] Service detail page `/layanan/[slug]` + service content schema + admin editor.
+- [x] Admin UI primitives + sidebar shell, then migrated all admin pages to new primitives.
