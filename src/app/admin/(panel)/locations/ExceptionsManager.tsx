@@ -10,13 +10,14 @@ import {
   exceptionToDraft,
   formatDateId,
 } from '@/app/admin/locations/model';
-import { deleteExceptionAction, saveExceptionAction } from '@/app/admin/locations/actions';
+import { deleteExceptionAction, purgePastExceptionsAction, saveExceptionAction } from '@/app/admin/locations/actions';
 import Alert from '@/components/admin/Alert';
 import { Button } from '@/components/admin/Button';
 import Card from '@/components/admin/Card';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import EmptyState from '@/components/admin/EmptyState';
 import { SelectField, TextAreaField, TextField } from '@/components/admin/Field';
+import { getWitaClock } from '@/lib/schedule';
 import { RangeList } from './ScheduleFields';
 
 export interface LocationOption {
@@ -46,8 +47,14 @@ export default function ExceptionsManager({
   const [busy, setBusy] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<ExceptionItem | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
+  const [showPast, setShowPast] = useState(false);
+  const [purgeOpen, setPurgeOpen] = useState(false);
   const editing = draft.id !== undefined;
   const nameById = new Map(locations.map((loc) => [loc.id, loc.name]));
+  // Past = ended before today in WITA, the same clock the public site uses.
+  const today = getWitaClock(new Date()).isoDate;
+  const pastCount = exceptions.filter((item) => item.endDate < today).length;
+  const visible = showPast ? exceptions : exceptions.filter((item) => item.endDate >= today);
 
   function patch(next: Partial<ExceptionDraft>) {
     setDraft((current) => ({ ...current, ...next }));
@@ -113,6 +120,11 @@ export default function ExceptionsManager({
     );
   }
 
+  async function handlePurge() {
+    setPurgeOpen(false);
+    await run(() => purgePastExceptionsAction(), `${pastCount} pengecualian yang sudah lewat dihapus.`);
+  }
+
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
       {message && (
@@ -122,14 +134,30 @@ export default function ExceptionsManager({
       )}
 
       <div className="space-y-4 lg:col-span-7">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={showPast} onChange={(e) => setShowPast(e.target.checked)} />
+            Tampilkan yang sudah lewat
+          </label>
+          {pastCount > 0 && (
+            <Button size="sm" variant="secondary" disabled={busy} onClick={() => setPurgeOpen(true)}>
+              Hapus yang sudah lewat ({pastCount})
+            </Button>
+          )}
+        </div>
         {exceptions.length === 0 && (
           <EmptyState
             title="Belum ada pengecualian tanggal"
             description="Tambahkan libur atau jam khusus pada tanggal tertentu lewat formulir di samping."
           />
         )}
+        {exceptions.length > 0 && visible.length === 0 && (
+          <p className="text-sm text-text-muted">
+            Tidak ada pengecualian yang akan datang. Centang “Tampilkan yang sudah lewat” untuk melihat riwayat.
+          </p>
+        )}
 
-        {exceptions.map((item) => (
+        {visible.map((item) => (
           <div key={item.id} className="card-clinical card-clinical-interactive p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0 flex-1">
@@ -220,7 +248,7 @@ export default function ExceptionsManager({
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-text-heading">Jam khusus pada tanggal ini</p>
                   <RangeList
-                    label="Jam khusus"
+                    label="tanggal khusus"
                     value={draft.hours}
                     onChange={(hours) => patch({ hours })}
                   />
@@ -240,7 +268,7 @@ export default function ExceptionsManager({
                 rows={2}
                 value={draft.reasonEn}
                 onChange={(e) => patch({ reasonEn: e.target.value })}
-                hint="Kosongkan untuk memakai keterangan Bahasa Indonesia."
+                hint="Dikosongkan = memakai keterangan Bahasa Indonesia di /en."
               />
 
               <Button type="submit" pending={busy} className="w-full">
@@ -263,6 +291,16 @@ export default function ExceptionsManager({
         pending={busy}
         onConfirm={() => void handleDelete()}
         onCancel={() => setPendingDelete(null)}
+      />
+
+      <ConfirmDialog
+        open={purgeOpen}
+        title="Hapus pengecualian yang sudah lewat?"
+        description={`${pastCount} pengecualian yang sudah lewat akan dihapus permanen. Jadwal yang tampil di website tidak berubah.`}
+        confirmLabel="Hapus yang sudah lewat"
+        pending={busy}
+        onConfirm={() => void handlePurge()}
+        onCancel={() => setPurgeOpen(false)}
       />
     </div>
   );

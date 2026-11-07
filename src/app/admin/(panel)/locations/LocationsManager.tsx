@@ -20,7 +20,11 @@ import Card from '@/components/admin/Card';
 import ConfirmDialog from '@/components/admin/ConfirmDialog';
 import EmptyState from '@/components/admin/EmptyState';
 import { TextAreaField, TextField } from '@/components/admin/Field';
+import { en } from '@/i18n/dictionaries/en';
 import { id } from '@/i18n/dictionaries/id';
+import type { Locale } from '@/i18n/config';
+import ScheduleBoard from '@/components/ScheduleBoard';
+import type { Location } from '@/lib/types';
 import { WeeklyScheduleEditor } from './ScheduleFields';
 
 type Message = { type: 'ok' | 'error'; text: string };
@@ -39,6 +43,25 @@ function WeeklySummary({ week }: { week: WeeklyRanges }) {
   );
 }
 
+const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/** Public-shaped location for the live preview. Ranges still being typed (blank or reversed) are skipped. */
+function toPreviewLocation(draft: LocationDraft, locale: Locale): Location {
+  const english = locale === 'en';
+  return {
+    location_name: (english && draft.en.locationName.trim()) || draft.locationName.trim() || 'Nama lokasi',
+    address: (english && draft.en.address.trim()) || draft.address.trim() || 'Alamat lokasi',
+    note: (english && draft.en.scheduleNote.trim()) || draft.scheduleNote.trim(),
+    slots: draft.weekly.flatMap((ranges, day) =>
+      ranges
+        .filter((r) => HHMM.test(r.opens) && HHMM.test(r.closes) && r.closes > r.opens)
+        .map((r) => ({ day, opens: r.opens, closes: r.closes })),
+    ),
+    exceptions: [],
+    booking_url_override: undefined,
+  };
+}
+
 export default function LocationsManager({ locations }: { locations: LocationItem[] }) {
   const router = useRouter();
   const [draft, setDraft] = useState<LocationDraft>(emptyLocationDraft);
@@ -47,6 +70,7 @@ export default function LocationsManager({ locations }: { locations: LocationIte
   const [pendingDelete, setPendingDelete] = useState<LocationItem | null>(null);
   const [message, setMessage] = useState<Message | null>(null);
   const editing = draft.id !== undefined;
+  const hasEnglish = Object.values(draft.en).some((value) => value.trim() !== '');
 
   function patch(next: Partial<LocationDraft>) {
     setDraft((current) => ({ ...current, ...next }));
@@ -207,6 +231,9 @@ export default function LocationsManager({ locations }: { locations: LocationIte
                     }`}
                   >
                     {lang === 'id' ? 'Bahasa Indonesia' : 'English'}
+                    {lang === 'en' && hasEnglish ? (
+                      <span className="ml-1.5 inline-block h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
+                    ) : null}
                   </button>
                 ))}
               </div>
@@ -241,21 +268,21 @@ export default function LocationsManager({ locations }: { locations: LocationIte
                     label="Location name (English)"
                     value={draft.en.locationName}
                     onChange={(e) => patchEn({ locationName: e.target.value })}
-                    hint="Kosongkan untuk memakai nama Bahasa Indonesia."
+                    hint="Dikosongkan = memakai nama Bahasa Indonesia di /en."
                   />
                   <TextAreaField
                     label="Address (English)"
                     rows={2}
                     value={draft.en.address}
                     onChange={(e) => patchEn({ address: e.target.value })}
-                    hint="Kosongkan untuk memakai alamat Bahasa Indonesia."
+                    hint="Dikosongkan = memakai alamat Bahasa Indonesia di /en."
                   />
                   <TextAreaField
                     label="Schedule note (English)"
                     rows={2}
                     value={draft.en.scheduleNote}
                     onChange={(e) => patchEn({ scheduleNote: e.target.value })}
-                    hint="Kosongkan untuk memakai catatan Bahasa Indonesia."
+                    hint="Dikosongkan = memakai catatan Bahasa Indonesia di /en."
                   />
                 </div>
               )}
@@ -300,6 +327,21 @@ export default function LocationsManager({ locations }: { locations: LocationIte
             </div>
           </Card>
         </form>
+        <div className="mt-6">
+          <Card title="Pratinjau jadwal">
+            <p className="mb-4 text-xs text-text-muted">
+              Tampilan publik dari jam mingguan di formulir ini. Pengecualian tanggal tidak ditampilkan di pratinjau.
+            </p>
+            <ScheduleBoard
+              locations={[toPreviewLocation(draft, tab)]}
+              locale={tab}
+              labels={(tab === 'en' ? en : id).schedule}
+            />
+            {!hasWeeklySlots(draft.weekly) && (
+              <p className="text-sm text-text-muted">Belum ada jam praktik mingguan.</p>
+            )}
+          </Card>
+        </div>
       </div>
 
       <ConfirmDialog

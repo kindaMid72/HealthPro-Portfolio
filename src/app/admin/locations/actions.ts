@@ -1,12 +1,12 @@
 'use server';
 
-import { asc, desc, eq } from 'drizzle-orm';
+import { and, asc, desc, eq, lt } from 'drizzle-orm';
 import { z } from 'zod';
 import { getDb } from '@/db/client';
 import { locationExceptions, locations, locationSlots, locationTranslations } from '@/db/schema';
 import { actionErrorMessage, UserFacingError } from '@/lib/action-error';
 import { revalidatePublicSite } from '@/lib/revalidate';
-import { toMinutes } from '@/lib/schedule';
+import { getWitaClock, toMinutes } from '@/lib/schedule';
 import { requireUser } from '@/lib/session';
 import { isUuid } from '@/lib/uuid';
 import {
@@ -82,13 +82,23 @@ export async function saveLocationAction(draft: LocationDraft): Promise<ActionRe
       // Narrowed to string here; closures below must not capture the reassigned `let`.
       const resolvedId = locationId;
 
-      await tx
-        .insert(locationTranslations)
-        .values({ locationId: resolvedId, locale: 'en', ...english, updatedAt: new Date() })
-        .onConflictDoUpdate({
-          target: [locationTranslations.locationId, locationTranslations.locale],
-          set: { ...english, updatedAt: new Date() },
-        });
+      const hasEnglish = Object.values(english).some((value) => value !== '');
+      if (hasEnglish) {
+        await tx
+          .insert(locationTranslations)
+          .values({ locationId: resolvedId, locale: 'en', ...english, updatedAt: new Date() })
+          .onConflictDoUpdate({
+            target: [locationTranslations.locationId, locationTranslations.locale],
+            set: { ...english, updatedAt: new Date() },
+          });
+      } else {
+        // Blank EN fields fall back to Indonesian on /en, so no translation row is kept.
+        await tx
+          .delete(locationTranslations)
+          .where(
+            and(eq(locationTranslations.locationId, resolvedId), eq(locationTranslations.locale, 'en')),
+          );
+      }
 
       // Replace the whole weekly pattern: the unique (location, day, opens) index makes a diff more complex than it is worth.
       await tx.delete(locationSlots).where(eq(locationSlots.locationId, resolvedId));
@@ -206,5 +216,21 @@ export async function deleteExceptionAction(id: string): Promise<ActionResult> {
     return { success: true };
   } catch (err) {
     return fail(actionErrorMessage(err, 'Gagal menghapus pengecualian.', SCOPE));
+  }
+}
+
+/** Deletes date exceptions that ended before today (WITA). Returns how many were removed. */
+export async function purgePastExceptionsAction(): Promise<ActionResult & { count?: number }> {
+  await requireUser();
+  const today = getWitaClock(new Date()).isoDate;
+  try {
+    const removed = await getDb()
+      .delete(locationExceptions)
+      .where(lt(locationExceptions.endDate, today))
+      .returning({ id: locationExceptions.id });
+    revalidatePublicSite();
+    return { success: true, count: removed.length };
+  } catch (err) {
+    return fail(actionErrorMessage(err, 'Gagal menghapus pengecualian yang sudah lewat.', SCOPE));
   }
 }
