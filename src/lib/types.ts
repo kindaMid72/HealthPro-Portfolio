@@ -38,10 +38,36 @@ export type Profile = z.infer<typeof ProfileSchema>;
 // ---------------------------------------------------------------------------
 // "Locations" Tab — multiple rows, 1 row = 1 practice location
 // ---------------------------------------------------------------------------
+const HHMM_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
+const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+const TimeRangeSchema = z.object({
+  opens: z.string().regex(HHMM_PATTERN),
+  closes: z.string().regex(HHMM_PATTERN),
+});
+
+const DaySlotSchema = TimeRangeSchema.extend({
+  /** 0 = Monday … 6 = Sunday */
+  day: z.number().int().min(0).max(6),
+});
+
+const ScheduleExceptionSchema = z.object({
+  start_date: z.string().regex(ISO_DATE_PATTERN),
+  end_date: z.string().regex(ISO_DATE_PATTERN),
+  closed: z.boolean(),
+  hours: z.array(TimeRangeSchema),
+  reason: z.string().optional(),
+});
+
 export const LocationSchema = z.object({
   location_name: z.string().min(1),
   address: z.string().min(1),
-  practice_hours: z.string().min(1),
+  /** Weekly practice ranges; empty when the location publishes only a note. */
+  slots: z.array(DaySlotSchema),
+  /** Date exceptions that apply to this location (global closures are copied in by content.ts). */
+  exceptions: z.array(ScheduleExceptionSchema),
+  /** Free-text schedule note (e.g. "Jadwal berubah saat libur nasional"), shown verbatim. */
+  note: z.string(),
   whatsapp: z.string().optional(),
   phone: z.string().optional(),
   /**

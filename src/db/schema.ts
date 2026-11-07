@@ -149,7 +149,7 @@ export const locationSlots = pgTable(
     locationId: uuid('location_id')
       .notNull()
       .references(() => locations.id, { onDelete: 'cascade' }),
-    /** 0 = Monday … 6 = Sunday (same index as DAY_LABELS). */
+    /** 0 = Monday … 6 = Sunday (same index as the schedule dictionary's daysLong). */
     dayOfWeek: smallint('day_of_week').notNull(),
     opensMinute: smallint('opens_minute').notNull(),
     closesMinute: smallint('closes_minute').notNull(),

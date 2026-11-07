@@ -2,13 +2,14 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import Papa from 'papaparse';
 import { closeDb, getDb } from '../src/db/client';
-import { locations, profile, services } from '../src/db/schema';
+import { locationExceptions, locationSlots, locations, profile, services } from '../src/db/schema';
 import { uniqueSlugs } from '../src/lib/slug';
 import {
   LocationsListSchema,
   ProfileSchema,
   ServicesListSchema,
 } from '../src/lib/types';
+import { parseLegacyHours } from './lib/legacy-hours';
 
 function parseCsvRows(csvText: string): Record<string, string>[] {
   const result = Papa.parse<Record<string, string>>(csvText, {
@@ -28,6 +29,30 @@ async function fetchCsvText(url: string): Promise<string> {
   return res.text();
 }
 
+/** Converts a Sheets row (free-text `practice_hours`) to the structured shape. Unparsed text is kept as the note. */
+function legacyRowToLocation(row: Record<string, string>) {
+  const text = row.practice_hours ?? '';
+  const parsed = parseLegacyHours(text);
+  if (!parsed && text !== '') console.warn(`UNPARSED ${row.location_name}: ${text}`);
+  return {
+    location_name: row.location_name,
+    address: row.address,
+    slots: parsed
+      ? parsed.days.flatMap((day) => parsed.ranges.map((r) => ({ day, opens: r.opens, closes: r.closes })))
+      : [],
+    exceptions: [],
+    note: parsed ? '' : text,
+    whatsapp: row.whatsapp,
+    phone: row.phone,
+    booking_url_override: row.booking_url_override,
+  };
+}
+
+function toMinute(hhmm: string): number {
+  const [h, m] = hhmm.split(':').map(Number);
+  return h * 60 + m;
+}
+
 async function loadInitialSourceData() {
   const profileUrl = process.env.SHEET_CSV_URL_PROFILE;
   const locationsUrl = process.env.SHEET_CSV_URL_LOCATIONS;
@@ -43,7 +68,7 @@ async function loadInitialSourceData() {
 
       return {
         rawProfile: parseCsvRows(profileCsv)[0] ?? {},
-        rawLocations: parseCsvRows(locationsCsv),
+        rawLocations: parseCsvRows(locationsCsv).map(legacyRowToLocation),
         rawServices: parseCsvRows(servicesCsv),
       };
     } catch (err) {
@@ -136,18 +161,42 @@ async function main() {
       });
 
     await tx.delete(locations);
-    if (locationsParsed.length > 0) {
-      await tx.insert(locations).values(
-        locationsParsed.map((loc, i) => ({
+    for (const [i, loc] of locationsParsed.entries()) {
+      const [row] = await tx
+        .insert(locations)
+        .values({
           sortOrder: i,
           locationName: loc.location_name,
           address: loc.address,
-          practiceHours: loc.practice_hours,
+          scheduleNote: loc.note,
           whatsapp: loc.whatsapp ?? '',
           phone: loc.phone ?? '',
           bookingUrlOverride: loc.booking_url_override ?? '',
-        })),
-      );
+        })
+        .returning({ id: locations.id });
+      if (loc.slots.length > 0) {
+        await tx.insert(locationSlots).values(
+          loc.slots.map((s) => ({
+            locationId: row.id,
+            dayOfWeek: s.day,
+            opensMinute: toMinute(s.opens),
+            closesMinute: toMinute(s.closes),
+          })),
+        );
+      }
+      if (loc.exceptions.length > 0) {
+        await tx.insert(locationExceptions).values(
+          loc.exceptions.map((e) => ({
+            locationId: row.id,
+            startDate: e.start_date,
+            endDate: e.end_date,
+            closed: e.closed,
+            hours: e.hours,
+            reason: e.reason ?? '',
+            reasonEn: '',
+          })),
+        );
+      }
     }
 
     await tx.delete(services);

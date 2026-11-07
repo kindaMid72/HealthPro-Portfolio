@@ -8,15 +8,14 @@ import {
 import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/dictionaries/id';
 import { getCredentials, getDisplayName } from '@/lib/seo';
-import type { PracticeSlot } from '@/lib/schedule';
-import type { Profile } from '@/lib/types';
+import type { Location, Profile } from '@/lib/types';
 import TodayStatus from './TodayStatus';
 
 interface HeroSectionProps {
   profile: Profile;
   bookingUrl: string | null;
   whatsappFallback: string | null;
-  slots: PracticeSlot[];
+  locations: Location[];
   serviceArea: string | null;
   locale: Locale;
   dict: Dictionary;
@@ -26,7 +25,7 @@ export default function HeroSection({
   profile,
   bookingUrl,
   whatsappFallback,
-  slots,
+  locations,
   serviceArea,
   locale,
   dict,
@@ -170,7 +169,7 @@ export default function HeroSection({
           )}
 
           <div className="mt-5 md:mt-7 md:max-w-xl">
-            <TodayStatus slots={slots} locale={locale} labels={dict.schedule} />
+            <TodayStatus locations={locations} locale={locale} labels={dict.schedule} />
           </div>
         </div>
 

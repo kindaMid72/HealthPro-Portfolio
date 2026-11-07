@@ -7,6 +7,7 @@ import {
   and,
   asc,
   count,
+  gte,
   desc,
   eq,
   ilike,
@@ -20,6 +21,9 @@ import {
   articleTranslations as articleTranslationsTable,
   articles as articlesTable,
   locations as locationsTable,
+  locationExceptions as locationExceptionsTable,
+  locationSlots as locationSlotsTable,
+  locationTranslations as locationTranslationsTable,
   profile as profileTable,
   profileTranslations as profileTranslationsTable,
   serviceTranslations as serviceTranslationsTable,
@@ -36,6 +40,7 @@ import {
   defaultOrderFor,
   READING_TIME_RANGES,
 } from './article-filters';
+import { getWitaClock, minutesToHhmm, type ScheduleException } from '@/lib/schedule';
 import {
   buildAutoExcerpt,
   escapeLike,
@@ -170,32 +175,88 @@ export const getProfile = cache(async (locale: Locale = 'id'): Promise<Profile> 
   }
 });
 
-export const getLocations = cache(async (): Promise<Location[]> => {
+export const getLocations = cache(async (locale: Locale = 'id'): Promise<Location[]> => {
   try {
-    const rows = await getDb()
-      .select()
-      .from(locationsTable)
-      .orderBy(asc(locationsTable.sortOrder));
+    const db = getDb();
+    const today = getWitaClock(new Date()).isoDate;
+    const [rows, slotRows, exceptionRows] = await Promise.all([
+      db.select().from(locationsTable).orderBy(asc(locationsTable.sortOrder)),
+      db
+        .select()
+        .from(locationSlotsTable)
+        .orderBy(asc(locationSlotsTable.dayOfWeek), asc(locationSlotsTable.opensMinute)),
+      // Closures and special hours still in effect today or later (WITA dates).
+      db
+        .select()
+        .from(locationExceptionsTable)
+        .where(gte(locationExceptionsTable.endDate, today))
+        .orderBy(asc(locationExceptionsTable.startDate)),
+    ]);
+    // English overrides only exist for en; id reads the base columns.
+    const translations =
+      locale === 'en'
+        ? await db
+            .select()
+            .from(locationTranslationsTable)
+            .where(eq(locationTranslationsTable.locale, 'en'))
+        : [];
 
     if (rows.length === 0) {
       return loadFallbackLocations();
     }
 
+    const translationByLocation = new Map(translations.map((t) => [t.locationId, t] as const));
+    const slotsByLocation = new Map<string, { day: number; opens: string; closes: string }[]>();
+    for (const s of slotRows) {
+      const list = slotsByLocation.get(s.locationId) ?? [];
+      list.push({
+        day: s.dayOfWeek,
+        opens: minutesToHhmm(s.opensMinute),
+        closes: minutesToHhmm(s.closesMinute),
+      });
+      slotsByLocation.set(s.locationId, list);
+    }
+    // A global closure (locationId NULL) applies to every location, so it is copied into each.
+    const globalExceptions = exceptionRows
+      .filter((e) => e.locationId === null)
+      .map((e) => toScheduleException(e, locale));
+
     return LocationsListSchema.parse(
-      rows.map((r) => ({
-        location_name: r.locationName,
-        address: r.address,
-        practice_hours: r.practiceHours,
-        whatsapp: r.whatsapp || undefined,
-        phone: r.phone || undefined,
-        booking_url_override: r.bookingUrlOverride || undefined,
-      })),
+      rows.map((r) => {
+        const t = translationByLocation.get(r.id);
+        const ownExceptions = exceptionRows
+          .filter((e) => e.locationId === r.id)
+          .map((e) => toScheduleException(e, locale));
+        return {
+          location_name: t?.locationName || r.locationName,
+          address: t?.address || r.address,
+          slots: slotsByLocation.get(r.id) ?? [],
+          exceptions: [...ownExceptions, ...globalExceptions],
+          note: t?.scheduleNote || r.scheduleNote,
+          whatsapp: r.whatsapp || undefined,
+          phone: r.phone || undefined,
+          booking_url_override: r.bookingUrlOverride || undefined,
+        };
+      }),
     );
   } catch (err) {
     console.error('[content] getLocations failed, using fallback data:', err);
     return loadFallbackLocations();
   }
 });
+
+function toScheduleException(
+  row: typeof locationExceptionsTable.$inferSelect,
+  locale: Locale,
+): ScheduleException {
+  return {
+    start_date: row.startDate,
+    end_date: row.endDate,
+    closed: row.closed,
+    hours: row.hours,
+    reason: (locale === 'en' && row.reasonEn) || row.reason || undefined,
+  };
+}
 
 export const getServices = cache(async (locale: Locale = 'id'): Promise<PublicService[]> => {
   try {
@@ -356,7 +417,7 @@ export const getServiceSlugsWithDetail = cache(
 export const getAllSiteData = cache(async (locale: Locale = 'id'): Promise<SiteData> => {
   const [profile, locations, services] = await Promise.all([
     getProfile(locale),
-    getLocations(),
+    getLocations(locale),
     getServices(locale),
   ]);
   return { profile, locations, services };

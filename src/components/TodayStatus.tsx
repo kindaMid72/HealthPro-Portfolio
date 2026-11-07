@@ -7,28 +7,24 @@ import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/dictionaries/id';
 import { id as idDictionary } from '@/i18n/dictionaries/id';
 import { format } from '@/i18n/format';
-import {
-  formatClock,
-  getTodayStatus,
-  getWitaClock,
-  type PracticeSlot,
-} from '@/lib/schedule';
+import { formatClock, getTodayStatus, getWitaClock } from '@/lib/schedule';
+import type { Location } from '@/lib/types';
 import { useNowMinute } from './useNowMinute';
 
 interface TodayStatusProps {
-  slots: PracticeSlot[];
+  locations: Location[];
   locale?: Locale;
   labels?: Dictionary['schedule'];
 }
 
 function describe(
-  slots: PracticeSlot[],
+  locations: Location[],
   minute: number,
   locale: Locale,
   labels: Dictionary['schedule'],
 ): { text: string; ongoing: boolean } | null {
   const clock = getWitaClock(new Date(minute * 60_000));
-  const status = getTodayStatus(slots, clock);
+  const status = getTodayStatus(locations, clock);
   if (!status) return null;
   const { slot } = status;
   const range = `${formatClock(slot.opens, locale)}–${formatClock(slot.closes, locale)}`;
@@ -78,17 +74,18 @@ function describe(
 }
 
 export default function TodayStatus({
-  slots,
+  locations,
   locale = 'id',
   labels = idDictionary.schedule,
 }: TodayStatusProps) {
   const minute = useNowMinute();
   const info = useMemo(
-    () => (minute === null ? null : describe(slots, minute, locale, labels)),
-    [slots, minute, locale, labels],
+    () => (minute === null ? null : describe(locations, minute, locale, labels)),
+    [locations, minute, locale, labels],
   );
 
-  if (slots.length === 0) return null;
+  const hasSchedule = locations.some((l) => l.slots.length > 0 || l.exceptions.length > 0);
+  if (!hasSchedule) return null;
 
   return (
     <div className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3.5 shadow-card">

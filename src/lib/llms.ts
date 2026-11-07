@@ -3,6 +3,7 @@ import { getDictionaryFor } from '@/i18n/dictionary';
 import { absoluteUrl } from '@/i18n/path';
 import { getAllSiteData, getPublishedArticles } from '@/lib/content';
 import { getSiteUrl, splitList } from '@/lib/seo';
+import { describeHours } from '@/lib/schedule';
 
 export async function buildLlmsTxt(locale: Locale): Promise<string> {
   const dict = await getDictionaryFor(locale);
@@ -51,7 +52,9 @@ export async function buildLlmsTxt(locale: Locale): Promise<string> {
       const row = [
         `- **${l.location_name}**`,
         `  - ${dict.llms.address}: ${l.address}`,
-        `  - ${dict.llms.practiceHours}: ${l.practice_hours}`,
+        ...describeHours(l.slots, l.note, dict.schedule.daysLong, locale).map(
+          (line) => `  - ${dict.llms.practiceHours}: ${line}`,
+        ),
       ];
       if (l.whatsapp) row.push(`  - WhatsApp: ${l.whatsapp}`);
       if (l.phone) row.push(`  - Telepon: ${l.phone}`);

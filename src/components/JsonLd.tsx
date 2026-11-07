@@ -12,11 +12,12 @@ import {
   getSiteUrl,
   mapsSearchUrl,
   parseAddressLocality,
-  parseOpeningHours,
+  buildOpeningHoursSpecs,
   parseSocialLinks,
   splitList,
   toE164,
 } from '@/lib/seo';
+import { describeHours } from '@/lib/schedule';
 import type { Location, Profile, PublicService } from '@/lib/types';
 
 interface JsonLdProps {
@@ -59,7 +60,8 @@ export default function JsonLd({
 
   const clinics = locations.map((loc, i) => {
     const { locality, region } = parseAddressLocality(loc.address);
-    const hours = parseOpeningHours(loc.practice_hours);
+    const specs = buildOpeningHoursSpecs(loc.slots);
+    const hoursText = describeHours(loc.slots, loc.note, dict.schedule.daysLong, locale).join('; ');
     const phone = toE164(loc.phone || loc.whatsapp);
     return {
       '@type': ['MedicalClinic', 'LocalBusiness'],
@@ -75,11 +77,8 @@ export default function JsonLd({
       },
       hasMap: mapsSearchUrl(loc),
       ...(phone ? { telephone: phone } : {}),
-      ...(hours ? { openingHoursSpecification: hours } : {}),
-      description: format(dict.jsonLd.practiceHoursDesc, {
-        doctor: profile.full_name,
-        hours: loc.practice_hours,
-      }),
+      ...(specs.length > 0 ? { openingHoursSpecification: specs } : {}),
+      ...(hoursText ? { description: format(dict.jsonLd.practiceHoursDesc, { doctor: profile.full_name, hours: hoursText }) } : {}),
       url: siteUrl,
       image: absoluteUrl(profile.photo_url),
       employee: { '@id': ids.physician },

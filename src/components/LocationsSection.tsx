@@ -2,15 +2,15 @@ import { CalendarCheck, ExternalLink, MessageCircle, Phone } from 'lucide-react'
 import type { Locale } from '@/i18n/config';
 import type { Dictionary } from '@/i18n/dictionaries/id';
 import { toWaLink } from '@/lib/cta';
-import { parsePracticeHours, type PracticeSlot } from '@/lib/schedule';
+import { describeHours } from '@/lib/schedule';
 import { mapsSearchUrl } from '@/lib/seo';
 import type { Location } from '@/lib/types';
 import ScheduleBoard from './ScheduleBoard';
+import ExceptionNotices from './ExceptionNotices';
 import SectionHeading from './SectionHeading';
 
 interface LocationsSectionProps {
   locations: Location[];
-  slots: PracticeSlot[];
   globalBookingUrl: string | null;
   locale: Locale;
   dict: Dictionary;
@@ -18,14 +18,10 @@ interface LocationsSectionProps {
 
 export default function LocationsSection({
   locations,
-  slots,
   globalBookingUrl,
   locale,
   dict,
 }: LocationsSectionProps) {
-  const unparsed = locations
-    .filter((l) => !parsePracticeHours(l.practice_hours))
-    .map((l) => ({ name: l.location_name, hours: l.practice_hours }));
 
   return (
     <section
@@ -46,17 +42,14 @@ export default function LocationsSection({
           </p>
         ) : (
           <>
-            <ScheduleBoard
-              slots={slots}
-              unparsed={unparsed}
-              locale={locale}
-              labels={dict.schedule}
-            />
+            <ScheduleBoard locations={locations} locale={locale} labels={dict.schedule} />
+            <ExceptionNotices locations={locations} locale={locale} labels={dict.schedule} />
             <ul id="locations-list" className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
               {locations.map((loc, i) => {
                 const effectiveBookingUrl = loc.booking_url_override ?? globalBookingUrl;
                 const wa = loc.whatsapp ? toWaLink(loc.whatsapp) : null;
                 const hasContact = wa || loc.phone || effectiveBookingUrl;
+                const hoursLines = describeHours(loc.slots, loc.note, dict.schedule.daysLong, locale);
 
                 return (
                   <li
@@ -89,7 +82,11 @@ export default function LocationsSection({
                         <div>
                           <dt className="text-xs font-medium text-text-muted">{dict.locations.hoursLabel}</dt>
                           <dd id={`location-hours-${i}`} className="mt-1 font-semibold tabular-nums text-text-heading">
-                            {loc.practice_hours}
+                            {hoursLines.map((line) => (
+                              <span key={line} className="block">
+                                {line}
+                              </span>
+                            ))}
                           </dd>
                         </div>
                       </dl>

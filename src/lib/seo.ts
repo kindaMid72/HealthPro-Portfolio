@@ -10,7 +10,7 @@ import type { Locale } from "@/i18n/config";
 import { id as idDictionary } from "@/i18n/dictionaries/id";
 import { en as enDictionary } from "@/i18n/dictionaries/en";
 import { format } from "@/i18n/format";
-import { parsePracticeHours } from "./schedule";
+import type { DaySlot } from "./schedule";
 import type { Location, Profile } from "./types";
 
 /** Canonical host without "www." — must match property in Google Search Console */
@@ -82,19 +82,23 @@ interface OpeningHours {
 }
 
 /**
- * Parse practice hours in "Senin–Sabtu, 17.00–21.00" or "Senin, Rabu, Sabtu, 13.00–15.00" format.
- * Day ranges with "–"/"-"/"s/d", day lists with comma/"dan".
- * Parse failure → undefined (field omitted, not guessed).
+ * schema.org OpeningHoursSpecification per time range; days sharing a range are grouped.
+ * Built from structured slots only, so no hours are guessed from text.
  */
-export function parseOpeningHours(text: string): OpeningHours | undefined {
-  const parsed = parsePracticeHours(text);
-  if (!parsed) return undefined;
-  return {
+export function buildOpeningHoursSpecs(slots: DaySlot[]): OpeningHours[] {
+  const groups = new Map<string, { opens: string; closes: string; days: number[] }>();
+  for (const s of slots) {
+    const key = `${s.opens}-${s.closes}`;
+    const group = groups.get(key) ?? { opens: s.opens, closes: s.closes, days: [] };
+    group.days.push(s.day);
+    groups.set(key, group);
+  }
+  return [...groups.values()].map((g) => ({
     "@type": "OpeningHoursSpecification",
-    dayOfWeek: parsed.days.map((d) => SCHEMA_DAYS[d]),
-    opens: parsed.opens,
-    closes: parsed.closes,
-  };
+    dayOfWeek: [...g.days].sort((a, b) => a - b).map((d) => SCHEMA_DAYS[d]),
+    opens: g.opens,
+    closes: g.closes,
+  }));
 }
 
 /** Name without titles/credentials, e.g. "dr. Yuliana, Sp.THTBKL, M.Kes" → "Yuliana" */

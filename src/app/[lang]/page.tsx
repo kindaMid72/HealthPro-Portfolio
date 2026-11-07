@@ -11,7 +11,6 @@ import { hasLocale, type Locale } from '@/i18n/config';
 import { getDictionaryFor } from '@/i18n/dictionary';
 import { getAllSiteData, getPublishedArticles } from '@/lib/content';
 import { getCtaLinks } from '@/lib/cta';
-import { buildPracticeSlots } from '@/lib/schedule';
 import { describeServiceArea } from '@/lib/seo';
 
 export const revalidate = 3600;
@@ -34,7 +33,6 @@ export default async function Home({ params }: HomePageProps) {
   ]);
 
   const { bookingUrl, whatsappFallback } = getCtaLinks(profile, locations);
-  const slots = buildPracticeSlots(locations);
 
   return (
     <SiteShell profile={profile} locations={locations} locale={locale} dict={dict}>
@@ -50,14 +48,13 @@ export default async function Home({ params }: HomePageProps) {
         profile={profile}
         bookingUrl={bookingUrl}
         whatsappFallback={whatsappFallback}
-        slots={slots}
+        locations={locations}
         serviceArea={describeServiceArea(locations, locale)}
         locale={locale}
         dict={dict}
       />
       <LocationsSection
         locations={locations}
-        slots={slots}
         globalBookingUrl={bookingUrl}
         locale={locale}
         dict={dict}

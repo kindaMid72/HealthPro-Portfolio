@@ -2,7 +2,40 @@
   {
     "location_name": "Klinik Simpang / Klinik Hamdi",
     "address": "Jl. Gawe Sabumi No. 33 RT 07 RW 02, Desa Bersujud, Kec. Simpang Empat, Kab. Tanah Bumbu",
-    "practice_hours": "Senin–Sabtu, 17.00–21.00",
+    "slots": [
+      {
+        "day": 0,
+        "opens": "17:00",
+        "closes": "21:00"
+      },
+      {
+        "day": 1,
+        "opens": "17:00",
+        "closes": "21:00"
+      },
+      {
+        "day": 2,
+        "opens": "17:00",
+        "closes": "21:00"
+      },
+      {
+        "day": 3,
+        "opens": "17:00",
+        "closes": "21:00"
+      },
+      {
+        "day": 4,
+        "opens": "17:00",
+        "closes": "21:00"
+      },
+      {
+        "day": 5,
+        "opens": "17:00",
+        "closes": "21:00"
+      }
+    ],
+    "exceptions": [],
+    "note": "",
     "whatsapp": "08115553556",
     "phone": "",
     "booking_url_override": ""
@@ -10,7 +43,25 @@
   {
     "location_name": "Praktek Dokter THT Angsana",
     "address": "Jl. Sebamban 2 Blok F RT 011 RW 03, Angsana, Kab. Tanah Bumbu",
-    "practice_hours": "Senin, Rabu, Sabtu, 13.00–15.00",
+    "slots": [
+      {
+        "day": 0,
+        "opens": "13:00",
+        "closes": "15:00"
+      },
+      {
+        "day": 2,
+        "opens": "13:00",
+        "closes": "15:00"
+      },
+      {
+        "day": 5,
+        "opens": "13:00",
+        "closes": "15:00"
+      }
+    ],
+    "exceptions": [],
+    "note": "",
     "whatsapp": "",
     "phone": "",
     "booking_url_override": ""
@@ -18,7 +69,25 @@
   {
     "location_name": "Apotik Kimia Farma Batulicin",
     "address": "Jl. Raya Batulicin RT 05 RW 02, Kampung Baru, Simpang Empat, Kab. Tanah Bumbu",
-    "practice_hours": "Selasa, Kamis, Jumat, 13.00–16.00",
+    "slots": [
+      {
+        "day": 1,
+        "opens": "13:00",
+        "closes": "16:00"
+      },
+      {
+        "day": 3,
+        "opens": "13:00",
+        "closes": "16:00"
+      },
+      {
+        "day": 4,
+        "opens": "13:00",
+        "closes": "16:00"
+      }
+    ],
+    "exceptions": [],
+    "note": "",
     "whatsapp": "",
     "phone": "",
     "booking_url_override": ""

@@ -5,22 +5,7 @@
  * All calendar logic works on ISO dates (YYYY-MM-DD) in WITA, never on device time zone.
  */
 
-import type { Location } from "./types";
 import type { Locale } from "@/i18n/config";
-
-/** Index 0 = Monday */
-export const DAY_LABELS = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"] as const;
-
-const DAY_INDEX: Record<string, number> = {
-  senin: 0,
-  selasa: 1,
-  rabu: 2,
-  kamis: 3,
-  jumat: 4,
-  "jum'at": 4,
-  sabtu: 5,
-  minggu: 6,
-};
 
 export interface TimeRange {
   opens: string;
@@ -238,66 +223,24 @@ export function validateRanges(ranges: TimeRange[]): RangeError | null {
   return null;
 }
 
-/** Legacy free-text parser, removed with the cutover to structured slots (step 4). */
-export interface ParsedHours {
-  days: number[];
-  opens: string;
-  closes: string;
-}
-
-export interface PracticeSlot extends ParsedHours {
-  locationIndex: number;
-  locationName: string;
-}
-
-/**
- * Parse "Senin–Sabtu, 17.00–21.00" or "Senin, Rabu, Sabtu, 13.00–15.00".
- * Day ranges with "–"/"-"/"s/d", day lists with comma/"dan".
- * Parse failure returns null (never guesses).
- */
-export function parsePracticeHours(text: string): ParsedHours | null {
-  const time = text.match(/(\d{1,2})[.:](\d{2})\s*(?:–|-|—|s\/d|sampai)\s*(\d{1,2})[.:](\d{2})/i);
-  if (!time) return null;
-  const pad = (h: string, m: string) => `${h.padStart(2, "0")}:${m}`;
-  const opens = pad(time[1], time[2]);
-  const closes = pad(time[3], time[4]);
-  // Past-midnight hours are not modeled.
-  if (closes <= opens) return null;
-  // Multiple time ranges or different hours per day ("08.00–12.00 dan 16.00–20.00") are not modeled:
-  // preferred to display verbatim text rather than an incorrect "practice" status.
-  const rest = text.slice(time.index! + time[0].length).toLowerCase();
-  if (/\d{1,2}[.:]\d{2}/.test(rest) || /\b(senin|selasa|rabu|kamis|jum'?at|sabtu|minggu)\b/.test(rest)) return null;
-
-  const dayPart = text.slice(0, time.index).toLowerCase();
-  const days = new Set<number>();
-
-  const range = dayPart.match(/([a-z']+)\s*(?:–|-|—|s\/d|sampai)\s*([a-z']+)/);
-  if (range && range[1] in DAY_INDEX && range[2] in DAY_INDEX) {
-    for (let i = DAY_INDEX[range[1]]; i <= DAY_INDEX[range[2]]; i++) days.add(i);
-  } else {
-    for (const token of dayPart.split(/[^a-z']+/)) {
-      if (token in DAY_INDEX) days.add(DAY_INDEX[token]);
-    }
-  }
-  if (days.size === 0) return null;
-
-  return { days: [...days].sort((a, b) => a - b), opens, closes };
-}
-
-/** Locations with unparseable hours are skipped. */
-export function buildPracticeSlots(locations: Location[]): PracticeSlot[] {
-  const slots: PracticeSlot[] = [];
-  locations.forEach((l, locationIndex) => {
-    const parsed = parsePracticeHours(l.practice_hours);
-    if (parsed) slots.push({ ...parsed, locationIndex, locationName: l.location_name });
-  });
-  return slots;
-}
-
 /** "17:00" → "17.00" (id) or "17:00" (en) */
 export function formatClock(hhmm: string, locale: Locale = 'id'): string {
   if (locale === 'en') {
     return hhmm.replace('.', ':');
   }
   return hhmm.replace(':', '.');
+}
+
+/** Minutes since midnight → "HH:MM" (storage format for weekly slots and exceptions). */
+export function minutesToHhmm(minutes: number): string {
+  const h = Math.floor(minutes / 60).toString().padStart(2, "0");
+  const m = (minutes % 60).toString().padStart(2, "0");
+  return `${h}:${m}`;
+}
+
+/** Display lines for a location's hours: weekly summary followed by the free-text note. */
+export function describeHours(slots: DaySlot[], note: string, dayNames: readonly string[], locale: Locale): string[] {
+  const lines = summarizeWeekly(slots, dayNames, locale);
+  if (note) lines.push(note);
+  return lines;
 }

@@ -20,6 +20,7 @@ import {
   getServiceSlugsWithDetail,
 } from '@/lib/content';
 import { getCtaLinks } from '@/lib/cta';
+import { describeHours } from '@/lib/schedule';
 import { getSiteUrl } from '@/lib/seo';
 
 export const revalidate = 3600;
@@ -240,7 +241,11 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
                     {locations.map((loc) => (
                       <li key={loc.location_name}>
                         <p className="font-semibold text-text-heading">{loc.location_name}</p>
-                        <p className="text-text-body">{loc.practice_hours}</p>
+                        {describeHours(loc.slots, loc.note, dict.schedule.daysLong, locale).map((line) => (
+                          <p key={line} className="text-text-body">
+                            {line}
+                          </p>
+                        ))}
                       </li>
                     ))}
                   </ul>
