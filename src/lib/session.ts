@@ -5,10 +5,10 @@ import { and, eq, gt, lt, ne } from 'drizzle-orm';
 import { getDb } from '@/db/client';
 import { sessions, users } from '@/db/schema';
 
-// __Host- mewajibkan Secure, jadi hanya aktif di produksi (dev: HTTP).
+// __Host- requires Secure, enabled in production (dev: HTTP).
 export const SESSION_COOKIE =
   process.env.NODE_ENV === 'production' ? '__Host-mami_session' : 'mami_session';
-const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 hari
+const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export interface SessionUser {
   id: string;

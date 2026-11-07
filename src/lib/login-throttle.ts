@@ -9,8 +9,8 @@ export const MAX_ATTEMPTS_PER_ACCOUNT = 50;
 const ACCOUNT_BUCKET = '*';
 const WINDOW = sql.raw(`interval '${WINDOW_MINUTES} minutes'`);
 
-// Upsert satu statement: baris bentrok dikunci Postgres, jadi penghitungan tidak bisa hilang.
-// Jendela tetap (fixed) dimulai dari percobaan pertama; setelah lewat, hitungan di-reset ke 1.
+// Single statement upsert: conflicting row locked by Postgres so count cannot be lost;
+// fixed window resets count after expiration.
 async function bump(accountKey: string, ip: string): Promise<number> {
   const expired = sql`${loginAttempts.windowStart} <= now() - ${WINDOW}`;
   const [row] = await getDb()
@@ -24,16 +24,16 @@ async function bump(accountKey: string, ip: string): Promise<number> {
       },
     })
     .returning({ attempts: loginAttempts.attempts });
-  if (!row) throw new Error('login throttle: upsert tidak mengembalikan baris');
+  if (!row) throw new Error('login throttle: upsert did not return a row');
   return row.attempts;
 }
 
-// Email di-hash ke 1024 kunci: jumlah baris dibatasi dan email tidak pernah disimpan.
+// Hash email to 1024 keys: rows bounded and email is never stored.
 export function accountKeyFor(email: string): string {
   return 'a' + (createHash('sha256').update(email).digest().readUInt16BE(0) % 1024);
 }
 
-// Dipanggil SEBELUM verifikasi kata sandi. Tidak ada refund: setiap percobaan dihitung.
+// Called BEFORE password verification. No refund: every attempt counts.
 export async function reserveLoginAttempt(email: string, ip: string): Promise<boolean> {
   await getDb()
     .delete(loginAttempts)
@@ -43,7 +43,7 @@ export async function reserveLoginAttempt(email: string, ip: string): Promise<bo
   const acct = await bump(key, ACCOUNT_BUCKET);
   if (acct > MAX_ATTEMPTS_PER_ACCOUNT) return false;
 
-  // Dicek setelah bucket akun: banjir dari banyak IP hanya bisa membuat 50 baris per kunci.
+  // Checked after account bucket: flooding from multiple IPs capped at 50 rows per key.
   const perIp = await bump(key, ip);
   return perIp <= MAX_ATTEMPTS_PER_IP;
 }

@@ -42,7 +42,7 @@ export const users = pgTable('users', {
 });
 
 export const sessions = pgTable('sessions', {
-  id: text('id').primaryKey(), // sha256 hex dari token cookie
+  id: text('id').primaryKey(), // SHA-256 hex of the session cookie token
   userId: uuid('user_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
@@ -53,15 +53,15 @@ export const sessions = pgTable('sessions', {
 export const loginAttempts = pgTable(
   'login_attempts',
   {
-    // 'a0'..'a1023' = sha256(email) mod 1024. Email tidak disimpan; jumlah kunci akun dibatasi 1024.
+    // 'a0'..'a1023' = sha256(email) mod 1024. Email is not stored; total account keys capped at 1024.
     accountKey: text('account_key').notNull(),
-    ip: text('ip').notNull(), // alamat IP valid, atau '*' = bucket gabungan per kunci akun
+    ip: text('ip').notNull(), // Valid IP address, or '*' = combined bucket per account key
     attempts: integer('attempts').notNull().default(0),
     windowStart: tsz('window_start').notNull().defaultNow(),
   },
   (t) => [
     primaryKey({ columns: [t.accountKey, t.ip] }),
-    index('login_attempts_window_idx').on(t.windowStart), // purge baris kedaluwarsa tanpa seq scan
+    index('login_attempts_window_idx').on(t.windowStart), // Purge expired rows without seq scan
   ],
 );
 
@@ -133,7 +133,7 @@ export const services = pgTable('services', {
     .$type<JSONContent>()
     .notNull()
     .default(sql`'{"type":"doc","content":[{"type":"paragraph"}]}'::jsonb`),
-  /** Topik artikel terkait di halaman /layanan/[slug]; null = tanpa artikel terkait. */
+  /** Related article topic on /layanan/[slug]; null = no related articles. */
   category: articleCategory('category'),
   updatedAt: tsz('updated_at').notNull().defaultNow(),
 });
@@ -209,9 +209,9 @@ export const articleViews = pgTable(
     articleId: uuid('article_id')
       .notNull()
       .references(() => articles.id, { onDelete: 'cascade' }),
-    visitorBucket: integer('visitor_bucket').notNull(), // 0..4095 = HMAC(ip, day) mod 4096; bukan hash IP penuh
+    visitorBucket: integer('visitor_bucket').notNull(), // 0..4095 = HMAC(ip, day) mod 4096; not full IP hash
   },
-  (t) => [primaryKey({ columns: [t.day, t.articleId, t.visitorBucket] })], // day pertama: purge `day < x` memakai index
+  (t) => [primaryKey({ columns: [t.day, t.articleId, t.visitorBucket] })], // Day first: purge `day < x` using index
 );
 
 

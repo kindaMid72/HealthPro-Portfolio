@@ -13,7 +13,7 @@ export const NAV_LINKS: readonly NavLinkItem[] = [
   { key: 'contact', href: '/#kontak' },
 ] as const;
 
-/** Prefiks rute yang menandai item nav aktif di halaman non-beranda. */
+/** Route prefix that marks an active nav item on non-home pages. */
 export const NAV_ACTIVE_PREFIX: Record<string, string> = {
   '/artikel': '/artikel',
   '/#layanan': '/layanan',

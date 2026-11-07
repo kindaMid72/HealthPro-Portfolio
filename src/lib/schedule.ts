@@ -1,13 +1,13 @@
 /**
  * lib/schedule.ts
- * Parsing jam praktik ("Senin–Sabtu, 17.00–21.00") + penentuan status "praktik hari ini".
- * Murni & aman dipakai di client (hanya impor type).
+ * Practice hours parser ("Senin–Sabtu, 17.00–21.00") + "practice today" status determination.
+ * Pure & safe for client-side use (type-only imports).
  */
 
 import type { Location } from "./types";
 import type { Locale } from "@/i18n/config";
 
-/** Index 0 = Senin */
+/** Index 0 = Monday */
 export const DAY_LABELS = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"] as const;
 
 const DAY_INDEX: Record<string, number> = {
@@ -33,9 +33,9 @@ export interface PracticeSlot extends ParsedHours {
 }
 
 /**
- * Parse "Senin–Sabtu, 17.00–21.00" atau "Senin, Rabu, Sabtu, 13.00–15.00".
- * Rentang hari dengan "–"/"-"/"s/d", daftar hari dengan koma/"dan".
- * Gagal parse → null (tidak menebak).
+ * Parse "Senin–Sabtu, 17.00–21.00" or "Senin, Rabu, Sabtu, 13.00–15.00".
+ * Day ranges with "–"/"-"/"s/d", day lists with comma/"dan".
+ * Parse failure returns null (never guesses).
  */
 export function parsePracticeHours(text: string): ParsedHours | null {
   const time = text.match(/(\d{1,2})[.:](\d{2})\s*(?:–|-|—|s\/d|sampai)\s*(\d{1,2})[.:](\d{2})/i);
@@ -43,10 +43,10 @@ export function parsePracticeHours(text: string): ParsedHours | null {
   const pad = (h: string, m: string) => `${h.padStart(2, "0")}:${m}`;
   const opens = pad(time[1], time[2]);
   const closes = pad(time[3], time[4]);
-  // Jam lewat tengah malam tidak dimodelkan.
+  // Past-midnight hours are not modeled.
   if (closes <= opens) return null;
-  // Lebih dari satu rentang jam / hari berbeda per jam ("08.00–12.00 dan 16.00–20.00") tidak dimodelkan:
-  // lebih baik tampil sebagai teks apa adanya daripada status "praktik" yang salah.
+  // Multiple time ranges or different hours per day ("08.00–12.00 dan 16.00–20.00") are not modeled:
+  // preferred to display verbatim text rather than an incorrect "practice" status.
   const rest = text.slice(time.index! + time[0].length).toLowerCase();
   if (/\d{1,2}[.:]\d{2}/.test(rest) || /\b(senin|selasa|rabu|kamis|jum'?at|sabtu|minggu)\b/.test(rest)) return null;
 
@@ -66,7 +66,7 @@ export function parsePracticeHours(text: string): ParsedHours | null {
   return { days: [...days].sort((a, b) => a - b), opens, closes };
 }
 
-/** Lokasi dengan jam yang tidak bisa di-parse dilewati. */
+/** Locations with unparseable hours are skipped. */
 export function buildPracticeSlots(locations: Location[]): PracticeSlot[] {
   const slots: PracticeSlot[] = [];
   locations.forEach((l, locationIndex) => {
@@ -86,7 +86,7 @@ const wita = new Intl.DateTimeFormat("en-US", {
   hourCycle: "h23",
 });
 
-/** Hari & menit-sejak-tengah-malam di WITA (zona praktik), apa pun zona perangkat. */
+/** Day & minutes-since-midnight in WITA (practice time zone), regardless of device time zone. */
 export function getWitaClock(date: Date): { dayIndex: number; minutes: number } {
   const parts = wita.formatToParts(date);
   const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "0";
@@ -128,7 +128,7 @@ export function getTodayStatus(
   return null;
 }
 
-/** "17:00" → "17.00" (id) atau "17:00" (en) */
+/** "17:00" → "17.00" (id) or "17:00" (en) */
 export function formatClock(hhmm: string, locale: Locale = 'id'): string {
   if (locale === 'en') {
     return hhmm.replace('.', ':');

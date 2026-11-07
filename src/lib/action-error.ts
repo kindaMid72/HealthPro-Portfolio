@@ -1,6 +1,6 @@
 /**
- * Error yang pesannya memang boleh tampil ke admin. Error lain (DB, stack trace)
- * tidak pernah dikirim ke klien; hanya dicatat di server.
+ * Error whose message is safe to display to the admin. Other errors (DB, stack trace)
+ * are never sent to the client; they are only logged on the server.
  */
 export class UserFacingError extends Error {
   constructor(message: string) {

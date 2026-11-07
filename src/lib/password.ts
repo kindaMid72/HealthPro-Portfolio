@@ -21,7 +21,7 @@ function scryptAsync(
 
 export const N = 16384;
 export const R = 8;
-export const P = 5; // naikkan dari 1; hash lama dengan p=1 di-rehash saat login berikutnya
+export const P = 5; // Increased from 1; legacy hashes with p=1 are re-hashed on subsequent login
 const KEYLEN = 64;
 const MAXMEM = 64 * 1024 * 1024;
 

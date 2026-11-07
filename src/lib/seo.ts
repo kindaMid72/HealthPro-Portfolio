@@ -1,9 +1,9 @@
 /**
  * lib/seo.ts
- * Helper SEO / GEO (Generative Engine Optimization) — dipakai oleh JsonLd, llms.txt, dan metadata.
+ * SEO / GEO (Generative Engine Optimization) helpers — used by JsonLd, llms.txt, and metadata.
  *
- * ATURAN: semua output diturunkan dari data Sheet (Profile/Locations/Services).
- * Tidak ada fakta medis/personal yang ditulis di sini. Field kosong = dihilangkan.
+ * RULE: all output is derived from Sheet data (Profile/Locations/Services).
+ * No medical/personal facts are authored here. Empty fields = omitted.
  */
 
 import type { Locale } from "@/i18n/config";
@@ -13,14 +13,14 @@ import { format } from "@/i18n/format";
 import { parsePracticeHours } from "./schedule";
 import type { Location, Profile } from "./types";
 
-/** Host kanonis tanpa "www." — harus sama dengan property di Google Search Console */
+/** Canonical host without "www." — must match property in Google Search Console */
 export function getSiteUrl(): string {
   return (process.env.NEXT_PUBLIC_SITE_URL ?? "https://dryuliana.my.id")
     .replace(/\/+$/, "")
     .replace(/^(https?:\/\/)www\./i, "$1");
 }
 
-/** Pecah string list berformat "a | b" (atau ";" / baris baru) jadi array */
+/** Split list string in "a | b" format (or ";" / newline) into array */
 export function splitList(value: string | undefined): string[] {
   if (!value) return [];
   return value
@@ -29,7 +29,7 @@ export function splitList(value: string | undefined): string[] {
     .filter(Boolean);
 }
 
-/** Ambil hanya URL https valid dari field social_links (dipisah | , ; spasi atau baris baru) */
+/** Extract valid https URLs from social_links field (separated by | , ; space or newline) */
 export function parseSocialLinks(value: string | undefined): string[] {
   if (!value) return [];
   return value
@@ -44,13 +44,13 @@ export function parseSocialLinks(value: string | undefined): string[] {
     });
 }
 
-/** URL absolut untuk foto; photo_url bisa path /public atau URL penuh */
+/** Absolute URL for photo; photo_url can be /public path or full URL */
 export function absoluteUrl(pathOrUrl: string): string {
   if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
   return `${getSiteUrl()}${pathOrUrl.startsWith("/") ? "" : "/"}${pathOrUrl}`;
 }
 
-/** Nomor Indonesia (08xx / +628xx / 628xx) → format E.164 (+628xx). Return undefined kalau kosong. */
+/** Indonesian phone number (08xx / +628xx / 628xx) → E.164 format (+628xx). Return undefined if empty. */
 export function toE164(raw: string | undefined): string | undefined {
   if (!raw) return undefined;
   const digits = raw.replace(/\D/g, "");
@@ -60,7 +60,7 @@ export function toE164(raw: string | undefined): string | undefined {
   return `+62${digits}`;
 }
 
-/** "Kec. Simpang Empat, Kab. Tanah Bumbu" → locality & region (tanpa prefix administratif) */
+/** "Kec. Simpang Empat, Kab. Tanah Bumbu" → locality & region (without administrative prefix) */
 export function parseAddressLocality(address: string): { locality: string; region: string } {
   const parts = address.split(",").map((p) => p.trim());
   if (parts.length >= 2) {
@@ -82,9 +82,9 @@ interface OpeningHours {
 }
 
 /**
- * Parse jam praktik format "Senin–Sabtu, 17.00–21.00" atau "Senin, Rabu, Sabtu, 13.00–15.00".
- * Rentang hari dengan "–"/"-"/"s/d", daftar hari dengan koma/"dan".
- * Gagal parse → undefined (field dihilangkan, bukan ditebak).
+ * Parse practice hours in "Senin–Sabtu, 17.00–21.00" or "Senin, Rabu, Sabtu, 13.00–15.00" format.
+ * Day ranges with "–"/"-"/"s/d", day lists with comma/"dan".
+ * Parse failure → undefined (field omitted, not guessed).
  */
 export function parseOpeningHours(text: string): OpeningHours | undefined {
   const parsed = parsePracticeHours(text);
@@ -97,12 +97,12 @@ export function parseOpeningHours(text: string): OpeningHours | undefined {
   };
 }
 
-/** Nama tanpa gelar, mis. "dr. Yuliana, Sp.THTBKL, M.Kes" → "Yuliana" */
+/** Name without titles/credentials, e.g. "dr. Yuliana, Sp.THTBKL, M.Kes" → "Yuliana" */
 export function getPlainName(fullName: string): string {
   return fullName.replace(/^(dr\.|dr)\s*/i, "").split(",")[0].trim();
 }
 
-/** Gelar/credential setelah nama: "Sp.THTBKL", "M.Kes" */
+/** Degrees/credentials after name: "Sp.THTBKL", "M.Kes" */
 export function getCredentials(fullName: string): string[] {
   return fullName
     .split(",")
@@ -111,13 +111,13 @@ export function getCredentials(fullName: string): string[] {
     .filter(Boolean);
 }
 
-/** "dr. Yuliana, Sp.THTBKL, M.Kes" → "dr. Yuliana" (nama + gelar depan "dr." bila ada). */
+/** "dr. Yuliana, Sp.THTBKL, M.Kes" → "dr. Yuliana" (name + prefix "dr." if present). */
 export function getDisplayName(fullName: string): string {
   const hasTitle = /^dr\.?\s/i.test(fullName);
   return `${hasTitle ? "dr. " : ""}${getPlainName(fullName)}`;
 }
 
-/** Daftar wilayah layanan unik dari alamat lokasi (kecamatan/kab) */
+/** List of unique service areas from location addresses (subdistrict/regency) */
 export function getServiceAreas(locations: Location[]): string[] {
   const localities = new Set<string>();
   const regions = new Set<string>();
@@ -126,18 +126,18 @@ export function getServiceAreas(locations: Location[]): string[] {
     localities.add(locality);
     regions.add(region);
   }
-  // Kecamatan dulu, kabupaten terakhir (dipakai sebagai area utama di title)
+  // Subdistrict first, regency last (used as primary area in title)
   return [...new Set([...localities, ...regions])].filter(Boolean);
 }
 
-/** ["A","B","C"] → "A, B, dan C"; ["A","B"] → "A dan B" */
+/** ["A","B","C"] → "A, B, and C"; ["A","B"] → "A and B" */
 export function joinList(items: string[], andWord = "dan"): string {
   if (items.length <= 1) return items.join("");
   if (items.length === 2) return `${items[0]} ${andWord} ${items[1]}`;
   return `${items.slice(0, -1).join(", ")}, ${andWord} ${items[items.length - 1]}`;
 }
 
-/** Kalimat wilayah layanan dari data lokasi (bukan teks hardcoded); null bila tak ada lokasi. */
+/** Service area descriptive sentence from location data (not hardcoded text); null if no locations. */
 export function describeServiceArea(locations: Location[], locale: Locale = 'id'): string | null {
   if (locations.length === 0) return null;
   const localities: string[] = [];
@@ -156,7 +156,7 @@ export function describeServiceArea(locations: Location[], locale: Locale = 'id'
   });
 }
 
-/** Ringkasan teks dokter untuk meta description — hanya dari data yang ada */
+/** Doctor summary text for meta description — derived only from existing data */
 export function buildDescription(
   profile: Profile,
   locations: Location[],
@@ -175,7 +175,7 @@ export function buildDescription(
   return parts.join(" ");
 }
 
-/** Link Google Maps pencarian dari alamat (tanpa koordinat karangan) */
+/** Google Maps search link from address (without fabricated coordinates) */
 export function mapsSearchUrl(location: Location): string {
   const q = encodeURIComponent(`${location.location_name}, ${location.address}`);
   return `https://www.google.com/maps/search/?api=1&query=${q}`;

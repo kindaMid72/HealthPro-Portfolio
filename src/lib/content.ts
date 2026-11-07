@@ -165,7 +165,7 @@ export const getProfile = cache(async (locale: Locale = 'id'): Promise<Profile> 
         undefined,
     });
   } catch (err) {
-    console.error('[content] getProfile gagal, memakai data fallback:', err);
+    console.error('[content] getProfile failed, using fallback data:', err);
     return loadFallbackProfile();
   }
 });
@@ -192,7 +192,7 @@ export const getLocations = cache(async (): Promise<Location[]> => {
       })),
     );
   } catch (err) {
-    console.error('[content] getLocations gagal, memakai data fallback:', err);
+    console.error('[content] getLocations failed, using fallback data:', err);
     return loadFallbackLocations();
   }
 });
@@ -257,12 +257,12 @@ export const getServices = cache(async (locale: Locale = 'id'): Promise<PublicSe
       };
     });
   } catch (err) {
-    console.error('[content] getServices gagal, memakai data fallback:', err);
+    console.error('[content] getServices failed, using fallback data:', err);
     return loadFallbackServices();
   }
 });
 
-/** Detail layanan untuk /layanan/[slug]; null bila tak ada atau kontennya kosong. */
+/** Service detail for /layanan/[slug]; null if non-existent or content is empty. */
 export const getServiceBySlug = cache(
   async (slug: string, locale: Locale = 'id'): Promise<PublicServiceDetail | null> => {
     try {
@@ -328,7 +328,7 @@ export const getServiceBySlug = cache(
         translated: isEn ? isTranslated : true,
       };
     } catch (err) {
-      console.error('[content] getServiceBySlug gagal:', err);
+      console.error('[content] getServiceBySlug failed:', err);
       return null;
     }
   },
@@ -847,8 +847,8 @@ export const getAllArticleSlugs = cache(async (): Promise<string[]> => {
 });
 
 /**
- * Kembalikan slug artikel terpublikasi dan layanan dengan detail
- * yang memiliki baris terjemahan EN yang memenuhi syarat "translated":
+ * Return slugs of published articles and services with detail
+ * that have an EN translation row meeting "translated" criteria:
  * - non-empty title/serviceName
  * - countWords(content) > 0
  */
@@ -912,7 +912,7 @@ export const getTranslatedSlugs = cache(
 
       return { articles, services };
     } catch (err) {
-      console.error('[content] getTranslatedSlugs gagal:', err);
+      console.error('[content] getTranslatedSlugs failed:', err);
       return { articles: new Set(), services: new Set() };
     }
   },

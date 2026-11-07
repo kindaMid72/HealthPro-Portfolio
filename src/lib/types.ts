@@ -1,31 +1,31 @@
 /**
  * lib/types.ts
- * Zod schemas + TypeScript types untuk semua data yang ditarik dari Google Sheets.
- * Sinkron dengan: docs/02-content-data.md dan docs/07-data-architecture.md
+ * Zod schemas + TypeScript types for all data ingested from Google Sheets.
+ * Synchronized with: docs/02-content-data.md and docs/07-data-architecture.md
  *
- * ATURAN: Kalau skema di sini berubah, docs/02-content-data.md WAJIB diupdate
- * di PR yang sama, dan sebaliknya.
+ * RULE: If schemas here change, docs/02-content-data.md MUST be updated
+ * in the same PR, and vice versa.
  */
 
 import { z } from 'zod';
 
 // ---------------------------------------------------------------------------
-// Tab "Profile" — 1 baris data, kolom = field
+// "Profile" Tab — 1 row of data, column = field
 // ---------------------------------------------------------------------------
 export const ProfileSchema = z.object({
   full_name: z.string().min(1),
   specialty: z.string().min(1),
   sub_specialty: z.string().optional(),
-  str_sip_display: z.string().optional(), // nomor STR/SIP, ditampilkan kalau diisi
-  photo_url: z.string().default('/images/dokter-profile.webp'), // path ke /public
+  str_sip_display: z.string().optional(), // STR/SIP number, displayed if provided
+  photo_url: z.string().default('/images/dokter-profile.webp'), // Path to /public
   education: z.string(),
   certifications: z.string().optional(),
   experience_history: z.string(),
   organizations: z.string().optional(),
   /**
-   * booking_url: WAJIB diisi sebelum Fase 3.
-   * Optional di schema supaya build tidak gagal total selama masih kosong.
-   * Komponen CTA WAJIB fallback ke WhatsApp kalau field ini kosong (lihat FR-4).
+   * booking_url: MUST be provided before Phase 3.
+   * Optional in schema so build does not fail while still empty.
+   * CTA components MUST fallback to WhatsApp if this field is empty (see FR-4).
    */
   booking_url: z.union([z.string().url(), z.literal('')]).optional().transform(e => e === '' ? undefined : e),
   email: z.union([z.string().email(), z.literal('')]).optional().transform(e => e === '' ? undefined : e),
@@ -36,7 +36,7 @@ export const ProfileSchema = z.object({
 export type Profile = z.infer<typeof ProfileSchema>;
 
 // ---------------------------------------------------------------------------
-// Tab "Locations" — banyak baris, 1 baris = 1 lokasi praktik
+// "Locations" Tab — multiple rows, 1 row = 1 practice location
 // ---------------------------------------------------------------------------
 export const LocationSchema = z.object({
   location_name: z.string().min(1),
@@ -45,8 +45,8 @@ export const LocationSchema = z.object({
   whatsapp: z.string().optional(),
   phone: z.string().optional(),
   /**
-   * booking_url_override: kalau lokasi ini punya link booking sendiri,
-   * berbeda dari Profile.booking_url global.
+   * booking_url_override: if this location has its own booking link,
+   * overriding Profile.booking_url globally.
    */
   booking_url_override: z.union([z.string().url(), z.literal('')]).optional().transform(e => e === '' ? undefined : e),
 });
@@ -56,13 +56,13 @@ export const LocationsListSchema = z.array(LocationSchema);
 export type Location = z.infer<typeof LocationSchema>;
 
 // ---------------------------------------------------------------------------
-// Tab "Services" — banyak baris, 1 baris = 1 layanan
+// "Services" Tab — multiple rows, 1 row = 1 service
 // ---------------------------------------------------------------------------
 export const ServiceSchema = z.object({
   service_name: z.string().min(1),
   /**
-   * service_description: WAJIB diisi oleh dokter.
-   * Agent TIDAK BOLEH menulis deskripsi tindakan medis sendiri.
+   * service_description: MUST be written by the doctor.
+   * Agents MUST NOT author medical procedure descriptions themselves.
    */
   service_description: z.string(),
 });
@@ -72,7 +72,7 @@ export const ServicesListSchema = z.array(ServiceSchema);
 export type Service = z.infer<typeof ServiceSchema>;
 
 // ---------------------------------------------------------------------------
-// Aggregate type — seluruh data yang dipakai halaman utama
+// Aggregate type — complete data consumed by the homepage
 // ---------------------------------------------------------------------------
 export interface SiteData {
   profile: Profile;
@@ -81,7 +81,7 @@ export interface SiteData {
 }
 
 // ---------------------------------------------------------------------------
-// Artikel Edukasi Kesehatan & Kategori THT
+// Health Education Articles & ENT Categories
 // ---------------------------------------------------------------------------
 export type ArticleCategory = 'telinga' | 'hidung' | 'tenggorok' | 'kepala-leher' | 'umum';
 
@@ -104,15 +104,15 @@ export interface TocItem {
   level: 2 | 3;
 }
 
-/** Layanan untuk tampilan publik (sudah difilter & dilengkapi slug/detail). */
+/** Services for public display (filtered and augmented with slug/detail). */
 export interface PublicService {
   service_name: string;
   nameId: string;
-  /** Kosong bila deskripsi belum layak tampil (placeholder / terlalu pendek). */
+  /** Empty if description is not eligible for public display (placeholder / too short). */
   service_description: string;
   slug: string;
   category: ArticleCategory | null;
-  /** true bila konten rich-text terisi → halaman /layanan/[slug] tersedia. */
+  /** true if rich-text content is populated → /layanan/[slug] page is available. */
   hasDetail: boolean;
   translated: boolean;
 }

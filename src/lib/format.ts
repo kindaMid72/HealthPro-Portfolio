@@ -18,7 +18,7 @@ export function formatDateShort(date: Date | string | number, locale: Locale = '
   }).format(d);
 }
 
-/** "628115553556" / "08115553556" → "+62 811-5553-556"; format tak dikenali → dikembalikan apa adanya. */
+/** Format phone number to Indonesian format (+62 811-5553-556); return unformatted if unrecognized. */
 export function formatPhoneId(raw: string): string {
   const digits = raw.replace(/\D/g, '');
   const national = digits.startsWith('62') ? digits.slice(2) : digits.startsWith('0') ? digits.slice(1) : null;

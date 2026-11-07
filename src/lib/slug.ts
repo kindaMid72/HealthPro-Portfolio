@@ -1,4 +1,4 @@
-/** Slug URL murni (aman dipakai di client dan server). Hasil kosong berarti input tak punya karakter a-z0-9. */
+/** Pure URL slug (safe for client and server). Empty result means input had no a-z0-9 characters. */
 export function toSlug(text: string): string {
   return text
     .toLowerCase()
@@ -10,7 +10,7 @@ export function toSlug(text: string): string {
     .replace(/-+$/g, '');
 }
 
-/** Slug unik untuk daftar nama di memori: pemakaian pertama = dasar, berikutnya `-2`, `-3`, … */
+/** Unique slugs for in-memory name list: first occurrence = base, subsequent = `-2`, `-3`, etc. */
 export function uniqueSlugs(names: string[], fallback = 'layanan'): string[] {
   const used = new Map<string, number>();
   return names.map((name) => {

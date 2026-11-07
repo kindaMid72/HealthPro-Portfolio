@@ -53,7 +53,7 @@ export function slugify(text: string): string {
   return toSlug(text) || `artikel-${randomBytes(3).toString('hex')}`;
 }
 
-/** Cari slug bebas: dasar, lalu `-2`…`-50`, terakhir akhiran acak. `isTaken` menentukan bentrok. */
+/** Find available slug: base, then -2...-50, lastly random suffix. `isTaken` checks collision. */
 export async function findAvailableSlug(
   baseSlug: string,
   isTaken: (candidate: string) => Promise<boolean>,
@@ -84,7 +84,7 @@ export async function makeUniqueSlug(
   });
 }
 
-/** Escape wildcard LIKE (%, _, \\) agar pencarian pengguna dibaca harfiah. */
+/** Escape LIKE wildcards (%, _, \\) so user search is interpreted literally. */
 export function escapeLike(input: string): string {
   return input.replace(/[\\%_]/g, (c) => `\\${c}`);
 }
@@ -446,7 +446,7 @@ export async function updateArticle(id: string, params: UpdateArticleParams) {
     ? params.en.content
     : (existingEn?.content as JSONContent | undefined);
 
-  // Hitung gambar yang dipakai SEBELUM menulis, mencakup konten ID dan EN (GC fix)
+  // Count images in use BEFORE writing, covering both ID and EN content (GC fix)
   const retainedImageIds = new Set<string>(collectImageIds(activeContent));
   if (activeCover) {
     retainedImageIds.add(activeCover);
@@ -533,16 +533,16 @@ export async function updateArticle(id: string, params: UpdateArticleParams) {
     }
   }
 
-  // Revalidasi dulu: tulisan sudah commit, cache publik tidak boleh basi
-  // hanya karena langkah pembersihan di bawah gagal.
+  // Revalidate first: write is committed; public cache must not stay stale
+  // if cleanup step below fails.
   revalidatePublicSite(updated.slug);
   if (current.slug !== updated.slug) {
     revalidatePublicSite(current.slug);
   }
 
-  // Garbage collection gambar artikel yang sudah tidak dipakai di cover maupun isi.
-  // Hanya gambar yang sudah > 10 menit yang dihapus, agar gambar yang baru
-  // diunggah saat autosave berjalan tidak ikut terhapus.
+  // Garbage collection for article images no longer used in cover or content.
+  // Only images older than 10 minutes are removed to avoid deleting newly
+  // uploaded images during concurrent autosaves.
   try {
     const gcCutoff = new Date(now.getTime() - 10 * 60 * 1000);
     const notRetained =
@@ -590,7 +590,7 @@ export async function incrementArticleViewCount(
       .limit(1);
     if (!article) return null;
 
-    // Dedupe: satu bucket pengunjung per artikel per hari hanya dihitung sekali.
+    // Dedupe: one visitor bucket per article per day is counted only once.
     const inserted = await tx
       .insert(articleViews)
       .values({ day, articleId: article.id, visitorBucket: bucket })
@@ -607,7 +607,7 @@ export async function incrementArticleViewCount(
       .where(eq(articles.id, article.id))
       .returning({ viewCount: articles.viewCount });
 
-    // Simpan hanya baris hari ini; baris hari sebelumnya tidak diperlukan lagi.
+    // Retain only today's rows; previous days are no longer needed.
     await tx.delete(articleViews).where(sql`${articleViews.day} < ${day}::date`);
 
     return { counted: true, viewCount: updated.viewCount };

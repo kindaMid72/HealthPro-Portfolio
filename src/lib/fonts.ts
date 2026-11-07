@@ -1,13 +1,13 @@
 import { Figtree, Literata } from "next/font/google";
 
-/** Figtree — font UI & isi halaman (variable font). */
+/** Figtree — UI & page body font (variable font). */
 export const figtree = Figtree({
   variable: "--font-figtree",
   subsets: ["latin"],
-  display: "swap", // cegah CLS saat font load
+  display: "swap", // Prevent CLS during font load
 });
 
-/** Literata — judul display (h1/h2) dan isi artikel/layanan panjang. */
+/** Literata — display headings (h1/h2) and long-form article/service content. */
 export const literata = Literata({
   variable: "--font-literata",
   subsets: ["latin"],

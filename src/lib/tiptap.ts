@@ -42,7 +42,7 @@ export function getArticleTiptapExtensions() {
   ];
 }
 
-/** Konten layanan: tanpa gambar, jadi tidak perlu GC blob gambar. */
+/** Service content: without images, so no image blob GC required. */
 export function getServiceTiptapExtensions() {
   return [baseStarterKit(), tableKit()];
 }
@@ -115,10 +115,10 @@ function normalizeMark(mark: JSONContent): JSONContent | null {
 }
 
 /**
- * Normalisasi JSON Tiptap sebelum dirender atau disimpan: gambar hanya dari
- * /media/<uuid>, span tabel dibatasi, colwidth hanya integer wajar (dimasukkan ke
- * style), dan mark link dibangun ulang sehingga rel/target/class dari klien dibuang.
- * Rekursif dan tidak memutasi input.
+ * Normalize Tiptap JSON before rendering or saving: images restricted to
+ * /media/<uuid>, table spans bounded, colwidth limited to reasonable integers
+ * (injected into style), and link marks rebuilt to discard client rel/target/class.
+ * Recursive and does not mutate input.
  */
 export function normalizeTiptapDoc(node: JSONContent): JSONContent {
   if (node.type === 'image') {

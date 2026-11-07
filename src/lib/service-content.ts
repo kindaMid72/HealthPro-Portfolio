@@ -1,6 +1,6 @@
 /**
- * Deskripsi singkat layanan layak tampil publik? Placeholder lama ("jadi otoskopi itu...") atau
- * [BELUM DIISI] disembunyikan sesuai aturan 02-content-data.md (field kosong → sembunyikan).
+ * Is service short description eligible for public display? Legacy placeholders ("jadi otoskopi itu...") or
+ * [BELUM DIISI] are hidden per 02-content-data.md rules (empty fields → hide).
  */
 export function isProperServiceDescription(desc: string): boolean {
   const d = desc.trim();

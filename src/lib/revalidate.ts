@@ -1,19 +1,19 @@
 import { revalidatePath } from 'next/cache';
 
 export function revalidatePublicSite(articleSlug?: string): void {
-  // Revalidasi root layout [lang] dan halaman utama kedua bahasa
+  // Revalidate root layout [lang] and homepage in both languages
   revalidatePath('/[lang]', 'layout');
   revalidatePath('/[lang]', 'page');
   revalidatePath('/', 'page');
   revalidatePath('/en', 'page');
 
-  // Revalidasi indeks artikel dan arsip paginasi
+  // Revalidate article index and pagination archives
   revalidatePath('/[lang]/artikel', 'page');
   revalidatePath('/artikel', 'page');
   revalidatePath('/en/artikel', 'page');
   revalidatePath('/[lang]/artikel/halaman/[page]', 'page');
 
-  // Revalidasi pola detail artikel dan layanan
+  // Revalidate article and service detail patterns
   revalidatePath('/[lang]/artikel/[slug]', 'page');
   revalidatePath('/[lang]/layanan/[slug]', 'page');
 
@@ -23,7 +23,7 @@ export function revalidatePublicSite(articleSlug?: string): void {
     revalidatePath(`/id/artikel/${articleSlug}`, 'page');
   }
 
-  // Revalidasi endpoint SEO/GEO
+  // Revalidate SEO/GEO endpoints
   revalidatePath('/llms.txt');
   revalidatePath('/en/llms.txt');
   revalidatePath('/sitemap.xml');
