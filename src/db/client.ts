@@ -20,10 +20,7 @@ export function getDb(): Db {
   const sql = postgres(url, {
     prepare: false,
     max: 5,
-    ssl:
-      process.env.NODE_ENV === 'production' && !isLocal
-        ? { rejectUnauthorized: true }
-        : undefined,
+    ...(isLocal ? {} : { ssl: { rejectUnauthorized: true } }),
   });
   const db = drizzle(sql, { schema });
 
