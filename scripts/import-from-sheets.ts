@@ -72,9 +72,9 @@ async function main() {
   const force = process.argv.includes('--force');
   const db = getDb();
 
-  // Skrip ini MENIMPA profil dan MENGHAPUS semua lokasi & layanan. Kalau DB
-  // sudah berisi data (mis. hasil edit dokter lewat /admin), jangan lanjut
-  // tanpa --force supaya edit tidak hilang diam-diam.
+  // This script OVERWRITES profile and DELETES all locations & services. If the DB
+  // already contains data (e.g. edits by doctor via /admin), do not proceed
+  // without --force to prevent accidental data loss.
   if (!force) {
     const [existingProfile] = await db
       .select({ fullName: profile.fullName })

@@ -36,14 +36,14 @@ const nextConfig: NextConfig = {
       {
         source: "/",
         headers: [
-          // Petunjuk bagi agen/LLM: ringkasan markdown tersedia di /llms.txt
+          // Hint for agents/LLMs: markdown summary available at /llms.txt
           { key: "Link", value: '</llms.txt>; rel="alternate"; type="text/markdown"' },
         ],
       },
       {
         source: "/en",
         headers: [
-          // Petunjuk bagi agen/LLM: ringkasan markdown EN tersedia di /en/llms.txt
+          // Hint for agents/LLMs: EN markdown summary available at /en/llms.txt
           { key: "Link", value: '</en/llms.txt>; rel="alternate"; type="text/markdown"' },
         ],
       },
