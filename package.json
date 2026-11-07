@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test": "tsx --test \"src/**/*.test.ts\"",
+    "test": "tsx --test \"src/**/*.test.ts\" \"scripts/**/*.test.ts\"",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -11,6 +11,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:import-sheets": "tsx --env-file=.env.local scripts/import-from-sheets.ts",
+    "db:backfill-schedule": "tsx --env-file=.env.local scripts/backfill-schedule.ts",
     "user:create": "tsx --env-file=.env.local scripts/create-user.ts"
   },
   "dependencies": {
