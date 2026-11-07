@@ -94,7 +94,7 @@ export function dayIndexOf(isoDate: string): number {
   return (jsDay + 6) % 7;
 }
 
-const toMinutes = (hhmm: string) => {
+export const toMinutes = (hhmm: string) => {
   const [h, m] = hhmm.split(":").map(Number);
   return h * 60 + m;
 };
@@ -207,7 +207,7 @@ export function summarizeWeekly(slots: DaySlot[], dayNames: readonly string[], l
 export type RangeError = "invalid" | "order" | "overlap" | "too-many";
 
 const HHMM = /^([01]\d|2[0-3]):[0-5]\d$/;
-const MAX_RANGES_PER_DAY = 4;
+export const MAX_RANGES_PER_DAY = 4;
 
 /** Validates one day's ranges. Touching ranges (closes === next opens) are allowed. */
 export function validateRanges(ranges: TimeRange[]): RangeError | null {

@@ -30,6 +30,7 @@ import {
   articleViews,
   articles,
   images,
+  locationSlots,
   locations,
   profile,
   services,
@@ -656,6 +657,7 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
     profileRows,
     locationRows,
     serviceRows,
+    slotRows,
   ] = await Promise.all([
     db
       .select({
@@ -667,6 +669,7 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
     db.select().from(profile).where(eq(profile.id, 1)).limit(1),
     db.select().from(locations).orderBy(asc(locations.sortOrder)),
     db.select().from(services).orderBy(asc(services.sortOrder)),
+    db.select({ locationId: locationSlots.locationId }).from(locationSlots),
   ]);
 
   let publishedCount = 0;
@@ -695,6 +698,9 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
     locationRows.every(
       (l) => isFilledField(l.whatsapp) || isFilledField(l.phone),
     );
+  const locationIdsWithSlots = new Set(slotRows.map((s) => s.locationId));
+  const allLocationsHaveSchedule =
+    locationRows.length > 0 && locationRows.every((l) => locationIdsWithSlots.has(l.id));
   const allServicesHaveProperDesc =
     serviceRows.length > 0 &&
     serviceRows.every((s) => isProperServiceDescription(s.serviceDescription ?? ''));
@@ -734,6 +740,13 @@ export async function getAdminDashboardStats(): Promise<AdminDashboardStats> {
       completed: allLocationsHaveContact,
       href: '/admin/locations',
       hint: 'Setiap lokasi praktik sebaiknya memiliki nomor WA atau telepon pendaftaran.',
+    },
+    {
+      id: 'locations_schedule',
+      label: 'Jadwal Praktik Mingguan di Semua Lokasi',
+      completed: allLocationsHaveSchedule,
+      href: '/admin/locations',
+      hint: 'Isi jam praktik per hari di setiap lokasi agar papan jadwal dan status “Praktik hari ini” tampil.',
     },
     {
       id: 'services_desc',

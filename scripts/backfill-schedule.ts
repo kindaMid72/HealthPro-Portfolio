@@ -5,7 +5,7 @@
  *
  * Usage: npm run db:backfill-schedule
  */
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { closeDb, getDb } from '../src/db/client';
 import { locationSlots, locations } from '../src/db/schema';
 import { parseLegacyHours } from './lib/legacy-hours';
@@ -27,7 +27,7 @@ async function main() {
       .select({
         id: locations.id,
         name: locations.locationName,
-        practiceHours: locations.practiceHours,
+        practiceHours: sql<string>`practice_hours`,
         scheduleNote: locations.scheduleNote,
       })
       .from(locations)

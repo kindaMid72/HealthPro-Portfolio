@@ -121,7 +121,6 @@ export const locations = pgTable('locations', {
   address: text('address').notNull(),
   /** Indonesian schedule note shown under the weekly hours. */
   scheduleNote: text('schedule_note').notNull().default(''),
-  practiceHours: text('practice_hours').notNull().default('-'), // legacy; dropped in migration 0005
   whatsapp: text('whatsapp').notNull().default(''),
   phone: text('phone').notNull().default(''),
   bookingUrlOverride: text('booking_url_override').notNull().default(''),

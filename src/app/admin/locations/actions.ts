@@ -1,170 +1,142 @@
 'use server';
 
-import { asc, eq } from 'drizzle-orm';
+import { asc, desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { getDb } from '@/db/client';
-import { locations } from '@/db/schema';
+import { locationExceptions, locations, locationSlots, locationTranslations } from '@/db/schema';
+import { actionErrorMessage, UserFacingError } from '@/lib/action-error';
 import { revalidatePublicSite } from '@/lib/revalidate';
+import { toMinutes } from '@/lib/schedule';
 import { requireUser } from '@/lib/session';
-import { actionErrorMessage } from '@/lib/action-error';
 import { isUuid } from '@/lib/uuid';
+import {
+  type ExceptionDraft,
+  exceptionDraftError,
+  type LocationDraft,
+  locationDraftError,
+} from './model';
 
-export interface LocationItem {
-  id: string;
-  sortOrder: number;
-  locationName: string;
-  address: string;
-  practiceHours: string;
-  whatsapp: string;
-  phone: string;
-  bookingUrlOverride: string;
-}
+const SCOPE = 'locations/actions';
 
-async function fetchLocationsOrdered(): Promise<LocationItem[]> {
-  return getDb()
-    .select({
-      id: locations.id,
-      sortOrder: locations.sortOrder,
-      locationName: locations.locationName,
-      address: locations.address,
-      practiceHours: locations.practiceHours,
-      whatsapp: locations.whatsapp,
-      phone: locations.phone,
-      bookingUrlOverride: locations.bookingUrlOverride,
-    })
-    .from(locations)
-    .orderBy(asc(locations.sortOrder));
-}
-
-export async function saveLocationAction(input: {
-  id?: string;
-  locationName: string;
-  address: string;
-  practiceHours: string;
-  whatsapp: string;
-  phone: string;
-  bookingUrlOverride: string;
-}): Promise<{
+interface ActionResult {
   success: boolean;
   error?: string;
-  items?: LocationItem[];
-}> {
+}
+
+function fail(error: string): ActionResult {
+  return { success: false, error };
+}
+
+// Same rule as LocationSchema (src/lib/types.ts).
+function bookingUrlError(url: string): string | null {
+  if (!url) return null;
+  if (!z.string().url().safeParse(url).success || !/^https?:\/\//i.test(url)) {
+    return 'URL booking lokasi tidak valid. Gunakan alamat lengkap berawalan https://';
+  }
+  return null;
+}
+
+export async function saveLocationAction(draft: LocationDraft): Promise<ActionResult> {
   await requireUser();
-  if (input.id && !isUuid(input.id)) {
-    return { success: false, error: 'Lokasi tidak ditemukan.' };
-  }
+  if (draft.id !== undefined && !isUuid(draft.id)) return fail('Lokasi tidak ditemukan.');
 
-  const locationName = input.locationName.trim();
-  const address = input.address.trim();
-  const practiceHours = input.practiceHours.trim();
+  const error = locationDraftError(draft) ?? bookingUrlError(draft.bookingUrlOverride.trim());
+  if (error) return fail(error);
 
-  if (!locationName || !address || !practiceHours) {
-    return {
-      success: false,
-      error: 'Nama lokasi, alamat, dan jam praktik wajib diisi.',
-    };
-  }
-
-  // Same rule as LocationSchema (src/lib/types.ts).
-  const bookingUrlOverride = input.bookingUrlOverride.trim();
-  if (
-    bookingUrlOverride &&
-    (!z.string().url().safeParse(bookingUrlOverride).success ||
-      !/^https?:\/\//i.test(bookingUrlOverride))
-  ) {
-    return {
-      success: false,
-      error:
-        'URL booking lokasi tidak valid. Gunakan alamat lengkap berawalan https://',
-    };
-  }
+  const fields = {
+    locationName: draft.locationName.trim(),
+    address: draft.address.trim(),
+    scheduleNote: draft.scheduleNote.trim(),
+    whatsapp: draft.whatsapp.trim(),
+    phone: draft.phone.trim(),
+    bookingUrlOverride: draft.bookingUrlOverride.trim(),
+  };
+  const english = {
+    locationName: draft.en.locationName.trim(),
+    address: draft.en.address.trim(),
+    scheduleNote: draft.en.scheduleNote.trim(),
+  };
 
   try {
-    const db = getDb();
-    if (input.id) {
-      await db
-        .update(locations)
-        .set({
-          locationName,
-          address,
-          practiceHours,
-          whatsapp: input.whatsapp.trim(),
-          phone: input.phone.trim(),
-          bookingUrlOverride,
-          updatedAt: new Date(),
-        })
-        .where(eq(locations.id, input.id));
-    } else {
-      const current = await fetchLocationsOrdered();
-      const nextSort =
-        current.length > 0
-          ? Math.max(...current.map((c) => c.sortOrder)) + 1
-          : 0;
-      await db.insert(locations).values({
-        sortOrder: nextSort,
-        locationName,
-        address,
-        practiceHours,
-        whatsapp: input.whatsapp.trim(),
-        phone: input.phone.trim(),
-        bookingUrlOverride,
-      });
-    }
+    await getDb().transaction(async (tx) => {
+      let locationId = draft.id;
+      if (locationId) {
+        const updated = await tx
+          .update(locations)
+          .set({ ...fields, updatedAt: new Date() })
+          .where(eq(locations.id, locationId))
+          .returning({ id: locations.id });
+        if (updated.length === 0) throw new UserFacingError('Lokasi tidak ditemukan.');
+      } else {
+        const [last] = await tx
+          .select({ sortOrder: locations.sortOrder })
+          .from(locations)
+          .orderBy(desc(locations.sortOrder))
+          .limit(1);
+        const [created] = await tx
+          .insert(locations)
+          .values({ ...fields, sortOrder: last ? last.sortOrder + 1 : 0 })
+          .returning({ id: locations.id });
+        locationId = created.id;
+      }
+      // Narrowed to string here; closures below must not capture the reassigned `let`.
+      const resolvedId = locationId;
+
+      await tx
+        .insert(locationTranslations)
+        .values({ locationId: resolvedId, locale: 'en', ...english, updatedAt: new Date() })
+        .onConflictDoUpdate({
+          target: [locationTranslations.locationId, locationTranslations.locale],
+          set: { ...english, updatedAt: new Date() },
+        });
+
+      // Replace the whole weekly pattern: the unique (location, day, opens) index makes a diff more complex than it is worth.
+      await tx.delete(locationSlots).where(eq(locationSlots.locationId, resolvedId));
+      const slots = draft.weekly.flatMap((ranges, dayOfWeek) =>
+        ranges.map((range) => ({
+          locationId: resolvedId,
+          dayOfWeek,
+          opensMinute: toMinutes(range.opens),
+          closesMinute: toMinutes(range.closes),
+        })),
+      );
+      if (slots.length > 0) await tx.insert(locationSlots).values(slots);
+    });
 
     revalidatePublicSite();
-    const items = await fetchLocationsOrdered();
-    return { success: true, items };
+    return { success: true };
   } catch (err) {
-    return {
-      success: false,
-      error: actionErrorMessage(err, 'Gagal menyimpan lokasi.', 'locations/actions'),
-    };
+    return fail(actionErrorMessage(err, 'Gagal menyimpan lokasi.', SCOPE));
   }
 }
 
-export async function deleteLocationAction(id: string): Promise<{
-  success: boolean;
-  error?: string;
-  items?: LocationItem[];
-}> {
+export async function deleteLocationAction(id: string): Promise<ActionResult> {
   await requireUser();
-  if (!isUuid(id)) return { success: false, error: 'Lokasi tidak ditemukan.' };
+  if (!isUuid(id)) return fail('Lokasi tidak ditemukan.');
   try {
     await getDb().delete(locations).where(eq(locations.id, id));
     revalidatePublicSite();
-    const items = await fetchLocationsOrdered();
-    return { success: true, items };
+    return { success: true };
   } catch (err) {
-    return {
-      success: false,
-      error: actionErrorMessage(err, 'Gagal menghapus lokasi.', 'locations/actions'),
-    };
+    return fail(actionErrorMessage(err, 'Gagal menghapus lokasi.', SCOPE));
   }
 }
 
-export async function moveLocationAction(
-  id: string,
-  direction: 'up' | 'down',
-): Promise<{
-  success: boolean;
-  error?: string;
-  items?: LocationItem[];
-}> {
+export async function moveLocationAction(id: string, direction: 'up' | 'down'): Promise<ActionResult> {
   await requireUser();
-  if (!isUuid(id)) return { success: false, error: 'Lokasi tidak ditemukan.' };
-  if (direction !== 'up' && direction !== 'down') {
-    return { success: false, error: 'Arah tidak valid.' };
-  }
+  if (!isUuid(id)) return fail('Lokasi tidak ditemukan.');
+  if (direction !== 'up' && direction !== 'down') return fail('Arah tidak valid.');
   try {
     const db = getDb();
-    const current = await fetchLocationsOrdered();
+    const current = await db
+      .select({ id: locations.id })
+      .from(locations)
+      .orderBy(asc(locations.sortOrder));
     const idx = current.findIndex((item) => item.id === id);
-    if (idx === -1) return { success: false, error: 'Lokasi tidak ditemukan.' };
+    if (idx === -1) return fail('Lokasi tidak ditemukan.');
 
     const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
-    if (swapIdx < 0 || swapIdx >= current.length) {
-      return { success: true, items: current };
-    }
+    if (swapIdx < 0 || swapIdx >= current.length) return { success: true };
 
     const reordered = [...current];
     const [moved] = reordered.splice(idx, 1);
@@ -180,12 +152,59 @@ export async function moveLocationAction(
     });
 
     revalidatePublicSite();
-    const items = await fetchLocationsOrdered();
-    return { success: true, items };
+    return { success: true };
   } catch (err) {
-    return {
-      success: false,
-      error: actionErrorMessage(err, 'Gagal mengubah urutan.', 'locations/actions'),
-    };
+    return fail(actionErrorMessage(err, 'Gagal mengubah urutan.', SCOPE));
+  }
+}
+
+export async function saveExceptionAction(draft: ExceptionDraft): Promise<ActionResult> {
+  await requireUser();
+  if (draft.id !== undefined && !isUuid(draft.id)) return fail('Pengecualian tidak ditemukan.');
+  if (draft.locationId !== null && !isUuid(draft.locationId)) return fail('Lokasi tidak ditemukan.');
+
+  const error = exceptionDraftError(draft);
+  if (error) return fail(error);
+
+  const values = {
+    locationId: draft.locationId,
+    startDate: draft.startDate,
+    endDate: draft.endDate,
+    closed: draft.closed,
+    // Closed days carry no hours; the DB check constraint requires an empty array for them.
+    hours: draft.closed ? [] : draft.hours.map((r) => ({ opens: r.opens, closes: r.closes })),
+    reason: draft.reason.trim(),
+    reasonEn: draft.reasonEn.trim(),
+    updatedAt: new Date(),
+  };
+
+  try {
+    const db = getDb();
+    if (draft.id) {
+      const updated = await db
+        .update(locationExceptions)
+        .set(values)
+        .where(eq(locationExceptions.id, draft.id))
+        .returning({ id: locationExceptions.id });
+      if (updated.length === 0) return fail('Pengecualian tidak ditemukan.');
+    } else {
+      await db.insert(locationExceptions).values(values);
+    }
+    revalidatePublicSite();
+    return { success: true };
+  } catch (err) {
+    return fail(actionErrorMessage(err, 'Gagal menyimpan pengecualian.', SCOPE));
+  }
+}
+
+export async function deleteExceptionAction(id: string): Promise<ActionResult> {
+  await requireUser();
+  if (!isUuid(id)) return fail('Pengecualian tidak ditemukan.');
+  try {
+    await getDb().delete(locationExceptions).where(eq(locationExceptions.id, id));
+    revalidatePublicSite();
+    return { success: true };
+  } catch (err) {
+    return fail(actionErrorMessage(err, 'Gagal menghapus pengecualian.', SCOPE));
   }
 }
