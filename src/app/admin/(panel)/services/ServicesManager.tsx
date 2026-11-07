@@ -29,7 +29,7 @@ export default function ServicesManager({ initialServices }: { initialServices: 
     e.preventDefault();
     setBusy(true);
     setMessage(null);
-    // Berhasil → server mengarahkan ke editor; hanya kegagalan yang kembali ke sini.
+    // Success redirects to editor; only errors return here.
     const res = await createServiceAction({ serviceName: newName });
     setBusy(false);
     if (res && !res.success) setMessage({ type: 'err', text: res.error });

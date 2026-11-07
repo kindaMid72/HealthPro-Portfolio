@@ -11,7 +11,7 @@ interface PaginationProps {
   dict?: Dictionary['pagination'];
 }
 
-/** Jendela halaman: pertama, terakhir, dan tetangga halaman aktif; celah ditandai "…". */
+/** Page window: first, last, and immediate neighbors of active page; gaps marked with "…". */
 function pageWindow(current: number, total: number): (number | 'gap')[] {
   const set = new Set([1, total, current - 1, current, current + 1]);
   const pages = [...set].filter((p) => p >= 1 && p <= total).sort((a, b) => a - b);

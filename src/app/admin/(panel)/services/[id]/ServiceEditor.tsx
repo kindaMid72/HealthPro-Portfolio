@@ -76,7 +76,7 @@ export default function ServiceEditor({ initialService }: { initialService: Edit
     onUpdate: () => markDirty(),
   });
 
-  // Peringatan sebelum menutup tab jika ada perubahan yang belum disimpan
+  // Warning before unloading tab when unsaved changes exist
   useEffect(() => {
     function handleBeforeUnload(e: BeforeUnloadEvent) {
       if (!isDirty) return;
@@ -160,7 +160,7 @@ export default function ServiceEditor({ initialService }: { initialService: Edit
 
       {message && <Alert tone={message.type === 'ok' ? 'success' : 'error'}>{message.text}</Alert>}
 
-      {/* Tabs Bahasa */}
+      {/* Language Tabs */}
       <div className="flex border-b border-border">
         <button
           type="button"
@@ -241,7 +241,7 @@ export default function ServiceEditor({ initialService }: { initialService: Edit
             </>
           )}
 
-          {/* Konfigurasi Bersama (Slug & Kategori) */}
+          {/* Shared Configuration (Slug & Category) */}
           <div className="grid grid-cols-1 gap-4 border-t border-border pt-4 sm:grid-cols-2">
             <div>
               <TextField

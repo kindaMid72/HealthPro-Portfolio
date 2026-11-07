@@ -20,7 +20,7 @@ function parseItems(value: string): string[] {
     .filter(Boolean);
 }
 
-/** Textarea daftar (dipisah `|` atau baris baru) dengan pratinjau item; nilai tetap berupa string. */
+/** Textarea list (separated by | or newline) with item preview; value remains string. */
 function CredentialListField({
   label,
   rows,
@@ -327,7 +327,7 @@ export default function ProfileForm({
             </div>
           </Card>
 
-          {/* Versi Bahasa Inggris (opsional) */}
+          {/* English version (optional) */}
           <Card
             title="Versi Bahasa Inggris (opsional)"
             description="Field yang dikosongkan akan otomatis memakai nilai Bahasa Indonesia di situs publik /en."

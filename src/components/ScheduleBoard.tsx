@@ -11,7 +11,7 @@ import { useNowMinute } from './useNowMinute';
 
 interface ScheduleBoardProps {
   slots: PracticeSlot[];
-  /** Lokasi yang jamnya tidak bisa di-parse → ditampilkan sebagai teks apa adanya. */
+  /** Locations with unparseable hours displayed as verbatim text. */
   unparsed: { name: string; hours: string }[];
   locale?: Locale;
   labels?: Dictionary['schedule'];
@@ -43,7 +43,7 @@ export default function ScheduleBoard({
     <div className="mb-10">
       {slots.length > 0 && (
         <>
-          {/* Mobile / tablet: tab hari */}
+          {/* Mobile / tablet: day tabs */}
           <div className="card-clinical p-4 sm:p-5 lg:hidden">
             <div className="flex items-center justify-between gap-3">
               <h3 className="flex items-center gap-2 text-base font-bold text-text-heading">
@@ -116,7 +116,7 @@ export default function ScheduleBoard({
             </div>
           </div>
 
-          {/* Desktop: timetable 7 kolom */}
+          {/* Desktop: 7-column timetable */}
           <div className="card-clinical hidden overflow-hidden lg:block">
             <div className="flex items-center justify-between gap-3 border-b border-border bg-bg-subtle/60 px-5 py-3">
               <h3 className="flex items-center gap-2 text-base font-bold text-text-heading">

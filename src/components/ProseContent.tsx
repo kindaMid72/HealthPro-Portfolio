@@ -3,7 +3,7 @@ interface ProseContentProps {
   className?: string;
 }
 
-/** Isi panjang (artikel/layanan): satu-satunya tempat font serif Literata dipakai. */
+/** Long-form content (articles/services): the only place where Literata serif font is applied. */
 export default function ProseContent({ html, className = "" }: ProseContentProps) {
   return (
     <div

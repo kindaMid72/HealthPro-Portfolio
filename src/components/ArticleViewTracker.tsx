@@ -31,7 +31,7 @@ export default function ArticleViewTracker({
         }
       })
       .catch(() => {
-        // Abaikan kegagalan jaringan untuk analitik pembaca
+        // Ignore network failures for reader analytics
       });
 
     return () => {

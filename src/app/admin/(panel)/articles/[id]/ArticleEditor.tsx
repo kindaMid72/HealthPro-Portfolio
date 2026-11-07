@@ -76,7 +76,7 @@ export default function ArticleEditor({
   const [reviewNote, setReviewNote] = useState(initialArticle.reviewNote);
   const [lastUpdatedAt, setLastUpdatedAt] = useState(initialArticle.updatedAt);
 
-  // Field versi bahasa Inggris (opsional)
+  // English version fields (optional)
   const [enTitle, setEnTitle] = useState(initialArticle.en?.title ?? '');
   const [enExcerpt, setEnExcerpt] = useState(initialArticle.en?.excerpt ?? '');
   const [enCoverAlt, setEnCoverAlt] = useState(initialArticle.en?.coverAlt ?? '');
@@ -145,7 +145,7 @@ export default function ArticleEditor({
     },
   });
 
-  // Peringatan sebelum menutup tab jika ada perubahan yang belum disimpan
+  // Warning before unloading tab when unsaved changes exist
   useEffect(() => {
     function handleBeforeUnload(e: BeforeUnloadEvent) {
       if (!isDirty) return;
@@ -251,7 +251,7 @@ export default function ArticleEditor({
     ],
   );
 
-  // Autosave setiap 25 detik khusus saat artikel berstatus draft dan ada perubahan
+  // Autosave every 25 seconds for draft articles with unsaved changes
   useEffect(() => {
     if (status !== 'draft' || !isDirty || saving || autoSaving) return;
 
@@ -438,7 +438,7 @@ export default function ArticleEditor({
 
       {message && <Alert tone={message.type === 'ok' ? 'success' : 'error'}>{message.text}</Alert>}
 
-      {/* Tabs Bahasa */}
+      {/* Language Tabs */}
       <div className="flex border-b border-border">
         <button
           type="button"
@@ -523,7 +523,7 @@ export default function ArticleEditor({
                 </>
               )}
 
-              {/* Konfigurasi Bersama (Slug & Kategori) */}
+              {/* Shared Configuration (Slug & Category) */}
               <div className="grid grid-cols-1 gap-4 border-t border-border pt-4 sm:grid-cols-2">
                 <div>
                   <TextField

@@ -20,7 +20,7 @@ const GENERAL: Domain = { key: 'general' };
 
 const DOMAIN_ORDER = [EAR, NOSE, THROAT, GENERAL];
 
-/** Domain klinis dari kategori layanan; bila kosong/umum → tebak dari nama layanan (nameId) */
+/** Clinical domain derived from service category; falls back to name inference if generic or empty */
 function getDomain(svc: PublicService): Domain {
   switch (svc.category) {
     case 'telinga':

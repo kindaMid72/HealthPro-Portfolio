@@ -9,9 +9,9 @@ interface DialogProps {
   description?: ReactNode;
   children?: ReactNode;
   footer?: ReactNode;
-  /** Variasi tata letak: dialog tengah (default) atau laci kiri untuk navigasi mobile. */
+  /** Layout variant: center dialog (default) or left drawer for mobile navigation. */
   variant?: 'center' | 'drawer';
-  /** false = Escape dan klik latar diabaikan (mis. saat aksi sedang berjalan). */
+  /** false = Escape and backdrop clicks are ignored (e.g. while action is in progress). */
   dismissible?: boolean;
 }
 
@@ -55,7 +55,7 @@ export default function Dialog({
         pressedOnBackdrop.current = e.target === ref.current;
       }}
       onClick={(e) => {
-        // Tutup hanya bila tekan DAN lepas di latar; seret teks dari input ke luar tidak menutup.
+        // Close only when pressed AND released on backdrop; dragging text from input outside does not close.
         if (dismissible && pressedOnBackdrop.current && e.target === ref.current) onClose();
         pressedOnBackdrop.current = false;
       }}

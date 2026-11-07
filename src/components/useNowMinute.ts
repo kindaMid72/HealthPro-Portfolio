@@ -8,8 +8,8 @@ function subscribe(onChange: () => void) {
 }
 
 /**
- * Menit-sejak-epoch saat ini; `null` di server dan saat hidrasi.
- * HTML ISR tidak tahu "hari ini", jadi tampilan bergantung waktu baru muncul setelah mount.
+ * Current epoch minute; `null` during SSR and hydration.
+ * ISR HTML is unaware of "today", so time-dependent display appears after mount.
  */
 export function useNowMinute(): number | null {
   return useSyncExternalStore(

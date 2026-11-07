@@ -28,9 +28,8 @@ interface JsonLdProps {
 }
 
 /**
- * Structured data (schema.org) untuk mesin pencari & LLM.
- * Satu @graph dengan entitas yang saling terhubung lewat @id:
- * WebSite ↔ ProfilePage ↔ Physician ↔ MedicalClinic (per lokasi).
+ * Structured data (schema.org) graph linking WebSite, ProfilePage, Physician,
+ * and MedicalClinic entities via @id for search engines and LLMs.
  */
 export default function JsonLd({
   profile,

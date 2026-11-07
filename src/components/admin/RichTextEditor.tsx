@@ -24,7 +24,7 @@ import { Button } from './Button';
 import Dialog from './Dialog';
 import { TextField } from './Field';
 
-/** Kelas konten editor: tampilan menulis sama dengan tampilan publik. */
+/** Editor content class matching public rendering. */
 export const RICH_TEXT_EDITOR_CLASS =
   'prose prose-lg article-prose font-reading max-w-none min-h-[420px] p-5 focus:outline-none prose-headings:font-sans';
 
@@ -148,7 +148,7 @@ export default function RichTextEditor({
     }
   }
 
-  /** Gambar sudah terunggah; batal tetap menyisipkannya dengan alt cadangan (GC artikel membersihkan bila tak terpakai). */
+  /** Image already uploaded; cancel still inserts with fallback alt (article GC purges unused). */
   function insertImage(withDetails: boolean) {
     if (!pendingImage) return;
     chain()

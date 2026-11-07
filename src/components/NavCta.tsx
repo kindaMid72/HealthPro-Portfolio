@@ -23,7 +23,7 @@ const DEFAULT_LABELS: NavCtaLabels = {
   viewSchedule: 'Lihat jadwal',
 };
 
-/** CTA utama navbar: booking → WhatsApp → lihat jadwal. */
+/** Primary navbar CTA: booking -> WhatsApp -> practice schedule. */
 export default function NavCta({
   bookingUrl,
   whatsappFallback,

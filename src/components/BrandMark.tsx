@@ -1,8 +1,8 @@
 /**
  * components/BrandMark.tsx
- * Logo: huruf "Y" yang juga tabung stetoskop (earpiece + chest-piece).
- * Geometri harus sinkron dengan src/app/icon.svg dan src/app/opengraph-image.tsx
- * (keduanya tidak bisa import komponen React).
+ * Logo: "Y" stethoscope monogram (earpiece + chest-piece).
+ * Geometry kept in sync with src/app/icon.svg and src/app/opengraph-image.tsx
+ * (neither can import React components).
  */
 export default function BrandMark({ className }: { className?: string }) {
   return (

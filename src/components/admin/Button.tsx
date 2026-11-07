@@ -19,7 +19,7 @@ const VARIANTS: Record<Variant, string> = {
   ghost: 'text-text-body hover:bg-bg-subtle hover:text-text-heading',
 };
 
-/** Kelas tombol admin — juga dipakai untuk <Link> yang tampil sebagai tombol. */
+/** Admin button classes, shared by Link button styling. */
 export function buttonClassName(variant: Variant = 'primary', size: Size = 'md'): string {
   return `${BASE} ${SIZES[size]} ${VARIANTS[variant]}`;
 }
