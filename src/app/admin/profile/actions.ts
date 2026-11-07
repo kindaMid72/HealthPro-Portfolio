@@ -109,7 +109,7 @@ export async function saveProfileAction(
         set: values,
       });
 
-    // Row lifecycle rule untuk terjemahan EN
+    // Row lifecycle rule for EN translations
     if (input.en) {
       const enSpecialty = input.en.specialty.trim();
       const enSubSpecialty = input.en.subSpecialty.trim();

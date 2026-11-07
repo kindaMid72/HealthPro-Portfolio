@@ -65,7 +65,7 @@ export async function saveLocationAction(input: {
     };
   }
 
-  // Aturan yang sama dengan LocationSchema (src/lib/types.ts).
+  // Same rule as LocationSchema (src/lib/types.ts).
   const bookingUrlOverride = input.bookingUrlOverride.trim();
   if (
     bookingUrlOverride &&

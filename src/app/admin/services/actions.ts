@@ -54,7 +54,7 @@ async function fetchServicesOrdered(): Promise<ServiceItem[]> {
 
 const SLUG_FALLBACK = 'layanan';
 
-/** Layanan tidak membawa gambar: buang node image dari konten yang dikirim klien. */
+/** Services do not support images: strip image nodes from client content. */
 function sanitizeServiceContent(node: JSONContent): JSONContent {
   const content = (node.content ?? [])
     .filter((child) => child.type !== 'image')
@@ -75,7 +75,7 @@ async function isServiceSlugTaken(candidate: string, excludeId?: string): Promis
   return rows.length > 0;
 }
 
-/** Buat layanan baru (hanya nama) lalu arahkan ke editornya. Hanya mengembalikan nilai bila gagal. */
+/** Create new service by name and redirect to editor. Only returns on failure. */
 export async function createServiceAction(input: {
   serviceName: string;
 }): Promise<{ success: false; error: string }> {
@@ -138,7 +138,7 @@ export async function saveServiceAction(input: {
     return { success: false, error: 'Layanan tidak ditemukan.' };
   }
 
-  // Salin ke plain object (attrs ProseMirror berprototipe null) lalu buang node image.
+  // Copy to plain object (ProseMirror attrs have null prototype) and discard image nodes.
   let parsed: JSONContent | null = null;
   try {
     parsed = JSON.parse(JSON.stringify(input.content)) as JSONContent;
@@ -171,7 +171,7 @@ export async function saveServiceAction(input: {
       return { success: false, error: 'Layanan tidak ditemukan (mungkin sudah dihapus).' };
     }
 
-    // Row lifecycle rule untuk terjemahan EN
+    // Row lifecycle rule for EN translations
     if (input.en) {
       let parsedEn: JSONContent | null = null;
       try {

@@ -8,7 +8,7 @@ import { hashPassword, verifyPassword } from '@/lib/password';
 import { destroyOtherSessions, requireUser } from '@/lib/session';
 import { isUuid } from '@/lib/uuid';
 
-// Aksi sensitif (ganti sandi, tambah/hapus admin) wajib konfirmasi kata sandi akun yang sedang login.
+// Sensitive actions (password change, admin creation/deletion) require current account password confirmation.
 async function checkCurrentPassword(storedHash: string, candidate: string | undefined): Promise<string | null> {
   if (!candidate || candidate.length > 1024 || !(await verifyPassword(candidate, storedHash))) {
     return 'Kata sandi saat ini tidak sesuai.';
@@ -179,7 +179,7 @@ export async function deleteAdminAccountAction(input: {
     return { success: false, error: pwError };
   }
 
-  // Sesi ikut terhapus (ON DELETE CASCADE); artikel tetap, authorId di-set null.
+  // Sessions deleted via ON DELETE CASCADE; articles remain with authorId set to null.
   const deleted = await db
     .delete(users)
     .where(eq(users.id, input.targetUserId))

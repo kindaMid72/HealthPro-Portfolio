@@ -23,8 +23,8 @@ export async function POST(
   const today = new Date().toISOString().slice(0, 10);
   const bucket = visitorBucket(getClientIp(req.headers), today);
   if (bucket === null) {
-    // Fail closed: tanpa secret tidak ada penulisan, hanya angka terkini.
-    console.error('VIEW_HASH_SECRET belum di-set; view tidak dihitung');
+    // Fail closed: without secret, views are not counted; only current viewCount is returned.
+    console.error('VIEW_HASH_SECRET not configured; views will not be counted');
     return NextResponse.json({
       counted: false,
       viewCount: await getArticleViewCount(slug),

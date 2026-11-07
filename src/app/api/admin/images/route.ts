@@ -8,7 +8,7 @@ import {
 } from '@/lib/images';
 import { isUuid } from '@/lib/uuid';
 
-// Ruang untuk envelope multipart di sekitar berkas gambar.
+// Allowance for multipart envelope overhead around image files.
 const MULTIPART_OVERHEAD_BYTES = 64 * 1024;
 
 export async function POST(request: Request) {
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     );
   }
 
-  // Tolak permintaan lintas-origin: Origin harus sama dengan Host.
+  // Reject cross-origin requests: Origin must match Host.
   const origin = request.headers.get('origin');
   if (origin) {
     let sameOrigin = false;
@@ -34,8 +34,8 @@ export async function POST(request: Request) {
     }
   }
 
-  // Tolak body besar sebelum formData() membuffernya ke memori. Tanpa
-  // content-length yang valid permintaan ditolak, agar tidak ada jalur tanpa batas.
+  // Reject large bodies before formData() buffers into memory. Without
+  // a valid content-length the request is rejected to avoid unbounded paths.
   const rawLength = request.headers.get('content-length');
   const contentLength = rawLength === null ? Number.NaN : Number(rawLength);
   if (

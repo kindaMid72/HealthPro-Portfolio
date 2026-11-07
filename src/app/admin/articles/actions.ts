@@ -62,9 +62,9 @@ export async function saveArticleAction(input: SaveArticleInput): Promise<{
     return { success: false, error: 'Status tidak valid.' };
   }
 
-  // Pastikan konten berupa JSON polos sebelum menyentuh DB. Kalau klien
-  // mengirim objek yang tidak bisa diserialisasi (mis. temporary reference),
-  // tolak di sini, sebelum ada tulisan yang commit.
+  // Ensure content is plain JSON before touching DB. If the client
+  // sends an un-serializable object (e.g. temporary reference),
+  // reject here before any write is committed.
   let content: JSONContent;
   try {
     content = JSON.parse(JSON.stringify(input.content));

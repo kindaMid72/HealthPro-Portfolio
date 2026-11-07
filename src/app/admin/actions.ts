@@ -11,7 +11,7 @@ import { clearLoginAttempts, reserveLoginAttempt } from '@/lib/login-throttle';
 import { hashPassword, needsRehash, verifyPassword } from '@/lib/password';
 import { createSession, destroySession } from '@/lib/session';
 
-// Dipakai saat email tidak ditemukan agar waktu respons sama dengan akun yang ada.
+// Used when email is not found so response time matches existing accounts (timing attack mitigation).
 let dummyHash: Promise<string> | undefined;
 const getDummyHash = () => (dummyHash ??= hashPassword(randomBytes(16).toString('hex')));
 
@@ -26,7 +26,7 @@ export async function loginAction(formData: FormData): Promise<void> {
   }
 
   const ip = getClientIp(await headers());
-  // Dicek sebelum scrypt dan sebelum tahu apakah email ada: respons "locked" tidak membocorkan akun.
+  // Checked before scrypt to avoid leaking account existence via "locked" response.
   if (!(await reserveLoginAttempt(email, ip))) {
     redirect('/admin/login?error=locked');
   }
