@@ -63,9 +63,9 @@ export const LocationSchema = z.object({
   location_name: z.string().min(1),
   address: z.string().min(1),
   /** Weekly practice ranges; empty when the location publishes only a note. */
-  slots: z.array(DaySlotSchema),
+  slots: z.array(DaySlotSchema).default([]),
   /** Date exceptions that apply to this location (global closures are copied in by content.ts). */
-  exceptions: z.array(ScheduleExceptionSchema),
+  exceptions: z.array(ScheduleExceptionSchema).default([]),
   /** Free-text schedule note (e.g. "Jadwal berubah saat libur nasional"), shown verbatim. */
   note: z.string(),
   whatsapp: z.string().optional(),

@@ -50,6 +50,7 @@ export const en: Dictionary = {
     empty: 'Practice location information coming soon.',
     addressLabel: 'Address',
     hoursLabel: 'Practice hours (WITA)',
+    noScheduleYet: 'Schedule not yet available',
   },
   schedule: {
     daysLong: [

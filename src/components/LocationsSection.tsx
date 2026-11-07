@@ -82,11 +82,15 @@ export default function LocationsSection({
                         <div>
                           <dt className="text-xs font-medium text-text-muted">{dict.locations.hoursLabel}</dt>
                           <dd id={`location-hours-${i}`} className="mt-1 font-semibold tabular-nums text-text-heading">
-                            {hoursLines.map((line) => (
-                              <span key={line} className="block">
-                                {line}
-                              </span>
-                            ))}
+                            {hoursLines.length === 0 ? (
+                              <span className="block font-normal text-text-muted">{dict.locations.noScheduleYet}</span>
+                            ) : (
+                              hoursLines.map((line) => (
+                                <span key={line} className="block">
+                                  {line}
+                                </span>
+                              ))
+                            )}
                           </dd>
                         </div>
                       </dl>

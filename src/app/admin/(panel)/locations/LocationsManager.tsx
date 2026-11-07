@@ -224,6 +224,8 @@ export default function LocationsManager({ locations }: { locations: LocationIte
                     key={lang}
                     type="button"
                     role="tab"
+                    id={`location-lang-tab-${lang}`}
+                    aria-controls="location-lang-panel"
                     aria-selected={tab === lang}
                     onClick={() => setTab(lang)}
                     className={`flex-1 rounded-md px-3 py-1.5 text-sm font-medium ${
@@ -239,7 +241,7 @@ export default function LocationsManager({ locations }: { locations: LocationIte
               </div>
 
               {tab === 'id' ? (
-                <div className="space-y-4">
+                <div className="space-y-4" role="tabpanel" id="location-lang-panel" aria-labelledby={`location-lang-tab-${tab}`}>
                   <TextField
                     label="Nama RS / klinik"
                     required
@@ -263,7 +265,7 @@ export default function LocationsManager({ locations }: { locations: LocationIte
                   />
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-4" role="tabpanel" id="location-lang-panel" aria-labelledby={`location-lang-tab-${tab}`}>
                   <TextField
                     label="Location name (English)"
                     value={draft.en.locationName}

@@ -123,6 +123,8 @@ export function WeeklyScheduleEditor({
               variant="ghost"
               className="mt-2"
               disabled={value[day].length === 0}
+              aria-label={`Salin jam ${dayName} ke hari lain`}
+              aria-expanded={copyFrom === day}
               onClick={() => openCopy(day)}
             >
               Salin ke…

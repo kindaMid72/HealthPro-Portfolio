@@ -49,6 +49,7 @@ export const id = {
     empty: 'Informasi lokasi praktik segera hadir.',
     addressLabel: 'Alamat',
     hoursLabel: 'Jam praktik (WITA)',
+    noScheduleYet: 'Jadwal belum tersedia',
   },
   schedule: {
     daysLong: ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'],
