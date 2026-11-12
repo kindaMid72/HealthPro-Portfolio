@@ -12,6 +12,7 @@ import {
   type SaveProfileInput,
   saveProfileAction,
 } from '../../profile/actions';
+import { HERO_LIMITS } from '@/lib/hero';
 
 function parseItems(value: string): string[] {
   return value
@@ -119,6 +120,9 @@ export default function ProfileForm({
         experienceHistory: prev.en?.experienceHistory ?? '',
         organizations: prev.en?.organizations ?? '',
         personalStory: prev.en?.personalStory ?? '',
+        heroTagline: prev.en?.heroTagline ?? '',
+        heroBookingLabel: prev.en?.heroBookingLabel ?? '',
+        heroWhatsappLabel: prev.en?.heroWhatsappLabel ?? '',
         [key]: val,
       },
     }));
@@ -288,6 +292,37 @@ export default function ProfileForm({
             </div>
           </Card>
 
+          <Card title="Teks hero (Bahasa Indonesia)">
+            <div className="space-y-4">
+              <TextField
+                label="Tagline hero"
+                maxLength={HERO_LIMITS.tagline}
+                value={form.heroTagline}
+                onChange={(e) => updateField('heroTagline', e.target.value)}
+                placeholder="Melayani pasien di ..."
+                hint={`Tampil di bawah spesialisasi di beranda dan dipakai di deskripsi SEO. Kosongkan untuk teks otomatis dari alamat lokasi praktik. ${form.heroTagline.length}/${HERO_LIMITS.tagline}`}
+              />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <TextField
+                  label="Label tombol booking"
+                  maxLength={HERO_LIMITS.ctaLabel}
+                  value={form.heroBookingLabel}
+                  onChange={(e) => updateField('heroBookingLabel', e.target.value)}
+                  placeholder="Booking sekarang"
+                  hint="Kosong = label bawaan."
+                />
+                <TextField
+                  label="Label tombol WhatsApp"
+                  maxLength={HERO_LIMITS.ctaLabel}
+                  value={form.heroWhatsappLabel}
+                  onChange={(e) => updateField('heroWhatsappLabel', e.target.value)}
+                  placeholder="Hubungi via WhatsApp"
+                  hint="Kosong = label bawaan."
+                />
+              </div>
+            </div>
+          </Card>
+
           <Card title="Pengantar (Bahasa Indonesia)" description="Tampil di bagian Tentang pada beranda.">
             <TextAreaField
               label="Biografi singkat / pengantar pelayanan"
@@ -330,7 +365,7 @@ export default function ProfileForm({
           {/* English version (optional) */}
           <Card
             title="Versi Bahasa Inggris (opsional)"
-            description="Field yang dikosongkan akan otomatis memakai nilai Bahasa Indonesia di situs publik /en."
+            description="Field yang dikosongkan akan otomatis memakai nilai Bahasa Indonesia di situs publik /en, kecuali Teks hero: kosong = teks otomatis Bahasa Inggris."
           >
             <div className="space-y-5">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -345,6 +380,33 @@ export default function ProfileForm({
                   value={form.en?.subSpecialty ?? ''}
                   onChange={(e) => updateEnField('subSpecialty', e.target.value)}
                   placeholder="e.g. Otology & Neurotology"
+                />
+              </div>
+
+              <TextField
+                label="Hero tagline (English)"
+                maxLength={HERO_LIMITS.tagline}
+                value={form.en?.heroTagline ?? ''}
+                onChange={(e) => updateEnField('heroTagline', e.target.value)}
+                placeholder="Serving patients in ..."
+                hint={`Blank = automatic English text (the Indonesian tagline is not reused). ${(form.en?.heroTagline ?? '').length}/${HERO_LIMITS.tagline}`}
+              />
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <TextField
+                  label="Booking button label (English)"
+                  maxLength={HERO_LIMITS.ctaLabel}
+                  value={form.en?.heroBookingLabel ?? ''}
+                  onChange={(e) => updateEnField('heroBookingLabel', e.target.value)}
+                  placeholder="Book appointment"
+                  hint="Blank = default English label."
+                />
+                <TextField
+                  label="WhatsApp button label (English)"
+                  maxLength={HERO_LIMITS.ctaLabel}
+                  value={form.en?.heroWhatsappLabel ?? ''}
+                  onChange={(e) => updateEnField('heroWhatsappLabel', e.target.value)}
+                  placeholder="Contact via WhatsApp"
+                  hint="Blank = default English label."
                 />
               </div>
 

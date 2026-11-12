@@ -22,6 +22,7 @@ import {
   getRelatedArticles,
 } from '@/lib/content';
 import { getCtaLinks } from '@/lib/cta';
+import { META_DESCRIPTION_MAX, fitTitle, truncateMeta } from '@/lib/meta-text';
 import { formatDate } from '@/lib/format';
 import { absoluteUrl, getSiteUrl } from '@/lib/seo';
 
@@ -67,11 +68,13 @@ export async function generateMetadata({
   const ogImage = article.coverImageUrl
     ? absoluteUrl(article.coverImageUrl)
     : localizedAbsoluteUrl(locale, '/opengraph-image');
-  const description =
-    article.excerpt || `${article.title} — ${profile.full_name}`;
+  const description = truncateMeta(
+    article.excerpt || `${article.title} — ${profile.full_name}`,
+    META_DESCRIPTION_MAX,
+  );
 
   return {
-    title: `${article.title} — ${profile.full_name}`,
+    title: fitTitle(article.title, profile.full_name),
     description,
     alternates: {
       canonical: alternates.canonical,
@@ -176,7 +179,7 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
         description: article.excerpt || article.title,
         image: article.coverImageUrl
           ? absoluteUrl(article.coverImageUrl)
-          : `${siteUrl}/opengraph-image`,
+          : localizedAbsoluteUrl(locale, '/opengraph-image'),
         datePublished: article.publishedAt.toISOString(),
         dateModified: article.updatedAt.toISOString(),
         wordCount: article.wordCount,
@@ -204,13 +207,13 @@ export default async function ArticleDetailPage({ params }: ArticlePageProps) {
             '@type': 'ListItem',
             position: 1,
             name: dict.breadcrumbs.home,
-            item: siteUrl,
+            item: localizedAbsoluteUrl(locale, '/'),
           },
           {
             '@type': 'ListItem',
             position: 2,
             name: dict.breadcrumbs.articles,
-            item: `${siteUrl}/artikel`,
+            item: localizedAbsoluteUrl(locale, '/artikel'),
           },
           {
             '@type': 'ListItem',

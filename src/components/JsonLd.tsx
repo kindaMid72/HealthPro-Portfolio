@@ -26,6 +26,7 @@ interface JsonLdProps {
   services: PublicService[];
   locale: Locale;
   dict: Dictionary;
+  lastModified: Date | null;
 }
 
 /**
@@ -38,6 +39,7 @@ export default function JsonLd({
   services,
   locale,
   dict,
+  lastModified,
 }: JsonLdProps) {
   const siteUrl = getSiteUrl();
   const pageUrl = localizedAbsoluteUrl(locale, '/');
@@ -182,7 +184,7 @@ export default function JsonLd({
       about: { '@id': ids.physician },
       mainEntity: { '@id': ids.physician },
       primaryImageOfPage: { '@type': 'ImageObject', url: absoluteUrl(profile.photo_url) },
-      dateModified: new Date().toISOString().slice(0, 10),
+      ...(lastModified ? { dateModified: lastModified.toISOString() } : {}),
     },
     physician,
     ...clinics,

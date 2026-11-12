@@ -8,6 +8,7 @@ import {
   asc,
   count,
   gte,
+  max,
   desc,
   eq,
   ilike,
@@ -168,6 +169,10 @@ export const getProfile = cache(async (locale: Locale = 'id'): Promise<Profile> 
         (isEn && trans.personalStory.trim()) ||
         row.personalStory ||
         undefined,
+      // No Indonesian fallback for en: blank EN means "use the English auto text".
+      hero_tagline: (locale === 'en' ? trans?.heroTagline : row.heroTagline)?.trim() || undefined,
+      hero_booking_label: (locale === 'en' ? trans?.heroBookingLabel : row.heroBookingLabel)?.trim() || undefined,
+      hero_whatsapp_label: (locale === 'en' ? trans?.heroWhatsappLabel : row.heroWhatsappLabel)?.trim() || undefined,
     });
   } catch (err) {
     console.error('[content] getProfile failed, using fallback data:', err);
@@ -410,6 +415,40 @@ export const getServiceSlugsWithDetail = cache(
         .map((r) => ({ slug: r.slug, updatedAt: r.updatedAt }));
     } catch {
       return [];
+    }
+  },
+);
+
+export function latestDate(...dates: (Date | null)[]): Date | null {
+  let best: Date | null = null;
+  for (const d of dates) if (d && (!best || d > best)) best = d;
+  return best;
+}
+
+/** Real last-modified timestamps for sitemap / JSON-LD (null when unknown). */
+export const getContentLastModified = cache(
+  async (): Promise<{ site: Date | null; articles: Date | null }> => {
+    try {
+      const db = getDb();
+      const pick = (q: Promise<{ v: Date | null }[]>) => q.then((r) => r[0]?.v ?? null);
+      const [site, art] = await Promise.all([
+        Promise.all([
+          pick(db.select({ v: max(profileTable.updatedAt) }).from(profileTable)),
+          pick(db.select({ v: max(profileTranslationsTable.updatedAt) }).from(profileTranslationsTable)),
+          pick(db.select({ v: max(locationsTable.updatedAt) }).from(locationsTable)),
+          pick(db.select({ v: max(locationTranslationsTable.updatedAt) }).from(locationTranslationsTable)),
+          pick(db.select({ v: max(locationExceptionsTable.updatedAt) }).from(locationExceptionsTable)),
+          pick(db.select({ v: max(servicesTable.updatedAt) }).from(servicesTable)),
+          pick(db.select({ v: max(serviceTranslationsTable.updatedAt) }).from(serviceTranslationsTable)),
+        ]),
+        db
+          .select({ v: max(articlesTable.updatedAt) })
+          .from(articlesTable)
+          .where(eq(articlesTable.status, 'published')),
+      ]);
+      return { site: latestDate(...site), articles: art[0]?.v ?? null };
+    } catch {
+      return { site: null, articles: null };
     }
   },
 );

@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm';
 import { getDb } from '@/db/client';
 import { users } from '@/db/schema';
 import { clearAllLoginAttempts } from '@/lib/login-throttle';
+import { revalidatePublicSite } from '@/lib/revalidate';
 import { hashPassword, verifyPassword } from '@/lib/password';
 import { destroyOtherSessions, requireUser } from '@/lib/session';
 import { isUuid } from '@/lib/uuid';
@@ -62,6 +63,7 @@ export async function updateOwnAccountAction(input: {
       .where(eq(users.id, user.id));
 
     await destroyOtherSessions(user.id);
+    revalidatePublicSite();
     return { success: true };
   }
 
@@ -70,6 +72,7 @@ export async function updateOwnAccountAction(input: {
     .set({ name: cleanName })
     .where(eq(users.id, user.id));
 
+  revalidatePublicSite();
   return { success: true };
 }
 
@@ -187,5 +190,6 @@ export async function deleteAdminAccountAction(input: {
   if (deleted.length === 0) {
     return { success: false, error: 'Akun tidak ditemukan.' };
   }
+  revalidatePublicSite();
   return { success: true };
 }

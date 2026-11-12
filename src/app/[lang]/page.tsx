@@ -9,7 +9,12 @@ import ServicesSection from '@/components/ServicesSection';
 import SiteShell from '@/components/SiteShell';
 import { hasLocale, type Locale } from '@/i18n/config';
 import { getDictionaryFor } from '@/i18n/dictionary';
-import { getAllSiteData, getPublishedArticles } from '@/lib/content';
+import {
+  getAllSiteData,
+  getContentLastModified,
+  getPublishedArticles,
+  latestDate,
+} from '@/lib/content';
 import { getCtaLinks } from '@/lib/cta';
 import { describeServiceArea } from '@/lib/seo';
 
@@ -27,9 +32,10 @@ export default async function Home({ params }: HomePageProps) {
   const locale: Locale = rawLang;
   const dict = await getDictionaryFor(locale);
 
-  const [{ profile, locations, services }, articles] = await Promise.all([
+  const [{ profile, locations, services }, articles, lastMod] = await Promise.all([
     getAllSiteData(locale),
     getPublishedArticles(3, locale),
+    getContentLastModified(),
   ]);
 
   const { bookingUrl, whatsappFallback } = getCtaLinks(profile, locations);
@@ -42,6 +48,7 @@ export default async function Home({ params }: HomePageProps) {
         services={services}
         locale={locale}
         dict={dict}
+        lastModified={latestDate(lastMod.site, lastMod.articles)}
       />
 
       <HeroSection
@@ -49,7 +56,7 @@ export default async function Home({ params }: HomePageProps) {
         bookingUrl={bookingUrl}
         whatsappFallback={whatsappFallback}
         locations={locations}
-        serviceArea={describeServiceArea(locations, locale)}
+        tagline={profile.hero_tagline ?? describeServiceArea(locations, locale)}
         locale={locale}
         dict={dict}
       />

@@ -31,6 +31,9 @@ export const ProfileSchema = z.object({
   email: z.union([z.string().email(), z.literal('')]).optional().transform(e => e === '' ? undefined : e),
   social_links: z.string().optional(),
   personal_story: z.string().optional(),
+  hero_tagline: z.string().optional(),
+  hero_booking_label: z.string().optional(),
+  hero_whatsapp_label: z.string().optional(),
 });
 
 export type Profile = z.infer<typeof ProfileSchema>;

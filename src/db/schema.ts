@@ -96,6 +96,9 @@ export const profile = pgTable(
     email: text('email').notNull().default(''),
     socialLinks: text('social_links').notNull().default(''),
     personalStory: text('personal_story').notNull().default(''),
+    heroTagline: text('hero_tagline').notNull().default(''),
+    heroBookingLabel: text('hero_booking_label').notNull().default(''),
+    heroWhatsappLabel: text('hero_whatsapp_label').notNull().default(''),
     photoImageId: uuid('photo_image_id').references(() => images.id, { onDelete: 'set null' }),
     updatedAt: tsz('updated_at').notNull().defaultNow(),
   },
@@ -110,6 +113,9 @@ export const profileTranslations = pgTable('profile_translations', {
   experienceHistory: text('experience_history').notNull().default(''),
   organizations: text('organizations').notNull().default(''),
   personalStory: text('personal_story').notNull().default(''),
+  heroTagline: text('hero_tagline').notNull().default(''),
+  heroBookingLabel: text('hero_booking_label').notNull().default(''),
+  heroWhatsappLabel: text('hero_whatsapp_label').notNull().default(''),
   updatedAt: tsz('updated_at').notNull().defaultNow(),
 });
 

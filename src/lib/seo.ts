@@ -10,6 +10,7 @@ import type { Locale } from "@/i18n/config";
 import { id as idDictionary } from "@/i18n/dictionaries/id";
 import { en as enDictionary } from "@/i18n/dictionaries/en";
 import { format } from "@/i18n/format";
+import { ensureSentence } from "./meta-text";
 import type { DaySlot } from "./schedule";
 import type { Location, Profile } from "./types";
 
@@ -172,7 +173,8 @@ export function buildDescription(
   const names = locations.map((l) => l.location_name);
   const svc = services.map((s) => s.service_name);
   const parts = [`${profile.full_name} — ${profile.specialty}.`];
-  if (names.length) parts.push(format(dict.seo.practiceAt, { names: names.join(", ") }));
+  if (profile.hero_tagline) parts.push(ensureSentence(profile.hero_tagline));
+  else if (names.length) parts.push(format(dict.seo.practiceAt, { names: names.join(", ") }));
   else if (areas.length) parts.push(format(dict.seo.servingPatientsIn, { localities: areas.join(", "), regions: '' }).replace(/,\s*\./, '.'));
   if (svc.length) parts.push(format(dict.seo.services, { services: svc.join(", ") }));
   parts.push(dict.seo.seeScheduleCta);
