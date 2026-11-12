@@ -7,6 +7,7 @@ import { LOCALES, OG_LOCALE, hasLocale, type Locale } from '@/i18n/config';
 import { absoluteUrl, buildAlternates } from '@/i18n/path';
 import { format, getDictionaryFor } from '@/i18n/dictionary';
 import { getAllSiteData } from '@/lib/content';
+import { META_DESCRIPTION_MAX, truncateMeta } from '@/lib/meta-text';
 import { buildDescription, getServiceAreas, getSiteUrl } from '@/lib/seo';
 
 export function generateStaticParams() {
@@ -42,7 +43,10 @@ export async function generateMetadata({
   const title = lastArea
     ? format(dict.seo.homeTitleWithArea, { doctor: doctorName, specialty, area: lastArea })
     : format(dict.seo.homeTitle, { doctor: doctorName, specialty });
-  const description = buildDescription(profile, locations, services, locale);
+  const description = truncateMeta(
+    buildDescription(profile, locations, services, locale),
+    META_DESCRIPTION_MAX,
+  );
   const ogImageUrl = absoluteUrl(locale, '/opengraph-image');
   const alternates = buildAlternates({ locale, path: '/', enAvailable: true });
   const llmsUrl = absoluteUrl(locale, '/llms.txt');

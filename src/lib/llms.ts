@@ -1,6 +1,7 @@
 import type { Locale } from '@/i18n/config';
 import { getDictionaryFor } from '@/i18n/dictionary';
 import { absoluteUrl } from '@/i18n/path';
+import { ensureSentence } from '@/lib/meta-text';
 import { getAllSiteData, getPublishedArticles } from '@/lib/content';
 import { getSiteUrl, splitList } from '@/lib/seo';
 import { describeHours } from '@/lib/schedule';
@@ -23,7 +24,7 @@ export async function buildLlmsTxt(locale: Locale): Promise<string> {
   lines.push(
     `# ${profile.full_name}`,
     '',
-    `> ${profile.specialty}. ${dict.llms.officialSite}`,
+    `> ${[`${profile.specialty}.`, profile.hero_tagline && ensureSentence(profile.hero_tagline), dict.llms.officialSite].filter(Boolean).join(' ')}`,
     '',
     `${dict.llms.siteLabel}: ${localizedHome}`,
     dict.llms.languageName,

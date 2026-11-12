@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { getDb } from '@/db/client';
 import { profile, profileTranslations } from '@/db/schema';
+import { cleanHeroText, validateHeroFields } from '@/lib/hero';
 import { deleteImageIfUnused } from '@/lib/images';
 import { revalidatePublicSite } from '@/lib/revalidate';
 import { requireUser } from '@/lib/session';
@@ -17,6 +18,9 @@ export interface ProfileTranslationInput {
   experienceHistory: string;
   organizations: string;
   personalStory: string;
+  heroTagline: string;
+  heroBookingLabel: string;
+  heroWhatsappLabel: string;
 }
 
 export interface SaveProfileInput {
@@ -32,6 +36,9 @@ export interface SaveProfileInput {
   email: string;
   socialLinks: string;
   personalStory: string;
+  heroTagline: string;
+  heroBookingLabel: string;
+  heroWhatsappLabel: string;
   photoImageId: string | null;
   en?: ProfileTranslationInput;
 }
@@ -73,6 +80,26 @@ export async function saveProfileAction(
     };
   }
 
+  const hero = {
+    tagline: cleanHeroText(input.heroTagline),
+    bookingLabel: cleanHeroText(input.heroBookingLabel),
+    whatsappLabel: cleanHeroText(input.heroWhatsappLabel),
+  };
+  const heroError = validateHeroFields(hero);
+  if (heroError) return { success: false, error: heroError };
+
+  const enHero = input.en
+    ? {
+        tagline: cleanHeroText(input.en.heroTagline),
+        bookingLabel: cleanHeroText(input.en.heroBookingLabel),
+        whatsappLabel: cleanHeroText(input.en.heroWhatsappLabel),
+      }
+    : null;
+  if (enHero) {
+    const enHeroError = validateHeroFields(enHero);
+    if (enHeroError) return { success: false, error: enHeroError };
+  }
+
   try {
     const db = getDb();
     const [existing] = await db
@@ -97,6 +124,9 @@ export async function saveProfileAction(
       email,
       socialLinks: input.socialLinks.trim(),
       personalStory: input.personalStory.trim(),
+      heroTagline: hero.tagline,
+      heroBookingLabel: hero.bookingLabel,
+      heroWhatsappLabel: hero.whatsappLabel,
       photoImageId: newPhotoId,
       updatedAt: new Date(),
     };
@@ -110,7 +140,7 @@ export async function saveProfileAction(
       });
 
     // Row lifecycle rule for EN translations
-    if (input.en) {
+    if (input.en && enHero) {
       const enSpecialty = input.en.specialty.trim();
       const enSubSpecialty = input.en.subSpecialty.trim();
       const enEducation = input.en.education.trim();
@@ -118,6 +148,7 @@ export async function saveProfileAction(
       const enExperienceHistory = input.en.experienceHistory.trim();
       const enOrganizations = input.en.organizations.trim();
       const enPersonalStory = input.en.personalStory.trim();
+      const { tagline: enTagline, bookingLabel: enBookingLabel, whatsappLabel: enWhatsappLabel } = enHero;
 
       const hasAnyEn = Boolean(
         enSpecialty ||
@@ -126,7 +157,10 @@ export async function saveProfileAction(
         enCertifications ||
         enExperienceHistory ||
         enOrganizations ||
-        enPersonalStory,
+        enPersonalStory ||
+        enTagline ||
+        enBookingLabel ||
+        enWhatsappLabel,
       );
 
       if (hasAnyEn) {
@@ -141,6 +175,9 @@ export async function saveProfileAction(
             experienceHistory: enExperienceHistory,
             organizations: enOrganizations,
             personalStory: enPersonalStory,
+            heroTagline: enTagline,
+            heroBookingLabel: enBookingLabel,
+            heroWhatsappLabel: enWhatsappLabel,
             updatedAt: new Date(),
           })
           .onConflictDoUpdate({
@@ -153,6 +190,9 @@ export async function saveProfileAction(
               experienceHistory: enExperienceHistory,
               organizations: enOrganizations,
               personalStory: enPersonalStory,
+              heroTagline: enTagline,
+              heroBookingLabel: enBookingLabel,
+              heroWhatsappLabel: enWhatsappLabel,
               updatedAt: new Date(),
             },
           });

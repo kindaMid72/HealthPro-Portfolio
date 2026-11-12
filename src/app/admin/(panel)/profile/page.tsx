@@ -41,6 +41,9 @@ export default async function AdminProfilePage() {
           email: row?.email ?? '',
           socialLinks: row?.socialLinks ?? '',
           personalStory: row?.personalStory ?? '',
+          heroTagline: row?.heroTagline ?? '',
+          heroBookingLabel: row?.heroBookingLabel ?? '',
+          heroWhatsappLabel: row?.heroWhatsappLabel ?? '',
           photoImageId: row?.photoImageId ?? null,
           en: {
             specialty: enRow?.specialty ?? '',
@@ -50,6 +53,9 @@ export default async function AdminProfilePage() {
             experienceHistory: enRow?.experienceHistory ?? '',
             organizations: enRow?.organizations ?? '',
             personalStory: enRow?.personalStory ?? '',
+            heroTagline: enRow?.heroTagline ?? '',
+            heroBookingLabel: enRow?.heroBookingLabel ?? '',
+            heroWhatsappLabel: enRow?.heroWhatsappLabel ?? '',
           },
         }}
       />

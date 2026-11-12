@@ -36,6 +36,13 @@
       "when": 1794015099158,
       "tag": "0004_narrow_alice",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794480412890,
+      "tag": "0005_narrow_thunderball",
+      "breakpoints": true
     }
   ]
 }

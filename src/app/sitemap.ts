@@ -1,6 +1,8 @@
 import type { MetadataRoute } from 'next';
 import {
+  getContentLastModified,
   getPublishedArticles,
+  latestDate,
   getServiceSlugsWithDetail,
   getTranslatedSlugs,
 } from '@/lib/content';
@@ -10,11 +12,14 @@ export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = getSiteUrl();
-  const [articles, serviceSlugs, translated] = await Promise.all([
+  const [articles, serviceSlugs, translated, lastMod] = await Promise.all([
     getPublishedArticles(500),
     getServiceSlugsWithDetail(),
     getTranslatedSlugs(),
+    getContentLastModified(),
   ]);
+  const homeLastMod = latestDate(lastMod.site, lastMod.articles);
+  const lm = (d: Date | null) => (d ? { lastModified: d } : {});
 
   const homeLangs = {
     id: siteUrl,
@@ -31,41 +36,41 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [
     {
       url: siteUrl,
-      lastModified: new Date(),
+      ...lm(homeLastMod),
       changeFrequency: 'weekly',
       priority: 1,
       alternates: { languages: homeLangs },
     },
     {
       url: `${siteUrl}/en`,
-      lastModified: new Date(),
+      ...lm(homeLastMod),
       changeFrequency: 'weekly',
       priority: 0.9,
       alternates: { languages: homeLangs },
     },
     {
       url: `${siteUrl}/artikel`,
-      lastModified: articles[0]?.updatedAt ?? new Date(),
+      ...lm(lastMod.articles),
       changeFrequency: 'weekly',
       priority: 0.8,
       alternates: { languages: artikelLangs },
     },
     {
       url: `${siteUrl}/en/artikel`,
-      lastModified: articles[0]?.updatedAt ?? new Date(),
+      ...lm(lastMod.articles),
       changeFrequency: 'weekly',
       priority: 0.8,
       alternates: { languages: artikelLangs },
     },
     {
       url: `${siteUrl}/llms.txt`,
-      lastModified: new Date(),
+      ...lm(homeLastMod),
       changeFrequency: 'weekly',
       priority: 0.5,
     },
     {
       url: `${siteUrl}/en/llms.txt`,
-      lastModified: new Date(),
+      ...lm(homeLastMod),
       changeFrequency: 'weekly',
       priority: 0.5,
     },

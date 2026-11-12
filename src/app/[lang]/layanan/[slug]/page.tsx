@@ -12,7 +12,7 @@ import SiteShell from '@/components/SiteShell';
 import TableOfContents from '@/components/TableOfContents';
 import { hasLocale, INTL_LOCALE, LOCALES, OG_LOCALE, type Locale } from '@/i18n/config';
 import { format, getDictionaryFor } from '@/i18n/dictionary';
-import { buildAlternates, localePath } from '@/i18n/path';
+import { buildAlternates, localePath, absoluteUrl as localizedAbsoluteUrl } from '@/i18n/path';
 import {
   getAllSiteData,
   getPaginatedArticles,
@@ -20,6 +20,7 @@ import {
   getServiceSlugsWithDetail,
 } from '@/lib/content';
 import { getCtaLinks } from '@/lib/cta';
+import { META_DESCRIPTION_MAX, fitTitle, truncateMeta } from '@/lib/meta-text';
 import { describeHours } from '@/lib/schedule';
 import { getSiteUrl } from '@/lib/seo';
 
@@ -60,12 +61,15 @@ export async function generateMetadata({
   });
 
   const isUntranslatedEn = locale === 'en' && !service.translated;
-  const description =
+  const description = truncateMeta(
     service.service_description ||
-    `${service.service_name} — ${profile.full_name} (${profile.specialty}).`;
+      `${service.service_name} — ${profile.full_name} (${profile.specialty}).`,
+    META_DESCRIPTION_MAX,
+  );
+  const ogImage = localizedAbsoluteUrl(locale, '/opengraph-image');
 
   return {
-    title: `${service.service_name} — ${profile.full_name}`,
+    title: fitTitle(service.service_name, profile.full_name),
     description,
     alternates: {
       canonical: alternates.canonical,
@@ -81,6 +85,13 @@ export async function generateMetadata({
       description,
       locale: OG_LOCALE[locale],
       modifiedTime: service.updatedAt.toISOString(),
+      images: [ogImage],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: service.service_name,
+      description,
+      images: [ogImage],
     },
   };
 }
@@ -151,13 +162,13 @@ export default async function ServiceDetailPage({ params }: ServicePageProps) {
             '@type': 'ListItem',
             position: 1,
             name: dict.breadcrumbs.home,
-            item: siteUrl,
+            item: localizedAbsoluteUrl(locale, '/'),
           },
           {
             '@type': 'ListItem',
             position: 2,
             name: dict.breadcrumbs.services,
-            item: `${siteUrl}/#layanan`,
+            item: localizedAbsoluteUrl(locale, '/#layanan'),
           },
           {
             '@type': 'ListItem',

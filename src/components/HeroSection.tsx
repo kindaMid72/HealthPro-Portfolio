@@ -16,7 +16,7 @@ interface HeroSectionProps {
   bookingUrl: string | null;
   whatsappFallback: string | null;
   locations: Location[];
-  serviceArea: string | null;
+  tagline: string | null;
   locale: Locale;
   dict: Dictionary;
 }
@@ -26,7 +26,7 @@ export default function HeroSection({
   bookingUrl,
   whatsappFallback,
   locations,
-  serviceArea,
+  tagline,
   locale,
   dict,
 }: HeroSectionProps) {
@@ -107,13 +107,13 @@ export default function HeroSection({
             </p>
           )}
 
-          {serviceArea && (
+          {tagline && (
             <p
               id="doctor-geography"
               className="mt-3 flex max-w-xl items-start gap-2 text-sm text-text-body md:text-base"
             >
               <MapPin size={16} aria-hidden="true" className="mt-0.5 shrink-0 text-primary" />
-              <span>{serviceArea}</span>
+              <span>{tagline}</span>
             </p>
           )}
 
@@ -139,7 +139,7 @@ export default function HeroSection({
                   className="btn btn-accent"
                 >
                   <CalendarCheck size={18} aria-hidden="true" />
-                  {dict.common.bookingNow}
+                  {profile.hero_booking_label ?? dict.common.bookingNow}
                 </a>
               ) : (
                 <a
@@ -150,7 +150,7 @@ export default function HeroSection({
                   className="btn btn-accent"
                 >
                   <MessageCircle size={18} aria-hidden="true" />
-                  {dict.common.contactWhatsApp}
+                  {profile.hero_whatsapp_label ?? dict.common.contactWhatsApp}
                 </a>
               )}
               {bookingUrl && whatsappFallback && (
@@ -162,7 +162,7 @@ export default function HeroSection({
                   className="btn btn-secondary"
                 >
                   <MessageCircle size={18} aria-hidden="true" />
-                  {dict.common.whatsapp}
+                  {profile.hero_whatsapp_label ?? dict.common.whatsapp}
                 </a>
               )}
             </div>
